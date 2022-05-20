@@ -1,0 +1,10 @@
+const gulp = require('gulp');
+const path = require('path');
+
+const forwardReference = require('undertaker-forward-reference');
+
+gulp.registry(forwardReference())
+
+require('./gulpfile')
+
+gulp.task('default', gulp.series('generic'))

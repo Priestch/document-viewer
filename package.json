@@ -11,6 +11,6 @@
   "license": "ISC",
   "devDependencies": {
     "gulp": "^4.0.2",
-    "undertaker-forward-reference": "^1.0.2"
+    "webpack": "^5.72.1"
   }
 }

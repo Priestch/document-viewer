@@ -72,8 +72,9 @@ import { PDFViewer } from "../pdf.js/web/pdf_viewer.js";
 import { SecondaryToolbar } from "../pdf.js/web/secondary_toolbar.js";
 import { Toolbar } from "../pdf.js/web/toolbar.js";
 import { ViewHistory } from "../pdf.js/web/view_history.js";
-import { createHelper } from "./app_helper";
-import { DefaultExternalServices } from "./default_external_services";
+import { createHelper } from "./app_helper.js";
+import { DefaultExternalServices } from "./default_external_services.js";
+import { bindExternalService, bindPrintServiceFactory } from "./external_service.js";
 
 const DISABLE_AUTO_FETCH_LOADING_BAR_TIMEOUT = 5000; // ms
 const FORCE_PAGES_LOADED_TIMEOUT = 10000; // ms
@@ -134,6 +135,16 @@ const KNOWN_GENERATORS = [
   "aspose.cells",
   "fpdf",
 ];
+
+/* Abstract factory for the print service. */
+const PDFPrintServiceFactory = {
+  instance: {
+    supportsPrinting: false,
+    createPrintService() {
+      throw new Error("Not implemented: createPrintService");
+    },
+  },
+};
 
 class PDFViewerApplication {
   initialBookmark = document.location.hash.substring(1);
@@ -207,6 +218,13 @@ class PDFViewerApplication {
   constructor(appOptions) {
     this.appOptions = appOptions;
     this.helper = createHelper(this);
+
+    this.bindServices();
+  }
+
+  bindServices() {
+    bindExternalService(this);
+    bindPrintServiceFactory(PDFPrintServiceFactory);
   }
 
   // Called once when the document is loaded.
@@ -592,6 +610,7 @@ class PDFViewerApplication {
   }
 
   run(config) {
+    const { webViewerInitialized } = this.helper;
     this.initialize(config).then(webViewerInitialized);
   }
 
@@ -2166,17 +2185,6 @@ class PDFViewerApplication {
   }
 }
 
-/* Abstract factory for the print service. */
-const PDFPrintServiceFactory = {
-  instance: {
-    supportsPrinting: false,
-    createPrintService() {
-      throw new Error("Not implemented: createPrintService");
-    },
-  },
-};
-
 export {
-  PDFPrintServiceFactory,
   PDFViewerApplication,
 };

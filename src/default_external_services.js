@@ -1,3 +1,5 @@
+import { shadow } from "pdfjs-lib";
+
 class DefaultExternalServices {
   constructor() {
     throw new Error("Cannot initialize DefaultExternalServices.");

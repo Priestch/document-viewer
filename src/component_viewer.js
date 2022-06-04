@@ -15,6 +15,7 @@
 
 import { AppOptions } from "../pdf.js/web/app_options.js";
 import { PDFViewerApplication } from "./app.js";
+import { createApp } from "./app_manager.js";
 
 /* eslint-disable-next-line no-unused-vars */
 const pdfjsVersion =
@@ -44,21 +45,7 @@ if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("CHROME")) {
   })();
 }
 
-if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) {
-  require("../pdf.js/web/firefoxcom.js");
-  require("../pdf.js/web/firefox_print_service.js");
-}
-if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("GENERIC")) {
-  require("../pdf.js/web/genericcom.js");
-}
-if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("CHROME")) {
-  require("../pdf.js/web/chromecom.js");
-}
-if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("CHROME || GENERIC")) {
-  require("../pdf.js/web/pdf_print_service.js");
-}
-
-function getViewerConfiguration() {
+function getViewerConfiguration(document) {
   let errorWrapper = null;
   if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("MOZCENTRAL")) {
     errorWrapper = {
@@ -199,8 +186,8 @@ function getViewerConfiguration() {
 }
 
 function webViewerLoad() {
-  const config = getViewerConfiguration();
-  const app = new PDFViewerApplication(AppOptions);
+  const config = getViewerConfiguration(document);
+  const app = createApp(AppOptions);
   if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("PRODUCTION")) {
     if (window.chrome) {
       const link = document.createElement("link");

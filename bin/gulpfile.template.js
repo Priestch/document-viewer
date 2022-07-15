@@ -57,6 +57,13 @@ function buildGenericApp(defines) {
   )
 }
 
+function copyToDist(done) {
+  const options = { cwd: ROOT_DIR };
+  gulp.src("pdf.js/build/**/*", options)
+    .pipe(gulp.dest("dist", options));
+  done();
+}
+
 gulp.task("app", gulp.series(
     "generic",
     function createGeneric(done) {
@@ -69,6 +76,7 @@ gulp.task("app", gulp.series(
       buildGenericApp(defines);
 
       done();
-    }
+    },
+    copyToDist
   )
 )

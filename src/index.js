@@ -1,6 +1,6 @@
-import { PDFViewerApplication } from './app.js';
+import { createViewerApp } from "./app_manager";
 
 export {
-  PDFViewerApplication
+  createViewerApp,
 }
 

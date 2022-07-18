@@ -5,12 +5,19 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "./bin/gulp.sh"
+    "build": "./bin/gulp.sh",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:serve": "vitepress serve docs"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "gulp": "^4.0.2",
     "webpack": "^5.72.1"
+  },
+  "dependencies": {
+    "vitepress": "^1.0.0-alpha.4",
+    "vue": "^3.2.37"
   }
 }

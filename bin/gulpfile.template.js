@@ -43,40 +43,40 @@ function createWebComponentBundle(defines, options) {
     .pipe(webpack2Stream(viewerFileConfig))
 }
 
+function copyToDist() {
+  const options = { cwd: ROOT_DIR };
+  return gulp.src("pdf.js/build/**/*", options)
+    .pipe(gulp.dest("dist", options));
+}
+
 
 function buildGenericApp(defines) {
   rimraf.sync(APP_DIR);
 
-  merge(
+  return merge(
     createAppBundle(defines, {}),
     createWebComponentBundle(defines, {
       defaultPreferencesDir: defines.SKIP_BABEL
         ? "generic/"
         : "generic-legacy/",
     }).pipe(gulp.dest(GENERIC_DIR + "web")),
-  )
-}
-
-function copyToDist(done) {
-  const options = { cwd: ROOT_DIR };
-  gulp.src("pdf.js/build/**/*", options)
-    .pipe(gulp.dest("dist", options));
-  done();
+  );
 }
 
 gulp.task("app", gulp.series(
-    "generic",
-    function createGeneric(done) {
-      console.log();
-      console.log("### Creating generic document viewer");
-      console.log(rimraf);
-      console.log("root_dir", ROOT_DIR);
-      const defines = builder.merge(DEFINES, { GENERIC: true });
-
-      buildGenericApp(defines);
-
+    function (done) {
+      rimraf.sync(ROOT_DIR + "/dist");
       done();
     },
-    copyToDist
+    "generic",
+    function createGeneric() {
+      console.log();
+      console.log("### Creating generic document viewer");
+      const defines = builder.merge(DEFINES, { GENERIC: true });
+
+
+      return buildGenericApp(defines);
+    },
+    copyToDist,
   )
 )

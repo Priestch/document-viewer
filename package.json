@@ -2,7 +2,10 @@
   "name": "document-viewer-monorepo",
   "version": "1.0.0",
   "scripts": {
-    "viewer:build": "pnpm --filter document-viewer run build"
+    "viewer:build": "pnpm --filter document-viewer run build",
+    "docs:dev": "pnpm --filter viewer-docs run dev",
+    "docs:build": "pnpm --filter viewer-docs run build",
+    "docs:serve": "pnpm --filter viewer-docs run serve"
   },
   "dependencies": {
   }

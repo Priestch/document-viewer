@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "scripts": {
     "viewer:build": "pnpm --filter document-viewer run build",
+    "examples:dev": "pnpm --filter examples run dev",
     "docs:dev": "pnpm --filter viewer-docs run dev",
     "docs:build": "pnpm --filter viewer-docs run build",
     "docs:serve": "pnpm --filter viewer-docs run serve"
   },
-  "dependencies": {
+  "devDependencies": {
+    "vite": "^3.0.2"
   }
 }

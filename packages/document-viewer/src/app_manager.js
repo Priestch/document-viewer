@@ -1,4 +1,5 @@
 import { PDFViewerApplication } from "./app.js";
+import {AppOptions} from "../pdf.js/web/app_options";
 
 let activeApp;
 
@@ -155,7 +156,14 @@ function getViewerConfiguration(document) {
  */
 function createViewerApp(viewerOptions) {
   const { el = null, appOptions } = viewerOptions;
-  const app = new PDFViewerApplication(appOptions);
+  const options = AppOptions;
+
+  Object.keys(appOptions).forEach((key) => {
+    options.set(key, appOptions[key])
+  })
+
+  const app = new PDFViewerApplication(options);
+
   activeApp = app;
 
   if (el) {

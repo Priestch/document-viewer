@@ -24,12 +24,12 @@ function createAppBundle(defines, options) {
 }
 
 function createWebComponentBundle(defines, options) {
-  const viewerOutputName = "component_viewer.js";
+  const viewerOutputName = "app.js";
 
   const viewerFileConfig = createWebpackConfig(
     defines,
     {
-      library: "component_viewer",
+      library: "ViewerApp",
       filename: viewerOutputName,
       libraryTarget: "umd",
       umdNamedDefine: true,
@@ -39,7 +39,7 @@ function createWebComponentBundle(defines, options) {
     }
   );
   return gulp
-    .src(ROOT_DIR + "/src/component_viewer.js")
+    .src(ROOT_DIR + "/src/viewer.js")
     .pipe(webpack2Stream(viewerFileConfig))
 }
 
@@ -53,14 +53,11 @@ function copyToDist() {
 function buildGenericApp(defines) {
   rimraf.sync(APP_DIR);
 
-  return merge(
-    createAppBundle(defines, {}),
-    createWebComponentBundle(defines, {
-      defaultPreferencesDir: defines.SKIP_BABEL
-        ? "generic/"
-        : "generic-legacy/",
-    }).pipe(gulp.dest(GENERIC_DIR + "web")),
-  );
+  return createWebComponentBundle(defines, {
+    defaultPreferencesDir: defines.SKIP_BABEL
+      ? "generic/"
+      : "generic-legacy/",
+  }).pipe(gulp.dest(GENERIC_DIR + "web"));
 }
 
 gulp.task("app", gulp.series(

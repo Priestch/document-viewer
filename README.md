@@ -1,6 +1,6 @@
 # PDF Viewer
 
-An out-of-the-box document viewer based on PDF.js.
+An out-of-the-box PDF viewer based on PDF.js.
 
 # Why
 

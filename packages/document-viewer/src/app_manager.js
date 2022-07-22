@@ -1,5 +1,7 @@
-import { PDFViewerApplication } from "./app.js";
+import {PDFViewerApplication} from "./app.js";
 import {AppOptions} from "../pdf.js/web/app_options";
+import {injectLocaleResource} from "./utils";
+import getViewerTemplate from "./viewer_template";
 
 let activeApp;
 
@@ -144,9 +146,16 @@ function getViewerConfiguration(document) {
 }
 
 /**
+ * @typedef AppOptions {
+ *   @property {string} } defaultUrl
+ *   @property {string} } resourcePath
+ * }
+ */
+
+/**
  * @typedef ViewerOptions
- * @property {HTMLElement} el
- * @property {Object} appOptions
+ * @property {HTMLElement} el - Element the PDF viewer render to.
+ * @property {AppOptions} appOptions
  */
 
 /**
@@ -155,25 +164,35 @@ function getViewerConfiguration(document) {
  * @returns {PDFViewerApplication}
  */
 function createViewerApp(viewerOptions) {
-  const { el = null, appOptions } = viewerOptions;
-  const options = AppOptions;
+  const {el = null, appOptions} = viewerOptions;
+  const workerSrc = `${appOptions.resourcePath}/build/pdf.worker.js`;
 
-  Object.keys(appOptions).forEach((key) => {
-    options.set(key, appOptions[key])
-  })
+  const options = AppOptions;
+  options.set("workerSrc", workerSrc);
+  options.set("defaultUrl", appOptions.defaultUrl);
+
+  const localeUrl = `${appOptions.resourcePath}/web/locale/locale.properties`
+  injectLocaleResource(localeUrl)
 
   const app = new PDFViewerApplication(options);
 
   activeApp = app;
 
   if (el) {
-    const config = getViewerConfiguration(el);
+    const template = getViewerTemplate();
+    el.appendChild(template)
+
+    const config = getViewerConfiguration(document);
     app.run(config);
   }
 
   return app;
 }
 
+/**
+ * Get current active viewer app.
+ * @returns {PDFViewerApplication}
+ */
 function getActiveApp() {
   return activeApp;
 }

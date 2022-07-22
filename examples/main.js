@@ -5,7 +5,7 @@ import "./style.css"
 
 const appOptions = {
   defaultUrl,
-  workerSrc: "document-viewer/build/pdf.worker.js"
+  resourcePath: "document-viewer"
 };
 
-createViewerApp({el: document, appOptions: appOptions});
+createViewerApp({el: document.getElementById("app"), appOptions: appOptions });

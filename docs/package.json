@@ -1,13 +1,42 @@
 {
-  "name": "viewer-docs",
-  "version": "1.0.0",
+  "name": "docs",
+  "description": "File based routing and MDX support Vite.js tooling. Netlify Edge Functions. Prettier code formatter.",
   "scripts": {
-    "dev": "vitepress dev",
-    "build": "vitepress build",
-    "serve": "vitepress serve"
+    "build": "npm run typecheck && npm run build.client && npm run build.ssr",
+    "build.client": "vite build",
+    "build.ssr": "vite build --ssr src/entry.netlify.ts",
+    "dev": "npm run dev.ssr",
+    "dev.client": "vite",
+    "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js --force --mode ssr",
+    "dev.ssr": "node --inspect node_modules/vite/bin/vite.js --mode ssr",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "serve": "netlify dev",
+    "start": "npm run dev",
+    "typecheck": "tsc --incremental --noEmit"
   },
   "devDependencies": {
-    "vitepress": "1.0.0-alpha.4",
-    "vue": "^3.2.37"
-  }
+    "@builder.io/qwik": "0.0.39",
+    "@builder.io/qwik-city": "0.0.26",
+    "@netlify/vite-plugin-netlify-edge": "1.1.0",
+    "@types/eslint": "8.4.5",
+    "@types/node": "latest",
+    "@typescript-eslint/eslint-plugin": "5.30.7",
+    "@typescript-eslint/parser": "5.30.7",
+    "eslint": "8.20.0",
+    "eslint-plugin-qwik": "0.0.39",
+    "node-fetch": "3.2.9",
+    "prettier": "2.7.1",
+    "typescript": "4.7.4",
+    "vite": "3.0.2",
+    "vite-tsconfig-paths": "3.5.0"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "homepage": "https://qwik.builder.io/",
+  "license": "",
+  "private": true,
+  "type": "module"
 }

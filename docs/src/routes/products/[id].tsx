@@ -1,6 +1,5 @@
 import { Resource, component$, Host, useStore } from '@builder.io/qwik';
 import { useEndpoint, useLocation, EndpointHandler, DocumentHead } from '@builder.io/qwik-city';
-import os from 'os';
 
 export default component$(() => {
   const { params, pathname } = useLocation();
@@ -110,9 +109,6 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params, response })
   return {
     productId: params.id,
     price: productPrice,
-    description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
-      os.cpus()[0].model
-    }`,
   };
 };
 

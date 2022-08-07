@@ -12,23 +12,11 @@ export default component$(
       <Host>
         <div class="header-inner">
           <section class="logo">
-            <a href="/">Qwik City 🏙</a>
+            <a href="/">Document Viewer</a>
           </section>
           <nav>
-            <a href="/blog" class={{ active: pathname.startsWith('/blog') }}>
-              Blog
-            </a>
-            <a href="/docs" class={{ active: pathname.startsWith('/docs') }}>
-              Docs
-            </a>
-            <a href="/api" class={{ active: pathname.startsWith('/api') }}>
-              API
-            </a>
-            <a href="/products/hat" class={{ active: pathname.startsWith('/products') }}>
-              Products
-            </a>
-            <a href="/about-us" class={{ active: pathname.startsWith('/about-us') }}>
-              About Us
+            <a href="/guides" class={{ active: pathname.startsWith('/guides') }}>
+              Guides
             </a>
           </nav>
         </div>

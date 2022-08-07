@@ -1,7 +1,5 @@
 import { component$ } from '@builder.io/qwik';
 import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
-import { Analytics } from './analytics';
-import { Social } from './social';
 
 export const Head = component$(
   () => {
@@ -12,7 +10,7 @@ export const Head = component$(
       <>
         <meta charSet="utf-8" />
 
-        <title>{head.title ? `${head.title} - Qwik` : `Qwik`}</title>
+        <title>{head.title ? `Document Viewer - ${head.title}` : `Document Viewer`}</title>
 
         <link rel="canonical" href={loc.href} />
 
@@ -27,9 +25,6 @@ export const Head = component$(
         {head.styles.map((s) => (
           <style {...s.props} dangerouslySetInnerHTML={s.style} />
         ))}
-
-        <Social />
-        <Analytics loc={loc} />
       </>
     );
   },

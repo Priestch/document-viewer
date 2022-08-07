@@ -1,6 +1,6 @@
-import { createViewerApp } from "document-viewer";
-import doc from "document-viewer/compressed.tracemonkey-pldi-09.pdf?url"
-import "document-viewer/viewer.css";
+import { createViewerApp } from "@document-kits/viewer";
+import doc from "@document-kits/viewer/compressed.tracemonkey-pldi-09.pdf?url"
+import "@document-kits/viewer/viewer.css";
 import "./style.css"
 
 const appOptions = {

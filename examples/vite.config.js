@@ -6,7 +6,7 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: 'node_modules/document-viewer/dist/generic/*',
+          src: 'node_modules/@document-kits/viewer/dist/generic/*',
           dest: 'document-viewer',
         },
       ],

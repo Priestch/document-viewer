@@ -16,5 +16,9 @@
   "license": "ISC",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
-  }
+  },
+  "files": [
+    "dist",
+    "package.json"
+  ]
 }

@@ -1,10 +1,10 @@
 import { createViewerApp } from "document-viewer";
-import defaultUrl from "document-viewer/compressed.tracemonkey-pldi-09.pdf?url"
+import doc from "document-viewer/compressed.tracemonkey-pldi-09.pdf?url"
 import "document-viewer/viewer.css";
 import "./style.css"
 
 const appOptions = {
-  defaultUrl,
+  doc,
   resourcePath: "document-viewer"
 };
 

@@ -20,5 +20,8 @@
   "files": [
     "dist",
     "package.json"
-  ]
+  ],
+  "devDependencies": {
+    "gulp": "^4.0.2"
+  }
 }

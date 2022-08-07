@@ -1,5 +1,5 @@
 {
-  "name": "document-viewer",
+  "name": "@document-kit/viewer",
   "version": "0.0.0",
   "description": "",
   "scripts": {
@@ -12,5 +12,8 @@
     "./*": "./dist/generic/web/*"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  }
 }

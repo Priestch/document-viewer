@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "./bin/gulp.sh"
+    "build": "./bin/gulp.sh",
+    "release": "npm run build && npm publish"
   },
   "exports": {
     ".": "./dist/generic/web/app.js",

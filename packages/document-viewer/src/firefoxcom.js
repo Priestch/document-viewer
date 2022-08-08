@@ -22,9 +22,7 @@ import { DEFAULT_SCALE_VALUE } from "../pdf.js/web/ui_utils.js";
 import { getL10nFallback } from "../pdf.js/web/l10n_utils.js";
 
 if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("MOZCENTRAL")) {
-  throw new Error(
-    'Module "./firefoxcom.js" shall not be used outside MOZCENTRAL builds.'
-  );
+  throw new Error('Module "./firefoxcom.js" shall not be used outside MOZCENTRAL builds.');
 }
 
 class FirefoxCom {
@@ -62,7 +60,7 @@ class FirefoxCom {
    * @returns {Promise<any>} A promise that is resolved with the response data.
    */
   static requestAsync(action, data) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.request(action, data, resolve);
     });
   }
@@ -78,7 +76,7 @@ class FirefoxCom {
     if (callback) {
       request.addEventListener(
         "pdf.js.response",
-        event => {
+        (event) => {
           const response = event.detail.response;
           event.target.remove();
 
@@ -113,16 +111,14 @@ class DownloadManager {
   }
 
   downloadData(data, filename, contentType) {
-    const blobUrl = URL.createObjectURL(
-      new Blob([data], { type: contentType })
-    );
+    const blobUrl = URL.createObjectURL(new Blob([data], { type: contentType }));
 
     FirefoxCom.requestAsync("download", {
       blobUrl,
       originalUrl: blobUrl,
       filename,
       isAttachment: true,
-    }).then(error => {
+    }).then((error) => {
       URL.revokeObjectURL(blobUrl);
     });
   }
@@ -167,7 +163,7 @@ class DownloadManager {
       originalUrl: url,
       filename,
       sourceEventType,
-    }).then(error => {
+    }).then((error) => {
       if (error) {
         // If downloading failed in `PdfStreamConverter.jsm` it's very unlikely
         // that attempting to fallback and re-download would be helpful here.
@@ -346,11 +342,7 @@ class FirefoxExternalServices extends DefaultExternalServices {
             args.filename
           );
 
-          callbacks.onOpenWithTransport(
-            args.pdfUrl,
-            args.length,
-            pdfDataRangeTransport
-          );
+          callbacks.onOpenWithTransport(args.pdfUrl, args.length, pdfDataRangeTransport);
           break;
         case "range":
           pdfDataRangeTransport.onDataRange(args.begin, args.chunk);
@@ -416,9 +408,7 @@ class FirefoxExternalServices extends DefaultExternalServices {
   }
 
   static get supportedMouseWheelZoomModifierKeys() {
-    const support = FirefoxCom.requestSync(
-      "supportedMouseWheelZoomModifierKeys"
-    );
+    const support = FirefoxCom.requestSync("supportedMouseWheelZoomModifierKeys");
     return shadow(this, "supportedMouseWheelZoomModifierKeys", support);
   }
 

@@ -22,9 +22,7 @@ import { GenericScripting } from "../pdf.js/web/generic_scripting.js";
 import { getActiveApp } from "./app_manager.js";
 
 if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("CHROME")) {
-  throw new Error(
-    'Module "pdfjs-web/chromecom" shall not be used outside CHROME build.'
-  );
+  throw new Error('Module "pdfjs-web/chromecom" shall not be used outside CHROME build.');
 }
 
 const ChromeCom = {
@@ -64,10 +62,7 @@ const ChromeCom = {
    */
   resolvePDFFile(file, overlayManager, callback) {
     // Expand drive:-URLs to filesystem URLs (Chrome OS)
-    file = file.replace(
-      /^drive:/i,
-      "filesystem:" + location.origin + "/external/"
-    );
+    file = file.replace(/^drive:/i, "filesystem:" + location.origin + "/external/");
 
     if (/^https?:/.test(file)) {
       // Assumption: The file being opened is the file that was requested.
@@ -89,11 +84,11 @@ const ChromeCom = {
         if (origin && !/^file:|^chrome-extension:/.test(origin)) {
           app._documentError(
             "Blocked " +
-            origin +
-            " from loading " +
-            file +
-            ". Refused to load a local file in a non-local page " +
-            "for security reasons."
+              origin +
+              " from loading " +
+              file +
+              ". Refused to load a local file in a non-local page " +
+              "for security reasons."
           );
           return;
         }
@@ -163,10 +158,7 @@ function requestAccessToLocalFile(fileUrl, overlayManager, callback) {
       reloadIfRuntimeIsUnavailable();
     });
   }
-  chromeFileAccessOverlayPromise ||= overlayManager.register(
-    dialog,
-    /* canForceClose = */ true
-  );
+  chromeFileAccessOverlayPromise ||= overlayManager.register(dialog, /* canForceClose = */ true);
 
   chromeFileAccessOverlayPromise.then(function () {
     const iconPath = chrome.runtime.getManifest().icons[48];
@@ -181,8 +173,7 @@ function requestAccessToLocalFile(fileUrl, overlayManager, callback) {
     )[chrome.i18n.getUILanguage?.()];
 
     if (i18nFileAccessLabel) {
-      document.getElementById("chrome-file-access-label").textContent =
-        i18nFileAccessLabel;
+      document.getElementById("chrome-file-access-label").textContent = i18nFileAccessLabel;
     }
 
     const link = document.getElementById("chrome-link-to-extensions-page");
@@ -311,7 +302,7 @@ const storageArea = chrome.storage.sync || chrome.storage.local;
 
 class ChromePreferences extends BasePreferences {
   async _writeToStorage(prefObj) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (prefObj === this.defaults) {
         const keysToRemove = Object.keys(this.defaults);
         // If the storage is reset, remove the keys so that the values from
@@ -328,8 +319,8 @@ class ChromePreferences extends BasePreferences {
   }
 
   async _readFromStorage(prefObj) {
-    return new Promise(resolve => {
-      const getPreferences = defaultPrefs => {
+    return new Promise((resolve) => {
+      const getPreferences = (defaultPrefs) => {
         if (chrome.runtime.lastError) {
           // Managed storage not supported, e.g. in Opera.
           defaultPrefs = this.defaults;

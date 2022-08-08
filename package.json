@@ -7,7 +7,11 @@
     "examples:dev": "pnpm --filter examples run dev",
     "docs:dev": "pnpm --filter viewer-docs run dev",
     "docs:build": "pnpm --filter viewer-docs run build",
-    "docs:serve": "pnpm --filter viewer-docs run serve"
+    "docs:serve": "pnpm --filter viewer-docs run serve",
+    "fmt": "npx prettier --write --ignore-unknown ."
+  },
+  "lint-staged": {
+    "*": "prettier --write --ignore-unknown"
   },
   "devDependencies": {
     "vite": "^3.0.4"

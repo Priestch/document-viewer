@@ -49,6 +49,4 @@ class DefaultExternalServices {
   }
 }
 
-export {
-  DefaultExternalServices,
-}
+export { DefaultExternalServices };

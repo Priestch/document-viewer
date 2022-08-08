@@ -1,0 +1,8 @@
+pnpm-lock.yaml
+pnpm-workspace.yaml
+
+dist
+pdf.js
+
+packages/document-viewer/src/app_helper.js
+

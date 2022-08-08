@@ -1,19 +1,19 @@
-import {defineConfig} from "vite";
-import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { defineConfig } from "vite";
+import { viteStaticCopy } from "vite-plugin-static-copy";
 
 export default defineConfig({
   plugins: [
     viteStaticCopy({
       targets: [
         {
-          src: 'node_modules/@document-kits/viewer/dist/generic/*',
-          dest: 'document-viewer',
+          src: "node_modules/@document-kits/viewer/dist/generic/*",
+          dest: "document-viewer",
         },
       ],
     }),
   ],
   optimizeDeps: {
-    include: ['document-viewer']
+    include: ["document-viewer"],
   },
   build: {
     commonjsOptions: {
@@ -24,8 +24,8 @@ export default defineConfig({
     alias: [
       {
         find: /^canvas$/,
-        replacement: 'canvas.js',
+        replacement: "canvas.js",
       },
     ],
-  }
-})
+  },
+});

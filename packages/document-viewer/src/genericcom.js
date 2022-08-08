@@ -20,9 +20,7 @@ import { GenericL10n } from "../pdf.js/web/genericl10n.js";
 import { GenericScripting } from "../pdf.js/web/generic_scripting.js";
 
 if (typeof PDFJSDev !== "undefined" && !PDFJSDev.test("GENERIC")) {
-  throw new Error(
-    'Module "pdfjs-web/genericcom" shall not be used outside GENERIC build.'
-  );
+  throw new Error('Module "pdfjs-web/genericcom" shall not be used outside GENERIC build.');
 }
 
 const GenericCom = {};

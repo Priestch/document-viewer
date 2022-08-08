@@ -13,12 +13,7 @@
  * limitations under the License.
  */
 
-import {
-  AnnotationMode,
-  PixelsPerInch,
-  RenderingCancelledException,
-  shadow,
-} from "pdfjs-lib";
+import { AnnotationMode, PixelsPerInch, RenderingCancelledException, shadow } from "pdfjs-lib";
 import { getXfaHtmlForPrinting } from "../pdf.js/web/print_utils.js";
 
 // Creates a placeholder with div and canvas with right size for the page.
@@ -160,8 +155,6 @@ FirefoxPrintService.prototype = {
     body.removeAttribute("data-pdfjsprinting");
   },
 };
-
-
 
 function bindPrintServiceFactory(factory) {
   factory.instance = {

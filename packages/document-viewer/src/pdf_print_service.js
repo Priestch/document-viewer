@@ -86,15 +86,11 @@ PDFPrintService.prototype = {
 
     const hasEqualPageSizes = this.pagesOverview.every(function (size) {
       return (
-        size.width === this.pagesOverview[0].width &&
-        size.height === this.pagesOverview[0].height
+        size.width === this.pagesOverview[0].width && size.height === this.pagesOverview[0].height
       );
     }, this);
     if (!hasEqualPageSizes) {
-      console.warn(
-        "Not all pages have the same size. The printed " +
-        "result may be incorrect!"
-      );
+      console.warn("Not all pages have the same size. The printed " + "result may be incorrect!");
     }
 
     // Insert a @page + size rule to make sure that the page size is correctly
@@ -195,7 +191,7 @@ PDFPrintService.prototype = {
 
   performPrint() {
     this.throwIfInactive();
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       // Push window.print in the macrotask queue to avoid being affected by
       // the deprecation of running print() code in a microtask, see
       // https://github.com/mozilla/pdf.js/issues/7547.
@@ -287,7 +283,7 @@ function renderProgress(index, total, l10n) {
   const progressBar = dialog.querySelector("progress");
   const progressPerc = dialog.querySelector(".relative-progress");
   progressBar.value = progress;
-  l10n.get("print_progress_percent", { progress }).then(msg => {
+  l10n.get("print_progress_percent", { progress }).then((msg) => {
     progressPerc.textContent = msg;
   });
 }
@@ -341,10 +337,7 @@ function ensureOverlay() {
     }
     dialog ||= document.getElementById("printServiceDialog");
 
-    overlayPromise = overlayManager.register(
-      dialog,
-      /* canForceClose = */ true
-    );
+    overlayPromise = overlayManager.register(dialog, /* canForceClose = */ true);
 
     document.getElementById("printCancel").onclick = abort;
     dialog.addEventListener("close", abort);

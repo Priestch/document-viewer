@@ -1,6 +1,6 @@
-import {PDFViewerApplication} from "./app.js";
-import {AppOptions} from "../pdf.js/web/app_options";
-import {injectLocaleResource} from "./utils";
+import { PDFViewerApplication } from "./app.js";
+import { AppOptions } from "../pdf.js/web/app_options";
+import { injectLocaleResource } from "./utils";
 import getViewerTemplate from "./viewer_template";
 
 let activeApp;
@@ -45,9 +45,7 @@ function getViewerConfiguration(document) {
     secondaryToolbar: {
       toolbar: document.getElementById("secondaryToolbar"),
       toggleButton: document.getElementById("secondaryToolbarToggle"),
-      presentationModeButton: document.getElementById(
-        "secondaryPresentationMode"
-      ),
+      presentationModeButton: document.getElementById("secondaryPresentationMode"),
       openFileButton:
         typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")
           ? document.getElementById("secondaryOpenFile")
@@ -86,9 +84,7 @@ function getViewerConfiguration(document) {
       attachmentsView: document.getElementById("attachmentsView"),
       layersView: document.getElementById("layersView"),
       // View-specific options
-      outlineOptionsContainer: document.getElementById(
-        "outlineOptionsContainer"
-      ),
+      outlineOptionsContainer: document.getElementById("outlineOptionsContainer"),
       currentOutlineItemButton: document.getElementById("currentOutlineItem"),
     },
     sidebarResizer: {
@@ -164,15 +160,15 @@ function getViewerConfiguration(document) {
  * @returns {PDFViewerApplication}
  */
 function createViewerApp(viewerOptions) {
-  const {el = null, appOptions} = viewerOptions;
+  const { el = null, appOptions } = viewerOptions;
   const workerSrc = `${appOptions.resourcePath}/build/pdf.worker.js`;
 
   const options = AppOptions;
   options.set("workerSrc", workerSrc);
   options.set("defaultUrl", appOptions.doc);
 
-  const localeUrl = `${appOptions.resourcePath}/web/locale/locale.properties`
-  injectLocaleResource(localeUrl)
+  const localeUrl = `${appOptions.resourcePath}/web/locale/locale.properties`;
+  injectLocaleResource(localeUrl);
 
   const app = new PDFViewerApplication(options);
 
@@ -180,7 +176,7 @@ function createViewerApp(viewerOptions) {
 
   if (el) {
     const template = getViewerTemplate();
-    el.appendChild(template)
+    el.appendChild(template);
 
     const config = getViewerConfiguration(document);
     app.run(config);
@@ -197,8 +193,4 @@ function getActiveApp() {
   return activeApp;
 }
 
-export {
-  getActiveApp,
-  createViewerApp,
-  getViewerConfiguration,
-}
+export { getActiveApp, createViewerApp, getViewerConfiguration };

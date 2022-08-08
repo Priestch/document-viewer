@@ -38,8 +38,7 @@ let bindExternalService;
 
 if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) {
   bindExternalService = require("./firefoxcom.js").bindExternalService;
-  bindPrintServiceFactory =
-    require("./firefox_print_service.js").bindPrintServiceFactory;
+  bindPrintServiceFactory = require("./firefox_print_service.js").bindPrintServiceFactory;
 }
 if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("GENERIC")) {
   bindExternalService = require("./genericcom.js").bindExternalService;
@@ -48,8 +47,7 @@ if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("CHROME")) {
   bindExternalService = require("./chromecom.js").bindExternalService;
 }
 if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("CHROME || GENERIC")) {
-  bindPrintServiceFactory =
-    require("./pdf_print_service.js").bindPrintServiceFactory;
+  bindPrintServiceFactory = require("./pdf_print_service.js").bindPrintServiceFactory;
 }
 // Block the "load" event until all pages are loaded, to ensure that printing
 // works in Firefox; see https://bugzilla.mozilla.org/show_bug.cgi?id=1618553

@@ -374,7 +374,7 @@ const template = `
 <div id="printContainer"></div>
 
 <input type="file" id="fileInput" class="hidden">
-`
+`;
 
 let templateFragment;
 

@@ -4,9 +4,9 @@ importers:
 
   .:
     specifiers:
-      vite: ^3.0.2
+      vite: ^3.0.4
     devDependencies:
-      vite: 3.0.2
+      vite: 3.0.4
 
   docs:
     specifiers:
@@ -2947,8 +2947,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vite/3.0.2:
-    resolution: {integrity: sha512-TAqydxW/w0U5AoL5AsD9DApTvGb2iNbGs3sN4u2VdT1GFkQVUfgUldt+t08TZgi23uIauh1TUOQJALduo9GXqw==}
+  /vite/3.0.4:
+    resolution: {integrity: sha512-NU304nqnBeOx2MkQnskBQxVsa0pRAH5FphokTGmyy8M3oxbvw7qAXts2GORxs+h/2vKsD+osMhZ7An6yK6F1dA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:

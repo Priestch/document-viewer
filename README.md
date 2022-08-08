@@ -2,6 +2,20 @@
 
 An out-of-the-box PDF viewer based on PDF.js.
 
+# How to use
+```javascript
+import { createViewerApp } from "@document-kits/viewer";
+import doc from "@document-kits/viewer/compressed.tracemonkey-pldi-09.pdf?url"
+import "@document-kits/viewer/viewer.css";
+
+const appOptions = {
+  doc,
+  resourcePath: "document-viewer"
+};
+
+createViewerApp({el: document.getElementById("app"), appOptions: appOptions });
+```
+
 # Why
 
 > [Using pdfjs in a web application](https://github.com/mozilla/pdf.js#using-pdfjs-in-a-web-application)
@@ -18,3 +32,8 @@ component, and it suffers some other issues. Or you can try to build a PDF viewe
 Haha, I don't think the manager will give much time for you developers, they always want the feature tomorrow. If you
 have plenty time to build from scratch, be cautions, or the final viewer may suffer a lot of performance issues.
 
+# Planed Todos
+- [x] Display single PDF document
+- [ ] Cli starter
+- [ ] Docs
+- [ ] Display multiple documents

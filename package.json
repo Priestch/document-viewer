@@ -14,6 +14,9 @@
     "*": "prettier --write --ignore-unknown"
   },
   "devDependencies": {
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1",
+    "simple-git-hooks": "^2.8.0",
     "vite": "^3.0.4"
   }
 }

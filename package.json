@@ -4,6 +4,7 @@
   "scripts": {
     "viewer:build": "pnpm --filter @document-kits/viewer run build",
     "viewer:release": "pnpm --filter @document-kits/viewer",
+    "cli:build": "pnpm --filter @document-kits/create-viewer run build",
     "examples:dev": "pnpm --filter examples run dev",
     "docs:dev": "pnpm --filter viewer-docs run dev",
     "docs:build": "pnpm --filter viewer-docs run build",

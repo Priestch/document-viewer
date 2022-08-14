@@ -2,19 +2,15 @@
 
 An out-of-the-box PDF viewer based on PDF.js.
 
-# How to use
+# Getting Started
 
-```javascript
-import { createViewerApp } from "@document-kits/viewer";
-import doc from "@document-kits/viewer/compressed.tracemonkey-pldi-09.pdf?url";
-import "@document-kits/viewer/viewer.css";
+```bash
+npm create @document-kits/viewer@latest my-app
 
-const appOptions = {
-  doc,
-  resourcePath: "document-viewer",
-};
+cd my-app
 
-createViewerApp({ el: document.getElementById("app"), appOptions: appOptions });
+npm install
+npm run dev
 ```
 
 # Why

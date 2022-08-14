@@ -5,4 +5,4 @@ dist
 pdf.js
 
 packages/document-viewer/src/app_helper.js
-packages/create-viewer/bin.cjs
+packages/create-viewer/bin

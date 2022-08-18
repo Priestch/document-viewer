@@ -1,3 +1,10 @@
+const scriptContent = `
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);};
+  gtag('js', new Date());
+  gtag('config', 'G-6648ZRLKLT');
+`;
+
 /**
  * @type {import('vitepress').UserConfig}
  */
@@ -9,5 +16,10 @@ const config = {
   markdown: {
     lineNumbers: true,
   },
+  head: [
+    ["script", { src: "https://www.googletagmanager.com/gtag/js?id=G-6648ZRLKLT", async: true }],
+    ["script", {}, scriptContent],
+  ],
 };
+
 export default config;

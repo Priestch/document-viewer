@@ -17,7 +17,7 @@ import {
   updateVersion,
   publishPackage,
   buildPackage,
-} from "./releaseUtils";
+} from "./releaseUtils.mjs";
 
 async function main() {
   let targetVersion;
@@ -33,7 +33,7 @@ async function main() {
 
   await logRecentCommits(pkg);
 
-  const { currentVersion, pkgName, pkgPath, pkgDir } = getPackageInfo(pkg);
+  const { currentVersion, pkgName, pkgPath, pkgDir } = await getPackageInfo(pkg);
 
   if (!targetVersion) {
     const { release } = await prompts({

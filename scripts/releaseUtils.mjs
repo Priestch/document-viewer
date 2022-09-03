@@ -18,7 +18,7 @@ if (isDryRun) {
   console.log();
 }
 
-export const packages = ["viewer", "create-viewer"];
+export const packages = ["document-viewer", "create-viewer"];
 
 export const versionIncrements = [
   "patch",
@@ -50,15 +50,15 @@ export const versionIncrements = [
  * @param {string} pkgName
  * @returns PackageInfo
  */
-export function getPackageInfo(pkgName) {
-  const pkgDir = path.resolve(__dirname, "../packages/" + pkgName);
+export async function getPackageInfo(pkgName) {
+  const pkgDir = path.join(process.cwd(), "/packages/" + pkgName);
 
   if (!existsSync(pkgDir)) {
     throw new Error(`Package ${pkgName} not found`);
   }
 
   const pkgPath = path.resolve(pkgDir, "package.json");
-  const pkg = require(pkgPath);
+  const pkg = fs.readJSONSync(pkgPath);
   const currentVersion = pkg.version;
 
   if (pkg.private) {

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "viewer:build": "pnpm --filter @document-kits/viewer run build",
-    "release": "node scripts/release.js",
+    "release": "node scripts/release.mjs",
     "cli:build": "pnpm --filter @document-kits/create-viewer run build",
     "examples:dev": "pnpm --filter examples run dev",
     "docs:dev": "pnpm --filter viewer-docs run dev",
@@ -21,6 +21,7 @@
     "minimist": "^1.2.6",
     "picocolors": "^1.0.0",
     "prettier": "^2.7.1",
+    "prompts": "^2.4.2",
     "semver": "^7.3.7",
     "simple-git-hooks": "^2.8.0",
     "vite": "^3.0.4"

@@ -6,16 +6,16 @@ const template = `
       <div id="toolbarSidebarLeft">
         <div id="sidebarViewButtons" class="splitToolbarButton toggled" role="radiogroup">
           <button id="viewThumbnail" class="toolbarButton toggled" title="Show Thumbnails" tabindex="2" data-l10n-id="thumbs" role="radio" aria-checked="true" aria-controls="thumbnailView">
-            <span data-l10n-id="thumbs_label">Thumbnails</span>
+             <span data-l10n-id="thumbs_label">Thumbnails</span>
           </button>
           <button id="viewOutline" class="toolbarButton" title="Show Document Outline (double-click to expand/collapse all items)" tabindex="3" data-l10n-id="document_outline" role="radio" aria-checked="false" aria-controls="outlineView">
-            <span data-l10n-id="document_outline_label">Document Outline</span>
+             <span data-l10n-id="document_outline_label">Document Outline</span>
           </button>
           <button id="viewAttachments" class="toolbarButton" title="Show Attachments" tabindex="4" data-l10n-id="attachments" role="radio" aria-checked="false" aria-controls="attachmentsView">
-            <span data-l10n-id="attachments_label">Attachments</span>
+             <span data-l10n-id="attachments_label">Attachments</span>
           </button>
           <button id="viewLayers" class="toolbarButton" title="Show Layers (double-click to reset all layers to the default state)" tabindex="5" data-l10n-id="layers" role="radio" aria-checked="false" aria-controls="layersView">
-            <span data-l10n-id="layers_label">Layers</span>
+             <span data-l10n-id="layers_label">Layers</span>
           </button>
         </div>
       </div>
@@ -76,6 +76,36 @@ const template = `
         <span id="findMsg" class="toolbarLabel"></span>
       </div>
     </div>  <!-- findbar -->
+
+    <div class="editorParamsToolbar hidden doorHangerRight" id="editorFreeTextParamsToolbar">
+      <div class="editorParamsToolbarContainer">
+        <div class="editorParamsSetter">
+          <label for="editorFreeTextColor" class="editorParamsLabel" data-l10n-id="editor_free_text_color">Color</label>
+          <input type="color" id="editorFreeTextColor" class="editorParamsColor" tabindex="100">
+        </div>
+        <div class="editorParamsSetter">
+          <label for="editorFreeTextFontSize" class="editorParamsLabel" data-l10n-id="editor_free_text_size">Size</label>
+          <input type="range" id="editorFreeTextFontSize" class="editorParamsSlider" value="10" min="5" max="100" step="1" tabindex="101">
+        </div>
+      </div>
+    </div>
+
+    <div class="editorParamsToolbar hidden doorHangerRight" id="editorInkParamsToolbar">
+      <div class="editorParamsToolbarContainer">
+        <div class="editorParamsSetter">
+          <label for="editorInkColor" class="editorParamsLabel" data-l10n-id="editor_ink_color">Color</label>
+          <input type="color" id="editorInkColor" class="editorParamsColor" tabindex="102">
+        </div>
+        <div class="editorParamsSetter">
+          <label for="editorInkThickness" class="editorParamsLabel" data-l10n-id="editor_ink_thickness">Thickness</label>
+          <input type="range" id="editorInkThickness" class="editorParamsSlider" value="1" min="1" max="20" step="1" tabindex="103">
+        </div>
+        <div class="editorParamsSetter">
+          <label for="editorInkOpacity" class="editorParamsLabel" data-l10n-id="editor_ink_opacity">Opacity</label>
+          <input type="range" id="editorInkOpacity" class="editorParamsSlider" value="100" min="1" max="100" step="1" tabindex="104">
+        </div>
+      </div>
+    </div>
 
     <div id="secondaryToolbar" class="secondaryToolbar hidden doorHangerRight">
       <div id="secondaryToolbarButtonContainer">
@@ -212,7 +242,19 @@ const template = `
 
             <div class="verticalToolbarSeparator hiddenSmallView"></div>
 
-            <button id="secondaryToolbarToggle" class="toolbarButton" title="Tools" tabindex="36" data-l10n-id="tools" aria-expanded="false" aria-controls="secondaryToolbar">
+            <div id="editorModeButtons" class="splitToolbarButton toggled hidden" role="radiogroup">
+              <button id="editorFreeText" class="toolbarButton" disabled="disabled" title="Add FreeText Annotation" role="radio" aria-checked="false" tabindex="36" data-l10n-id="editor_free_text">
+                <span data-l10n-id="editor_free_text_label">FreeText Annotation</span>
+              </button>
+              <button id="editorInk" class="toolbarButton" disabled="disabled" title="Add Ink Annotation" role="radio" aria-checked="false" tabindex="37" data-l10n-id="editor_ink">
+                <span data-l10n-id="editor_ink_label">Ink Annotation</span>
+              </button>
+            </div>
+
+            <!-- Should be visible when the "editorModeButtons" are visible. -->
+            <div id="editorModeSeparator" class="verticalToolbarSeparator hidden"></div>
+
+            <button id="secondaryToolbarToggle" class="toolbarButton" title="Tools" tabindex="48" data-l10n-id="tools" aria-expanded="false" aria-controls="secondaryToolbar">
               <span data-l10n-id="tools_label">Tools</span>
             </button>
           </div>
@@ -224,25 +266,25 @@ const template = `
               <div class="splitToolbarButtonSeparator"></div>
               <button id="zoomIn" class="toolbarButton" title="Zoom In" tabindex="22" data-l10n-id="zoom_in">
                 <span data-l10n-id="zoom_in_label">Zoom In</span>
-              </button>
+               </button>
             </div>
             <span id="scaleSelectContainer" class="dropdownToolbarButton">
-            <select id="scaleSelect" title="Zoom" tabindex="23" data-l10n-id="zoom">
-              <option id="pageAutoOption" title="" value="auto" selected="selected" data-l10n-id="page_scale_auto">Automatic Zoom</option>
-              <option id="pageActualOption" title="" value="page-actual" data-l10n-id="page_scale_actual">Actual Size</option>
-              <option id="pageFitOption" title="" value="page-fit" data-l10n-id="page_scale_fit">Page Fit</option>
-              <option id="pageWidthOption" title="" value="page-width" data-l10n-id="page_scale_width">Page Width</option>
-              <option id="customScaleOption" title="" value="custom" disabled="disabled" hidden="true"></option>
-              <option title="" value="0.5" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 50 }'>50%</option>
-              <option title="" value="0.75" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 75 }'>75%</option>
-              <option title="" value="1" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 100 }'>100%</option>
-              <option title="" value="1.25" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 125 }'>125%</option>
-              <option title="" value="1.5" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 150 }'>150%</option>
-              <option title="" value="2" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 200 }'>200%</option>
-              <option title="" value="3" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 300 }'>300%</option>
-              <option title="" value="4" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 400 }'>400%</option>
-            </select>
-          </span>
+              <select id="scaleSelect" title="Zoom" tabindex="23" data-l10n-id="zoom">
+                <option id="pageAutoOption" title="" value="auto" selected="selected" data-l10n-id="page_scale_auto">Automatic Zoom</option>
+                <option id="pageActualOption" title="" value="page-actual" data-l10n-id="page_scale_actual">Actual Size</option>
+                <option id="pageFitOption" title="" value="page-fit" data-l10n-id="page_scale_fit">Page Fit</option>
+                <option id="pageWidthOption" title="" value="page-width" data-l10n-id="page_scale_width">Page Width</option>
+                <option id="customScaleOption" title="" value="custom" disabled="disabled" hidden="true"></option>
+                <option title="" value="0.5" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 50 }'>50%</option>
+                <option title="" value="0.75" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 75 }'>75%</option>
+                <option title="" value="1" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 100 }'>100%</option>
+                <option title="" value="1.25" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 125 }'>125%</option>
+                <option title="" value="1.5" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 150 }'>150%</option>
+                <option title="" value="2" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 200 }'>200%</option>
+                <option title="" value="3" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 300 }'>300%</option>
+                <option title="" value="4" data-l10n-id="page_scale_percent" data-l10n-args='{ "scale": 400 }'>400%</option>
+              </select>
+            </span>
           </div>
         </div>
         <div id="loadingBar">

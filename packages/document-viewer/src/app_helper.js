@@ -113,7 +113,8 @@ function createHelper(PDFViewerApplication) {
       appConfig.mainContainer.addEventListener("dragover", function (evt) {
         evt.preventDefault();
 
-        evt.dataTransfer.dropEffect = "move";
+        evt.dataTransfer.dropEffect =
+          evt.dataTransfer.effectAllowed === "copy" ? "copy" : "move";
       });
       appConfig.mainContainer.addEventListener("drop", function (evt) {
         evt.preventDefault();
@@ -188,7 +189,7 @@ function createHelper(PDFViewerApplication) {
     }
 
     // Use the rendered page to set the corresponding thumbnail image.
-    if (PDFViewerApplication.pdfSidebar.isThumbnailViewVisible) {
+    if (PDFViewerApplication.pdfSidebar.visibleView === SidebarView.THUMBS) {
       const pageView = PDFViewerApplication.pdfViewer.getPageView(
         /* index = */ pageNumber - 1
       );
@@ -256,7 +257,7 @@ function createHelper(PDFViewerApplication) {
         break;
 
       case "SaveAs":
-        webViewerSave();
+        PDFViewerApplication.downloadOrSave();
         break;
     }
   }
@@ -265,21 +266,19 @@ function createHelper(PDFViewerApplication) {
     PDFViewerApplication.pdfViewer.presentationModeState = evt.state;
   }
 
-  function webViewerSidebarViewChanged(evt) {
+  function webViewerSidebarViewChanged({ view }) {
     PDFViewerApplication.pdfRenderingQueue.isThumbnailViewEnabled =
-      PDFViewerApplication.pdfSidebar.isThumbnailViewVisible;
+      view === SidebarView.THUMBS;
 
     if (PDFViewerApplication.isInitialViewSet) {
       // Only update the storage when the document has been loaded *and* rendered.
-      PDFViewerApplication.store?.set("sidebarView", evt.view).catch(() => {
+      PDFViewerApplication.store?.set("sidebarView", view).catch(() => {
         // Unable to write to storage.
       });
     }
   }
 
-  function webViewerUpdateViewarea(evt) {
-    const location = evt.location;
-
+  function webViewerUpdateViewarea({ location }) {
     if (PDFViewerApplication.isInitialViewSet) {
       // Only update the storage when the document has been loaded *and* rendered.
       PDFViewerApplication.store
@@ -328,7 +327,12 @@ function createHelper(PDFViewerApplication) {
   }
 
   function webViewerResize() {
-    const { pdfDocument, pdfViewer } = PDFViewerApplication;
+    const { pdfDocument, pdfViewer, pdfRenderingQueue } = PDFViewerApplication;
+
+    if (pdfRenderingQueue.printing && window.matchMedia("print").matches) {
+      // Work-around issue 15324 by ignoring "resize" events during printing.
+      return;
+    }
     pdfViewer.updateContainerHeightCss();
 
     if (!pdfDocument) {
@@ -383,14 +387,17 @@ function createHelper(PDFViewerApplication) {
   function webViewerPresentationMode() {
     PDFViewerApplication.requestPresentationMode();
   }
+  function webViewerSwitchAnnotationEditorMode(evt) {
+    PDFViewerApplication.pdfViewer.annotationEditorMode = evt.mode;
+  }
+  function webViewerSwitchAnnotationEditorParams(evt) {
+    PDFViewerApplication.pdfViewer.annotationEditorParams = evt;
+  }
   function webViewerPrint() {
     PDFViewerApplication.triggerPrinting();
   }
   function webViewerDownload() {
-    PDFViewerApplication.downloadOrSave({ sourceEventType: "download" });
-  }
-  function webViewerSave() {
-    PDFViewerApplication.downloadOrSave({ sourceEventType: "save" });
+    PDFViewerApplication.downloadOrSave();
   }
   function webViewerFirstPage() {
     if (PDFViewerApplication.pdfDocument) {
@@ -517,10 +524,15 @@ function createHelper(PDFViewerApplication) {
     PDFViewerApplication.toolbar.setPageNumber(pageNumber, pageLabel);
     PDFViewerApplication.secondaryToolbar.setPageNumber(pageNumber);
 
-    if (PDFViewerApplication.pdfSidebar.isThumbnailViewVisible) {
+    if (PDFViewerApplication.pdfSidebar.visibleView === SidebarView.THUMBS) {
       PDFViewerApplication.pdfThumbnailViewer.scrollThumbnailIntoView(pageNumber);
     }
   }
+
+  function webViewerResolutionChange(evt) {
+    PDFViewerApplication.pdfViewer.refresh();
+  }
+
 
   function webViewerVisibilityChange(evt) {
     if (document.visibilityState === "visible") {
@@ -954,6 +966,10 @@ function createHelper(PDFViewerApplication) {
     return false;
   }
 
+  function webViewerAnnotationEditorStatesChanged(data) {
+    PDFViewerApplication.externalServices.updateEditorStates(data);
+  }
+
   return {
     validateFileURL,
     loadFakeWorker,
@@ -975,7 +991,6 @@ function createHelper(PDFViewerApplication) {
     webViewerPresentationMode,
     webViewerPrint,
     webViewerDownload,
-    webViewerSave,
     webViewerFirstPage,
     webViewerLastPage,
     webViewerNextPage,
@@ -1003,6 +1018,10 @@ function createHelper(PDFViewerApplication) {
     webViewerClick,
     webViewerKeyDown,
     beforeUnload,
+    webViewerSwitchAnnotationEditorMode,
+    webViewerSwitchAnnotationEditorParams,
+    webViewerResolutionChange,
+    webViewerAnnotationEditorStatesChanged,
   }
 }
 

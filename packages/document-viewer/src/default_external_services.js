@@ -47,6 +47,10 @@ class DefaultExternalServices {
   static get isInAutomation() {
     return shadow(this, "isInAutomation", false);
   }
+
+  static updateEditorStates(data) {
+    throw new Error("Not implemented: updateEditorStates");
+  }
 }
 
 export { DefaultExternalServices };

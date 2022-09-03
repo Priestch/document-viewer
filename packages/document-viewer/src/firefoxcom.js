@@ -37,7 +37,7 @@ class FirefoxCom {
    */
   static requestSync(action, data) {
     const request = document.createTextNode("");
-    document.documentElement.appendChild(request);
+    document.documentElement.append(request);
 
     const sender = document.createEvent("CustomEvent");
     sender.initCustomEvent("pdf.js.message", true, false, {
@@ -85,7 +85,7 @@ class FirefoxCom {
         { once: true }
       );
     }
-    document.documentElement.appendChild(request);
+    document.documentElement.append(request);
 
     const sender = document.createEvent("CustomEvent");
     sender.initCustomEvent("pdf.js.message", true, false, {
@@ -278,6 +278,20 @@ class MozL10n {
   window.addEventListener("save", handleEvent);
 })();
 
+(function listenEditingEvent() {
+  const handleEvent = function ({ detail }) {
+    if (!PDFViewerApplication.initialized) {
+      return;
+    }
+    PDFViewerApplication.eventBus.dispatch("editingaction", {
+      source: window,
+      name: detail.name,
+    });
+  };
+
+  window.addEventListener("editingaction", handleEvent);
+})();
+
 class FirefoxComDataRangeTransport extends PDFDataRangeTransport {
   requestDataRange(begin, end) {
     FirefoxCom.request("requestDataRange", { begin, end });
@@ -385,6 +399,10 @@ class FirefoxExternalServices extends DefaultExternalServices {
 
   static createPreferences() {
     return new FirefoxPreferences();
+  }
+
+  static updateEditorStates(data) {
+    FirefoxCom.request("updateEditorStates", data);
   }
 
   static createL10n(options) {

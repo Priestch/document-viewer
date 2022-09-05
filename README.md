@@ -21,13 +21,15 @@ npm run dev
 > We supply pre-built versions for usage with NPM and Bower under the pdfjs-dist name.
 > For more information and examples please refer to the wiki page on this subject.
 
-As a frontend programmer, I can not integrate a PDF viewer to display documents easily. If you want to use PDF.js, you
-don't have many choices.
-
 The pre-built version can be easily integrated with iframe. But iframe can not be extended easily like normal library or
-component, and it suffers some other issues. Or you can try to build a PDF viewer from scratch based on pdfjs-dist.
-Haha, I don't think the manager will give much time for you developers, they always want the feature tomorrow. If you
-have plenty time to build from scratch, be cautions, or the final viewer may suffer a lot of performance issues.
+component, and it suffers some other issues.
+
+I learn a lot from the pdf.js project. This project is somehow giving back to the community. I will try to
+make it easier to integrate PDF viewer to your project.
+
+# Resources
+
+[PDF.js Architecture](https://hacks.mozilla.org/2021/10/implementing-form-filling-and-accessibility-in-the-firefox-pdf-viewer/)
 
 # Planed Todos
 

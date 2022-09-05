@@ -17,6 +17,19 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Priestch/document-viewer.git",
+    "directory": "packages/document-viewer"
+  },
+  "keywords": [
+    "pdf.js",
+    "pdf",
+    "pdf-viewer",
+    "framework-agnostic",
+    "document-kits",
+    "viewer"
+  ],
   "files": [
     "dist",
     "package.json"

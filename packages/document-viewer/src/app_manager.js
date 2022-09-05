@@ -154,8 +154,9 @@ function getViewerConfiguration(document) {
 
 /**
  * @typedef AppOptions {
- *   @property {string} } doc
+ *   @property {string} } src
  *   @property {string} } resourcePath
+ *   @property {boolean} disableCORSCheck
  * }
  */
 
@@ -177,6 +178,7 @@ function createViewerApp(viewerOptions) {
   const options = AppOptions;
   options.set("workerSrc", workerSrc);
   options.set("defaultUrl", appOptions.src);
+  options.set("disableCORSCheck", appOptions.disableCORSCheck);
 
   const localeUrl = `${appOptions.resourcePath}/web/locale/locale.properties`;
   injectLocaleResource(localeUrl);

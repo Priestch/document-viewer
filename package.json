@@ -5,7 +5,7 @@
     "viewer:build": "pnpm --filter @document-kits/viewer run build",
     "release": "node scripts/release.mjs",
     "cli:build": "pnpm --filter @document-kits/create-viewer run build",
-    "examples:dev": "pnpm --filter examples run dev",
+    "examples:dev": "pnpm run viewer:build && pnpm --filter examples run dev",
     "docs:dev": "pnpm --filter viewer-docs run dev",
     "docs:build": "pnpm --filter viewer-docs run build",
     "docs:serve": "pnpm --filter viewer-docs run serve",

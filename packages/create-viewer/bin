@@ -3384,13 +3384,13 @@ async function main() {
 
   if (!projectName) {
     console.log(`Let's create a app to view document!`);
-    console.log('');
+    console.log("");
     projectName = (
       await lib({
-        type: 'text',
-        name: 'projectName',
-        message: 'Project name',
-        initial: 'viewer-app',
+        type: "text",
+        name: "projectName",
+        message: "Project name",
+        initial: "viewer-app",
       })
     ).projectName;
   }

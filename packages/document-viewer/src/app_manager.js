@@ -176,7 +176,7 @@ function createViewerApp(viewerOptions) {
 
   const options = AppOptions;
   options.set("workerSrc", workerSrc);
-  options.set("defaultUrl", appOptions.doc);
+  options.set("defaultUrl", appOptions.src);
 
   const localeUrl = `${appOptions.resourcePath}/web/locale/locale.properties`;
   injectLocaleResource(localeUrl);

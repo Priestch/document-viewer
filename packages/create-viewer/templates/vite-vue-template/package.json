@@ -1,7 +1,7 @@
 {
   "name": "vite-vue-template",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@document-kits/viewer": "^0.0.1",
+    "@document-kits/viewer": "^0.0.3",
     "vue": "^3.2.37"
   },
   "devDependencies": {

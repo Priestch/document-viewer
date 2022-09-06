@@ -1,7 +1,0 @@
-import{_ as e,c as s,o as a,a as n}from"./app.0c49d7ca.js";const b=JSON.parse('{"title":"DocumentViewer","description":"","frontmatter":{},"headers":[{"level":2,"title":"Getting Started","slug":"getting-started"}],"relativePath":"index.md","lastUpdated":1662505337000}'),t={name:"index.md"},r=n(`<h1 id="documentviewer" tabindex="-1">DocumentViewer <a class="header-anchor" href="#documentviewer" aria-hidden="true">#</a></h1><p>An out-of-the-box PDF viewer based on pdf.js.</p><h2 id="getting-started" tabindex="-1">Getting Started <a class="header-anchor" href="#getting-started" aria-hidden="true">#</a></h2><div class="language-bash line-numbers-mode"><span class="copy"></span><pre><code><span class="line"><span style="color:#A6ACCD;">npm create @document-kits/viewer@latest my-app</span></span>
-<span class="line"></span>
-<span class="line"><span style="color:#82AAFF;">cd</span><span style="color:#A6ACCD;"> my-app</span></span>
-<span class="line"></span>
-<span class="line"><span style="color:#A6ACCD;">npm install</span></span>
-<span class="line"><span style="color:#A6ACCD;">npm run dev</span></span>
-<span class="line"></span></code></pre><div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br></div></div>`,4),p=[r];function l(i,c,d,o,m,_){return a(),s("div",null,p)}var h=e(t,[["render",l]]);export{b as __pageData,h as default};

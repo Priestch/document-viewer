@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@document-kits/viewer": "^0.0.3",
+    "@document-kits/viewer": "*",
     "vue": "^3.2.37"
   },
   "devDependencies": {

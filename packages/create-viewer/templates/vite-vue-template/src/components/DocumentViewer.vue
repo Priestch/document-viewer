@@ -10,7 +10,7 @@ const props = defineProps({
 const viewerRef = ref();
 
 onMounted(() => {
-  createViewerApp({ el: viewerRef.value, appOptions: props.options });
+  createViewerApp({ parent: viewerRef.value, ...props.options });
 });
 </script>
 

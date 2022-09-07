@@ -177,7 +177,7 @@ function createViewerApp(viewerOptions) {
   options.set("defaultUrl", src);
   options.set("disableCORSCheck", disableCORSCheck);
 
-  const localeUrl = `${appOptions.resourcePath}/web/locale/locale.properties`;
+  const localeUrl = `${resourcePath}/web/locale/locale.properties`;
   injectLocaleResource(localeUrl);
 
   const app = new PDFViewerApplication(options);

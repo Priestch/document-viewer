@@ -8,4 +8,4 @@ const appOptions = {
   disableCORSCheck: true,
 };
 
-createViewerApp({ el: document.getElementById("app"), appOptions: appOptions });
+createViewerApp({ parent: document.getElementById("app"), ...appOptions });

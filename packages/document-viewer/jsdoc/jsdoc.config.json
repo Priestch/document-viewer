@@ -1,0 +1,8 @@
+{
+  "plugins": [],
+  "sourceType": "module",
+  "source": {
+    "include": ["src"],
+    "includePattern": "src/app_manager.js"
+  }
+}

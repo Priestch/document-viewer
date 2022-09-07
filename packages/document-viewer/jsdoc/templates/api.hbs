@@ -1,0 +1,26 @@
+# API
+
+{{#each this}}
+{{#if customTags}}
+{{#equals kind "typedef" }}
+## {{name}}
+### properties
+|name|type|description|
+|---|---|---|
+{{#each properties}}
+|{{name}}|`{{{type.names}}}`|{{{description}}} {{#if optional}}`optional`{{/if}}|
+{{/each}}
+{{/equals}}
+
+{{#equals kind "function" }}
+## {{name}}
+
+{{description}}
+{{#each params}}
+  * [{{name}}](#{{name}})
+{{/each}}
+
+{{/equals}}
+
+{{/if}}
+{{/each}}

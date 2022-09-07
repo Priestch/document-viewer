@@ -20,6 +20,12 @@ const config = {
     ["script", { src: "https://www.googletagmanager.com/gtag/js?id=G-6648ZRLKLT", async: true }],
     ["script", {}, scriptContent],
   ],
+  themeConfig: {
+    nav: [
+      { text: "Home", link: "/" },
+      { text: "API", link: "/api" },
+    ],
+  },
 };
 
 export default config;

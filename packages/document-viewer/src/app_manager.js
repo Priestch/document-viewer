@@ -153,32 +153,29 @@ function getViewerConfiguration(document) {
 }
 
 /**
- * @typedef AppOptions {
- *   @property {string} } src
- *   @property {string} } resourcePath
- *   @property {boolean} disableCORSCheck
- * }
- */
-
-/**
+ * @api
+ *
  * @typedef ViewerOptions
- * @property {HTMLElement} el - Element the PDF viewer render to.
- * @property {AppOptions} appOptions
+ * @property {HTMLElement} parent - Element the PDF viewer render to.
+ * @property {string} src - The src of the PDF document.
+ * @property {string} resourcePath - The resource path of pdf.js.
+ * @property {boolean} [disableCORSCheck=false] - Disable CORS check of pdf.js
  */
 
 /**
  * Create a viewer app.
+ * @api
  * @param {ViewerOptions} viewerOptions
  * @returns {PDFViewerApplication}
  */
 function createViewerApp(viewerOptions) {
-  const { el = null, appOptions } = viewerOptions;
-  const workerSrc = `${appOptions.resourcePath}/build/pdf.worker.js`;
+  const { parent = null, resourcePath, src, disableCORSCheck = false } = viewerOptions;
+  const workerSrc = `${resourcePath}/build/pdf.worker.js`;
 
   const options = AppOptions;
   options.set("workerSrc", workerSrc);
-  options.set("defaultUrl", appOptions.src);
-  options.set("disableCORSCheck", appOptions.disableCORSCheck);
+  options.set("defaultUrl", src);
+  options.set("disableCORSCheck", disableCORSCheck);
 
   const localeUrl = `${appOptions.resourcePath}/web/locale/locale.properties`;
   injectLocaleResource(localeUrl);
@@ -187,9 +184,9 @@ function createViewerApp(viewerOptions) {
 
   activeApp = app;
 
-  if (el) {
+  if (parent) {
     const template = getViewerTemplate();
-    el.appendChild(template);
+    parent.appendChild(template);
 
     const config = getViewerConfiguration(document);
     app.run(config);

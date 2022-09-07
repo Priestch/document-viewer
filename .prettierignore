@@ -6,3 +6,4 @@ pdf.js
 
 packages/document-viewer/src/app_helper.js
 packages/create-viewer/bin
+*.hbs

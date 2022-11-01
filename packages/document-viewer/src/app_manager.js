@@ -6,18 +6,6 @@ import getViewerTemplate from "./viewer_template";
 let activeApp;
 
 function getViewerConfiguration(document) {
-  let errorWrapper = null;
-  if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("MOZCENTRAL")) {
-    errorWrapper = {
-      container: document.getElementById("errorWrapper"),
-      errorMessage: document.getElementById("errorMessage"),
-      closeButton: document.getElementById("errorClose"),
-      errorMoreInfo: document.getElementById("errorMoreInfo"),
-      moreInfoButton: document.getElementById("errorShowMore"),
-      lessInfoButton: document.getElementById("errorShowLess"),
-    };
-  }
-
   return {
     appContainer: document.body,
     mainContainer: document.getElementById("viewerContainer"),
@@ -42,21 +30,19 @@ function getViewerConfiguration(document) {
       editorFreeTextParamsToolbar: document.getElementById("editorFreeTextParamsToolbar"),
       editorInkButton: document.getElementById("editorInk"),
       editorInkParamsToolbar: document.getElementById("editorInkParamsToolbar"),
-      presentationModeButton: document.getElementById("presentationMode"),
       download: document.getElementById("download"),
-      viewBookmark: document.getElementById("viewBookmark"),
     },
     secondaryToolbar: {
       toolbar: document.getElementById("secondaryToolbar"),
       toggleButton: document.getElementById("secondaryToolbarToggle"),
-      presentationModeButton: document.getElementById("secondaryPresentationMode"),
+      presentationModeButton: document.getElementById("presentationMode"),
       openFileButton:
         typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")
           ? document.getElementById("secondaryOpenFile")
           : null,
       printButton: document.getElementById("secondaryPrint"),
       downloadButton: document.getElementById("secondaryDownload"),
-      viewBookmarkButton: document.getElementById("secondaryViewBookmark"),
+      viewBookmarkButton: document.getElementById("viewBookmark"),
       firstPageButton: document.getElementById("firstPage"),
       lastPageButton: document.getElementById("lastPage"),
       pageRotateCwButton: document.getElementById("pageRotateCw"),
@@ -142,7 +128,6 @@ function getViewerConfiguration(document) {
       editorInkThickness: document.getElementById("editorInkThickness"),
       editorInkOpacity: document.getElementById("editorInkOpacity"),
     },
-    errorWrapper,
     printContainer: document.getElementById("printContainer"),
     openFileInput:
       typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")

@@ -17,14 +17,14 @@ const WHEEL_ZOOM_DISABLED_TIMEOUT = 1000; // ms
 function createHelper(PDFViewerApplication) {
   const AppOptions = PDFViewerApplication.appOptions;
 
-  let validateFileURL;
   if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
     const HOSTED_VIEWER_ORIGINS = [
       "null",
       "http://mozilla.github.io",
       "https://mozilla.github.io",
     ];
-    validateFileURL = function (file) {
+    // eslint-disable-next-line no-var
+    var validateFileURL = function (file) {
       if (!file) {
         return;
       }
@@ -146,7 +146,6 @@ function createHelper(PDFViewerApplication) {
     }
 
     if (!PDFViewerApplication.supportsFullscreen) {
-      appConfig.toolbar.presentationModeButton.classList.add("hidden");
       appConfig.secondaryToolbar.presentationModeButton.classList.add("hidden");
     }
 
@@ -299,7 +298,6 @@ function createHelper(PDFViewerApplication) {
     const href = PDFViewerApplication.pdfLinkService.getAnchorUrl(
       location.pdfOpenParams
     );
-    PDFViewerApplication.appConfig.toolbar.viewBookmark.href = href;
     PDFViewerApplication.appConfig.secondaryToolbar.viewBookmarkButton.href =
       href;
 
@@ -312,7 +310,10 @@ function createHelper(PDFViewerApplication) {
   }
 
   function webViewerScrollModeChanged(evt) {
-    if (PDFViewerApplication.isInitialViewSet) {
+    if (
+      PDFViewerApplication.isInitialViewSet &&
+      !PDFViewerApplication.pdfViewer.isInPresentationMode
+    ) {
       // Only update the storage when the document has been loaded *and* rendered.
       PDFViewerApplication.store?.set("scrollMode", evt.mode).catch(() => {
         // Unable to write to storage.
@@ -321,7 +322,10 @@ function createHelper(PDFViewerApplication) {
   }
 
   function webViewerSpreadModeChanged(evt) {
-    if (PDFViewerApplication.isInitialViewSet) {
+    if (
+      PDFViewerApplication.isInitialViewSet &&
+      !PDFViewerApplication.pdfViewer.isInPresentationMode
+    ) {
       // Only update the storage when the document has been loaded *and* rendered.
       PDFViewerApplication.store?.set("spreadMode", evt.mode).catch(() => {
         // Unable to write to storage.
@@ -769,6 +773,10 @@ function createHelper(PDFViewerApplication) {
         case 80: // p
           PDFViewerApplication.requestPresentationMode();
           handled = true;
+          PDFViewerApplication.externalServices.reportTelemetry({
+            type: "buttons",
+            data: { id: "presentationModeKeyboard" },
+          });
           break;
         case 71: // g
           // focuses input#pageNumber field

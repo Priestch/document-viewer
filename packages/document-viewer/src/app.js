@@ -22,7 +22,6 @@ import {
   isValidRotation,
   isValidScrollMode,
   isValidSpreadMode,
-  noContextMenuHandler,
   parseQueryString,
   ProgressBar,
   RendererType,
@@ -216,7 +215,6 @@ class PDFViewerApplication {
   _saveInProgress = false;
   _docStats = null;
   _wheelUnusedTicks = 0;
-  _idleCallbacks = new Set();
   _PDFBug = null;
   _hasAnnotationEditors = false;
   _title = document.title;
@@ -543,11 +541,12 @@ class PDFViewerApplication {
         appConfig.annotationEditorParams,
         eventBus
       );
+    } else {
       for (const element of [
         document.getElementById("editorModeButtons"),
         document.getElementById("editorModeSeparator"),
       ]) {
-        element.classList.remove("hidden");
+        element.hidden = true;
       }
     }
 
@@ -569,7 +568,11 @@ class PDFViewerApplication {
 
     this.toolbar = new Toolbar(appConfig.toolbar, eventBus, this.l10n);
 
-    this.secondaryToolbar = new SecondaryToolbar(appConfig.secondaryToolbar, eventBus);
+    this.secondaryToolbar = new SecondaryToolbar(
+      appConfig.secondaryToolbar,
+      eventBus,
+      this.externalServices
+    );
 
     if (this.supportsFullscreen) {
       this.pdfPresentationMode = new PDFPresentationMode({
@@ -590,6 +593,7 @@ class PDFViewerApplication {
       container: appConfig.sidebar.outlineView,
       eventBus,
       linkService: pdfLinkService,
+      downloadManager,
     });
 
     this.pdfAttachmentViewer = new PDFAttachmentViewer({
@@ -744,7 +748,8 @@ class PDFViewerApplication {
       // Embedded PDF viewers should not be changing their parent page's title.
       return;
     }
-    document.title = `${this._hasAnnotationEditors ? "* " : ""}${title}`;
+    const editorIndicator = this._hasAnnotationEditors && !this.pdfRenderingQueue.printing;
+    document.title = `${editorIndicator ? "* " : ""}${title}`;
   }
 
   get _docFilename() {
@@ -758,22 +763,7 @@ class PDFViewerApplication {
    */
   _hideViewBookmark() {
     // URL does not reflect proper document location - hiding some buttons.
-    const { toolbar, secondaryToolbar } = this.appConfig;
-    toolbar.viewBookmark.hidden = true;
-    secondaryToolbar.viewBookmarkButton.hidden = true;
-  }
-
-  /**
-   * @private
-   */
-  _cancelIdleCallbacks() {
-    if (!this._idleCallbacks.size) {
-      return;
-    }
-    for (const callback of this._idleCallbacks) {
-      window.cancelIdleCallback(callback);
-    }
-    this._idleCallbacks.clear();
+    this.appConfig.secondaryToolbar.viewBookmarkButton.hidden = true;
   }
 
   /**
@@ -833,7 +823,6 @@ class PDFViewerApplication {
     this._docStats = null;
     this._hasAnnotationEditors = false;
 
-    this._cancelIdleCallbacks();
     promises.push(this.pdfScriptingManager.destroyPromise);
 
     this.setTitle();
@@ -1024,7 +1013,7 @@ class PDFViewerApplication {
   }
 
   /**
-   * Show the error box; used for errors affecting loading and/or parsing of
+   * Report the error; used for errors affecting loading and/or parsing of
    * the entire PDF document.
    */
   _documentError(message, moreInfo = null) {
@@ -1040,75 +1029,31 @@ class PDFViewerApplication {
   }
 
   /**
-   * Show the error box; used for errors affecting e.g. only a single page.
-   *
+   * Report the error; used for errors affecting e.g. only a single page.
    * @param {string} message - A message that is human readable.
    * @param {Object} [moreInfo] - Further information about the error that is
-   *                              more technical.  Should have a 'message' and
+   *                              more technical. Should have a 'message' and
    *                              optionally a 'stack' property.
    */
   _otherError(message, moreInfo = null) {
-    const moreInfoText = [
-      this.l10n.get("error_version_info", {
-        version: version || "?",
-        build: build || "?",
-      }),
-    ];
+    const moreInfoText = [`PDF.js v${version || "?"} (build: ${build || "?"})`];
     if (moreInfo) {
-      moreInfoText.push(this.l10n.get("error_message", { message: moreInfo.message }));
+      moreInfoText.push(`Message: ${moreInfo.message}`);
+
       if (moreInfo.stack) {
-        moreInfoText.push(this.l10n.get("error_stack", { stack: moreInfo.stack }));
+        moreInfoText.push(`Stack: ${moreInfo.stack}`);
       } else {
         if (moreInfo.filename) {
-          moreInfoText.push(this.l10n.get("error_file", { file: moreInfo.filename }));
+          moreInfoText.push(`File: ${moreInfo.filename}`);
         }
         if (moreInfo.lineNumber) {
-          moreInfoText.push(this.l10n.get("error_line", { line: moreInfo.lineNumber }));
+          moreInfoText.push(`Line: ${moreInfo.lineNumber}`);
         }
       }
     }
 
-    if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("MOZCENTRAL")) {
-      const errorWrapperConfig = this.appConfig.errorWrapper;
-      const errorWrapper = errorWrapperConfig.container;
-      errorWrapper.hidden = false;
-
-      const errorMessage = errorWrapperConfig.errorMessage;
-      errorMessage.textContent = message;
-
-      const closeButton = errorWrapperConfig.closeButton;
-      closeButton.onclick = function () {
-        errorWrapper.hidden = true;
-      };
-
-      const errorMoreInfo = errorWrapperConfig.errorMoreInfo;
-      const moreInfoButton = errorWrapperConfig.moreInfoButton;
-      const lessInfoButton = errorWrapperConfig.lessInfoButton;
-      moreInfoButton.onclick = function () {
-        errorMoreInfo.hidden = false;
-        moreInfoButton.hidden = true;
-        lessInfoButton.hidden = false;
-        errorMoreInfo.style.height = errorMoreInfo.scrollHeight + "px";
-      };
-      lessInfoButton.onclick = function () {
-        errorMoreInfo.hidden = true;
-        moreInfoButton.hidden = false;
-        lessInfoButton.hidden = true;
-      };
-      moreInfoButton.oncontextmenu = noContextMenuHandler;
-      lessInfoButton.oncontextmenu = noContextMenuHandler;
-      closeButton.oncontextmenu = noContextMenuHandler;
-      moreInfoButton.hidden = false;
-      lessInfoButton.hidden = true;
-      Promise.all(moreInfoText).then((parts) => {
-        errorMoreInfo.value = parts.join("\n");
-      });
-    } else {
-      Promise.all(moreInfoText).then((parts) => {
-        console.error(message + "\n" + parts.join("\n"));
-      });
-      this.fallback();
-    }
+    console.error(`${message}\n\n${moreInfoText.join("\n")}`);
+    this.fallback();
   }
 
   progress(level) {
@@ -1368,19 +1313,6 @@ class PDFViewerApplication {
         }
         this.pdfLayerViewer.render({ optionalContentConfig, pdfDocument });
       });
-      if (
-        (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) ||
-        "requestIdleCallback" in window
-      ) {
-        const callback = window.requestIdleCallback(
-          () => {
-            this._collectTelemetry(pdfDocument);
-            this._idleCallbacks.delete(callback);
-          },
-          { timeout: 1000 }
-        );
-        this._idleCallbacks.add(callback);
-      }
     });
 
     this._initializePageLabels(pdfDocument);
@@ -1425,23 +1357,6 @@ class PDFViewerApplication {
       numPages: this.pagesCount,
       URL: this.url,
     };
-  }
-
-  /**
-   * A place to fetch data for telemetry after one page is rendered and the
-   * viewer is idle.
-   * @private
-   */
-  async _collectTelemetry(pdfDocument) {
-    const markInfo = await this.pdfDocument.getMarkInfo();
-    if (pdfDocument !== this.pdfDocument) {
-      return; // Document was closed while waiting for mark info.
-    }
-    const tagged = markInfo?.Marked || false;
-    this.externalServices.reportTelemetry({
-      type: "tagged",
-      tagged,
-    });
   }
 
   /**
@@ -1507,7 +1422,7 @@ class PDFViewerApplication {
     console.log(
       `PDF ${pdfDocument.fingerprints[0]} [${info.PDFFormatVersion} ` +
         `${(info.Producer || "-").trim()} / ${(info.Creator || "-").trim()}] ` +
-        `(PDF.js: ${version || "-"})`
+        `(PDF.js: ${version || "?"} [${build || "?"}])`
     );
     let pdfTitle = info.Title;
 
@@ -1660,14 +1575,14 @@ class PDFViewerApplication {
     const { annotationStorage } = pdfDocument;
 
     annotationStorage.onSetModified = () => {
-      window.addEventListener("beforeunload", beforeUnload);
+      window.addEventListener("beforeunload", this.helper.beforeUnload);
 
       if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
         this._annotationStorageModified = true;
       }
     };
     annotationStorage.onResetModified = () => {
-      window.removeEventListener("beforeunload", beforeUnload);
+      window.removeEventListener("beforeunload", this.helper.beforeUnload);
 
       if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
         delete this._annotationStorageModified;
@@ -1808,6 +1723,8 @@ class PDFViewerApplication {
     );
     this.printService = printService;
     this.forceRendering();
+    // Disable the editor-indicator during printing (fixes bug 1790552).
+    this.setTitle();
 
     printService.layout();
 
@@ -1838,6 +1755,8 @@ class PDFViewerApplication {
       this.pdfDocument?.annotationStorage.resetModified();
     }
     this.forceRendering();
+    // Re-enable the editor-indicator after printing (fixes bug 1790552).
+    this.setTitle();
   }
 
   rotatePages(delta) {

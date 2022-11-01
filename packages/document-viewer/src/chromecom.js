@@ -43,9 +43,7 @@ const ChromeCom = {
     };
     if (!chrome.runtime) {
       console.error("chrome.runtime is undefined.");
-      if (callback) {
-        callback();
-      }
+      callback?.();
     } else if (callback) {
       chrome.runtime.sendMessage(message, callback);
     } else {
@@ -366,12 +364,8 @@ class ChromePreferences extends BasePreferences {
           delete items.enableHandToolOnLoad;
 
           // Migration code for https://github.com/mozilla/pdf.js/pull/9479.
-          if (items.textLayerMode !== 1) {
-            if (items.disableTextLayer) {
-              items.textLayerMode = 0;
-            } else if (items.enhanceTextSelection) {
-              items.textLayerMode = 2;
-            }
+          if (items.textLayerMode !== 1 && items.disableTextLayer) {
+            items.textLayerMode = 0;
           }
           delete items.disableTextLayer;
           delete items.enhanceTextSelection;

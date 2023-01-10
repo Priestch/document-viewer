@@ -9,7 +9,7 @@
     "docs:dev": "pnpm --filter viewer-docs run dev",
     "docs:extract": "pnpm --filter @document-kits/viewer run api",
     "docs:build": "pnpm --filter viewer-docs run build",
-    "docs:serve": "pnpm --filter viewer-docs run serve",
+    "docs:preview": "pnpm --filter viewer-docs run preview",
     "fmt": "npx prettier --write --ignore-unknown ."
   },
   "lint-staged": {

@@ -117,3 +117,6 @@ dist
 .pnp.*
 
 .npmrc
+
+
+docs/.vitepress/cache

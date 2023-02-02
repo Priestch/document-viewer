@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-cd pdf.js && npm i --no-save && cd -
+#cd pdf.js && npm i --no-save && cd -
 
 TEMPLATE_FILE="$(pwd)/bin/gulpfile.template.js"
 GULPFILE="$(pwd)/pdf.js/gulpfile.js"

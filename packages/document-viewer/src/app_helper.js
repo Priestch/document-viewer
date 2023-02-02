@@ -166,7 +166,7 @@ function createHelper(PDFViewerApplication) {
     try {
       if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
         if (file) {
-          PDFViewerApplication.open(file);
+          PDFViewerApplication.open({ url: file });
         } else {
           PDFViewerApplication._hideViewBookmark();
         }
@@ -376,11 +376,10 @@ function createHelper(PDFViewerApplication) {
       }
       const file = evt.fileInput.files[0];
 
-      let url = URL.createObjectURL(file);
-      if (file.name) {
-        url = { url, originalUrl: file.name };
-      }
-      PDFViewerApplication.open(url);
+      PDFViewerApplication.open({
+        url: URL.createObjectURL(file),
+        originalUrl: file.name,
+      });
     };
 
     // eslint-disable-next-line no-var
@@ -570,14 +569,43 @@ function createHelper(PDFViewerApplication) {
   }
 
   function webViewerWheel(evt) {
-    const { pdfViewer, supportedMouseWheelZoomModifierKeys } =
-      PDFViewerApplication;
+    const {
+      pdfViewer,
+      supportedMouseWheelZoomModifierKeys,
+      supportsPinchToZoom,
+    } = PDFViewerApplication;
 
     if (pdfViewer.isInPresentationMode) {
       return;
     }
 
+    // Pinch-to-zoom on a trackpad maps to a wheel event with ctrlKey set to true
+    // https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent#browser_compatibility
+    // Hence if ctrlKey is true but ctrl key hasn't been pressed then we can
+    // infer that we have a pinch-to-zoom.
+    // But the ctrlKey could have been pressed outside of the browser window,
+    // hence we try to do some magic to guess if the scaleFactor is likely coming
+    // from a pinch-to-zoom or not.
+
+    // It is important that we query deltaMode before delta{X,Y}, so that
+    // Firefox doesn't switch to DOM_DELTA_PIXEL mode for compat with other
+    // browsers, see https://bugzilla.mozilla.org/show_bug.cgi?id=1392460.
+    const deltaMode = evt.deltaMode;
+
+    // The following formula is a bit strange but it comes from:
+    // https://searchfox.org/mozilla-central/rev/d62c4c4d5547064487006a1506287da394b64724/widget/InputData.cpp#618-626
+    let scaleFactor = Math.exp(-evt.deltaY / 100);
+
+    const isPinchToZoom =
+      evt.ctrlKey &&
+      !PDFViewerApplication._isCtrlKeyDown &&
+      deltaMode === WheelEvent.DOM_DELTA_PIXEL &&
+      evt.deltaX === 0 &&
+      Math.abs(scaleFactor - 1) < 0.05 &&
+      evt.deltaZ === 0;
+
     if (
+      isPinchToZoom ||
       (evt.ctrlKey && supportedMouseWheelZoomModifierKeys.ctrlKey) ||
       (evt.metaKey && supportedMouseWheelZoomModifierKeys.metaKey)
     ) {
@@ -588,72 +616,212 @@ function createHelper(PDFViewerApplication) {
         return;
       }
 
-      // It is important that we query deltaMode before delta{X,Y}, so that
-      // Firefox doesn't switch to DOM_DELTA_PIXEL mode for compat with other
-      // browsers, see https://bugzilla.mozilla.org/show_bug.cgi?id=1392460.
-      const deltaMode = evt.deltaMode;
-      const delta = normalizeWheelEventDirection(evt);
       const previousScale = pdfViewer.currentScale;
-
-      let ticks = 0;
-      if (
-        deltaMode === WheelEvent.DOM_DELTA_LINE ||
-        deltaMode === WheelEvent.DOM_DELTA_PAGE
-      ) {
-        // For line-based devices, use one tick per event, because different
-        // OSs have different defaults for the number lines. But we generally
-        // want one "clicky" roll of the wheel (which produces one event) to
-        // adjust the zoom by one step.
-        if (Math.abs(delta) >= 1) {
-          ticks = Math.sign(delta);
+      if (isPinchToZoom && supportsPinchToZoom) {
+        scaleFactor = PDFViewerApplication._accumulateFactor(
+          previousScale,
+          scaleFactor,
+          "_wheelUnusedFactor"
+        );
+        if (scaleFactor < 1) {
+          PDFViewerApplication.zoomOut(null, scaleFactor);
+        } else if (scaleFactor > 1) {
+          PDFViewerApplication.zoomIn(null, scaleFactor);
         } else {
-          // If we're getting fractional lines (I can't think of a scenario
-          // this might actually happen), be safe and use the accumulator.
-          ticks = PDFViewerApplication.accumulateWheelTicks(delta);
+          return;
         }
       } else {
-        // pixel-based devices
-        const PIXELS_PER_LINE_SCALE = 30;
-        ticks = PDFViewerApplication.accumulateWheelTicks(
-          delta / PIXELS_PER_LINE_SCALE
-        );
+        const delta = normalizeWheelEventDirection(evt);
+
+        let ticks = 0;
+        if (
+          deltaMode === WheelEvent.DOM_DELTA_LINE ||
+          deltaMode === WheelEvent.DOM_DELTA_PAGE
+        ) {
+          // For line-based devices, use one tick per event, because different
+          // OSs have different defaults for the number lines. But we generally
+          // want one "clicky" roll of the wheel (which produces one event) to
+          // adjust the zoom by one step.
+          if (Math.abs(delta) >= 1) {
+            ticks = Math.sign(delta);
+          } else {
+            // If we're getting fractional lines (I can't think of a scenario
+            // this might actually happen), be safe and use the accumulator.
+            ticks = PDFViewerApplication._accumulateTicks(
+              delta,
+              "_wheelUnusedTicks"
+            );
+          }
+        } else {
+          // pixel-based devices
+          const PIXELS_PER_LINE_SCALE = 30;
+          ticks = PDFViewerApplication._accumulateTicks(
+            delta / PIXELS_PER_LINE_SCALE,
+            "_wheelUnusedTicks"
+          );
+        }
+
+        if (ticks < 0) {
+          PDFViewerApplication.zoomOut(-ticks);
+        } else if (ticks > 0) {
+          PDFViewerApplication.zoomIn(ticks);
+        } else {
+          return;
+        }
       }
 
-      if (ticks < 0) {
-        PDFViewerApplication.zoomOut(-ticks);
-      } else if (ticks > 0) {
-        PDFViewerApplication.zoomIn(ticks);
-      }
-
-      const currentScale = pdfViewer.currentScale;
-      if (previousScale !== currentScale) {
-        // After scaling the page via zoomIn/zoomOut, the position of the upper-
-        // left corner is restored. When the mouse wheel is used, the position
-        // under the cursor should be restored instead.
-        const scaleCorrectionFactor = currentScale / previousScale - 1;
-        const [top, left] = pdfViewer.containerTopLeft;
-        const dx = evt.clientX - left;
-        const dy = evt.clientY - top;
-        pdfViewer.container.scrollLeft += dx * scaleCorrectionFactor;
-        pdfViewer.container.scrollTop += dy * scaleCorrectionFactor;
-      }
+      // After scaling the page via zoomIn/zoomOut, the position of the upper-
+      // left corner is restored. When the mouse wheel is used, the position
+      // under the cursor should be restored instead.
+      PDFViewerApplication._centerAtPos(previousScale, evt.clientX, evt.clientY);
     } else {
       setZoomDisabledTimeout();
     }
   }
 
   function webViewerTouchStart(evt) {
-    if (evt.touches.length > 1) {
-      // Disable touch-based zooming, because the entire UI bits gets zoomed and
-      // that doesn't look great. If we do want to have a good touch-based
-      // zooming experience, we need to implement smooth zoom capability (probably
-      // using a CSS transform for faster visual response, followed by async
-      // re-rendering at the final zoom level) and do gesture detection on the
-      // touchmove events to drive it. Or if we want to settle for a less good
-      // experience we can make the touchmove events drive the existing step-zoom
-      // behaviour that the ctrl+mousewheel path takes.
-      evt.preventDefault();
+    if (
+      PDFViewerApplication.pdfViewer.isInPresentationMode ||
+      evt.touches.length < 2
+    ) {
+      return;
     }
+    evt.preventDefault();
+
+    if (evt.touches.length !== 2) {
+      PDFViewerApplication._touchInfo = null;
+      return;
+    }
+
+    let [touch0, touch1] = evt.touches;
+    if (touch0.identifier > touch1.identifier) {
+      [touch0, touch1] = [touch1, touch0];
+    }
+    PDFViewerApplication._touchInfo = {
+      touch0X: touch0.pageX,
+      touch0Y: touch0.pageY,
+      touch1X: touch1.pageX,
+      touch1Y: touch1.pageY,
+    };
+  }
+
+  function webViewerTouchMove(evt) {
+    if (!PDFViewerApplication._touchInfo || evt.touches.length !== 2) {
+      return;
+    }
+
+    const { pdfViewer, _touchInfo, supportsPinchToZoom } = PDFViewerApplication;
+    let [touch0, touch1] = evt.touches;
+    if (touch0.identifier > touch1.identifier) {
+      [touch0, touch1] = [touch1, touch0];
+    }
+    const { pageX: page0X, pageY: page0Y } = touch0;
+    const { pageX: page1X, pageY: page1Y } = touch1;
+    const {
+      touch0X: pTouch0X,
+      touch0Y: pTouch0Y,
+      touch1X: pTouch1X,
+      touch1Y: pTouch1Y,
+    } = _touchInfo;
+
+    if (
+      Math.abs(pTouch0X - page0X) <= 1 &&
+      Math.abs(pTouch0Y - page0Y) <= 1 &&
+      Math.abs(pTouch1X - page1X) <= 1 &&
+      Math.abs(pTouch1Y - page1Y) <= 1
+    ) {
+      // Touches are really too close and it's hard do some basic
+      // geometry in order to guess something.
+      return;
+    }
+
+    _touchInfo.touch0X = page0X;
+    _touchInfo.touch0Y = page0Y;
+    _touchInfo.touch1X = page1X;
+    _touchInfo.touch1Y = page1Y;
+
+    if (pTouch0X === page0X && pTouch0Y === page0Y) {
+      // First touch is fixed, if the vectors are collinear then we've a pinch.
+      const v1X = pTouch1X - page0X;
+      const v1Y = pTouch1Y - page0Y;
+      const v2X = page1X - page0X;
+      const v2Y = page1Y - page0Y;
+      const det = v1X * v2Y - v1Y * v2X;
+      // 0.02 is approximatively sin(0.15deg).
+      if (Math.abs(det) > 0.02 * Math.hypot(v1X, v1Y) * Math.hypot(v2X, v2Y)) {
+        return;
+      }
+    } else if (pTouch1X === page1X && pTouch1Y === page1Y) {
+      // Second touch is fixed, if the vectors are collinear then we've a pinch.
+      const v1X = pTouch0X - page1X;
+      const v1Y = pTouch0Y - page1Y;
+      const v2X = page0X - page1X;
+      const v2Y = page0Y - page1Y;
+      const det = v1X * v2Y - v1Y * v2X;
+      if (Math.abs(det) > 0.02 * Math.hypot(v1X, v1Y) * Math.hypot(v2X, v2Y)) {
+        return;
+      }
+    } else {
+      const diff0X = page0X - pTouch0X;
+      const diff1X = page1X - pTouch1X;
+      const diff0Y = page0Y - pTouch0Y;
+      const diff1Y = page1Y - pTouch1Y;
+      const dotProduct = diff0X * diff1X + diff0Y * diff1Y;
+      if (dotProduct >= 0) {
+        // The two touches go in almost the same direction.
+        return;
+      }
+    }
+
+    evt.preventDefault();
+
+    const distance = Math.hypot(page0X - page1X, page0Y - page1Y) || 1;
+    const pDistance = Math.hypot(pTouch0X - pTouch1X, pTouch0Y - pTouch1Y) || 1;
+    const previousScale = pdfViewer.currentScale;
+    if (supportsPinchToZoom) {
+      const newScaleFactor = PDFViewerApplication._accumulateFactor(
+        previousScale,
+        distance / pDistance,
+        "_touchUnusedFactor"
+      );
+      if (newScaleFactor < 1) {
+        PDFViewerApplication.zoomOut(null, newScaleFactor);
+      } else if (newScaleFactor > 1) {
+        PDFViewerApplication.zoomIn(null, newScaleFactor);
+      } else {
+        return;
+      }
+    } else {
+      const PIXELS_PER_LINE_SCALE = 30;
+      const ticks = PDFViewerApplication._accumulateTicks(
+        (distance - pDistance) / PIXELS_PER_LINE_SCALE,
+        "_touchUnusedTicks"
+      );
+      if (ticks < 0) {
+        PDFViewerApplication.zoomOut(-ticks);
+      } else if (ticks > 0) {
+        PDFViewerApplication.zoomIn(ticks);
+      } else {
+        return;
+      }
+    }
+
+    PDFViewerApplication._centerAtPos(
+      previousScale,
+      (page0X + page1X) / 2,
+      (page0Y + page1Y) / 2
+    );
+  }
+
+  function webViewerTouchEnd(evt) {
+    if (!PDFViewerApplication._touchInfo) {
+      return;
+    }
+
+    evt.preventDefault();
+    PDFViewerApplication._touchInfo = null;
+    PDFViewerApplication._touchUnusedTicks = 0;
+    PDFViewerApplication._touchUnusedFactor = 1;
   }
 
   function webViewerClick(evt) {
@@ -670,7 +838,16 @@ function createHelper(PDFViewerApplication) {
     }
   }
 
+  function webViewerKeyUp(evt) {
+    // evt.ctrlKey is false hence we use evt.key.
+    if (evt.key === "Control") {
+      PDFViewerApplication._isCtrlKeyDown = false;
+    }
+  }
+
   function webViewerKeyDown(evt) {
+    PDFViewerApplication._isCtrlKeyDown = evt.key === "Control";
+
     if (PDFViewerApplication.overlayManager.active) {
       return;
     }

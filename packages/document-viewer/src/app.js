@@ -78,7 +78,6 @@ import { createHelper } from "./app_helper.js";
 import { DefaultExternalServices } from "./default_external_services.js";
 import { bindExternalService, bindPrintServiceFactory } from "./external_service.js";
 
-const DISABLE_AUTO_FETCH_LOADING_BAR_TIMEOUT = 5000; // ms
 const FORCE_PAGES_LOADED_TIMEOUT = 10000; // ms
 
 const ViewOnLoad = {
@@ -215,10 +214,15 @@ class PDFViewerApplication {
   _contentLength = null;
   _saveInProgress = false;
   _wheelUnusedTicks = 0;
+  _wheelUnusedFactor = 1;
+  _touchUnusedTicks = 0;
+  _touchUnusedFactor = 1;
   _PDFBug = null;
   _hasAnnotationEditors = false;
   _title = document.title;
   _printAnnotationStoragePromise = null;
+  _touchInfo = null;
+  _isCtrlKeyDown = false;
 
   constructor(appOptions) {
     this.appOptions = appOptions;
@@ -459,6 +463,7 @@ class PDFViewerApplication {
     const findController = new PDFFindController({
       linkService: pdfLinkService,
       eventBus,
+      updateMatchesCountOnProgress: typeof PDFJSDev === "undefined" || !PDFJSDev.test("GECKOVIEW"),
     });
     this.findController = findController;
 
@@ -655,21 +660,25 @@ class PDFViewerApplication {
     return this._initializedCapability.promise;
   }
 
-  zoomIn(steps) {
+  zoomIn(steps, scaleFactor) {
     if (this.pdfViewer.isInPresentationMode) {
       return;
     }
-    this.pdfViewer.increaseScale(steps, {
+    this.pdfViewer.increaseScale({
       drawingDelay: this.appOptions.get("defaultZoomDelay"),
+      steps,
+      scaleFactor,
     });
   }
 
-  zoomOut(steps) {
+  zoomOut(steps, scaleFactor) {
     if (this.pdfViewer.isInPresentationMode) {
       return;
     }
-    this.pdfViewer.decreaseScale(steps, {
+    this.pdfViewer.decreaseScale({
       drawingDelay: this.appOptions.get("defaultZoomDelay"),
+      steps,
+      scaleFactor,
     });
   }
 
@@ -700,6 +709,10 @@ class PDFViewerApplication {
     return shadow(this, "supportsFullscreen", document.fullscreenEnabled);
   }
 
+  get supportsPinchToZoom() {
+    return this.externalServices.supportsPinchToZoom;
+  }
+
   get supportsIntegratedFind() {
     return this.externalServices.supportsIntegratedFind;
   }
@@ -724,19 +737,16 @@ class PDFViewerApplication {
     }
     this.externalServices.initPassiveLoading({
       onOpenWithTransport: (url, length, transport) => {
-        this.open(url, { length, range: transport });
+        this.open({ url, length, range: transport });
       },
       onOpenWithData: (data, contentDispositionFilename) => {
         if (isPdfFile(contentDispositionFilename)) {
           this._contentDispositionFilename = contentDispositionFilename;
         }
-        this.open(data);
+        this.open({ data });
       },
       onOpenWithURL: (url, length, originalUrl) => {
-        const file = originalUrl !== undefined ? { url, originalUrl } : url;
-        const args = length !== undefined ? { length } : null;
-
-        this.open(file, args);
+        this.open({ url, length, originalUrl });
       },
       onError: (err) => {
         this.l10n.get("loading_error").then((msg) => {
@@ -876,16 +886,29 @@ class PDFViewerApplication {
   }
 
   /**
-   * Opens PDF document specified by URL or array with additional arguments.
-   * @param {string|TypedArray|ArrayBuffer} file - PDF location or binary data.
-   * @param {Object} [args] - Additional arguments for the getDocument call,
-   *                          e.g. HTTP headers ('httpHeaders') or alternative
-   *                          data transport ('range').
-   * @returns {Promise} - Returns the promise, which is resolved when document
-   *                      is opened.
+   * Opens a new PDF document.
+   * @param {Object} args - Accepts any/all of the properties from
+   *   {@link DocumentInitParameters}, and also a `originalUrl` string.
+   * @returns {Promise} - Promise that is resolved when the document is opened.
    */
-  async open(file, args) {
+  async open(args) {
     const AppOptions = this.appOptions;
+
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
+      let deprecatedArgs = false;
+      if (typeof args === "string") {
+        args = { url: args }; // URL
+        deprecatedArgs = true;
+      } else if (args?.byteLength) {
+        args = { data: args }; // ArrayBuffer
+        deprecatedArgs = true;
+      }
+      if (deprecatedArgs) {
+        console.error(
+          "The `PDFViewerApplication.open` signature was updated, please use an object instead."
+        );
+      }
+    }
 
     if (this.pdfLoadingTask) {
       // We need to destroy already opened document.
@@ -898,36 +921,33 @@ class PDFViewerApplication {
     }
 
     const parameters = Object.create(null);
-    if (typeof file === "string") {
-      // URL
-      this.setTitleUsingUrl(file, /* downloadUrl = */ file);
-      parameters.url = file;
-    } else if (file && "byteLength" in file) {
-      // ArrayBuffer
-      parameters.data = file;
-    } else if (file.url && file.originalUrl) {
-      this.setTitleUsingUrl(file.originalUrl, /* downloadUrl = */ file.url);
-      parameters.url = file.url;
+    if ((typeof PDFJSDev === "undefined" || !PDFJSDev.test("MOZCENTRAL")) && args.url) {
+      // The Firefox built-in viewer always calls `setTitleUsingUrl`, before
+      // `initPassiveLoading`, and it never provides an `originalUrl` here.
+      if (args.originalUrl) {
+        this.setTitleUsingUrl(args.originalUrl, /* downloadUrl = */ args.url);
+        delete args.originalUrl;
+      } else {
+        this.setTitleUsingUrl(args.url, /* downloadUrl = */ args.url);
+      }
     }
     // Set the necessary API parameters, using the available options.
     const apiParameters = AppOptions.getAll(OptionKind.API);
     for (const key in apiParameters) {
       let value = apiParameters[key];
 
-      if (key === "docBaseUrl" && !value) {
+      if (key === "docBaseUrl") {
         if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("PRODUCTION")) {
-          value = document.URL.split("#")[0];
+          value ||= document.URL.split("#")[0];
         } else if (PDFJSDev.test("MOZCENTRAL || CHROME")) {
-          value = this.baseUrl;
+          value ||= this.baseUrl;
         }
       }
       parameters[key] = value;
     }
-    // Finally, update the API parameters with the arguments (if they exist).
-    if (args) {
-      for (const key in args) {
-        parameters[key] = args[key];
-      }
+    // Finally, update the API parameters with the arguments.
+    for (const key in args) {
+      parameters[key] = args[key];
     }
 
     const loadingTask = getDocument(parameters);
@@ -1110,22 +1130,9 @@ class PDFViewerApplication {
     // the loading bar will not be completely filled, nor will it be hidden.
     // To prevent displaying a partially filled loading bar permanently, we
     // hide it when no data has been loaded during a certain amount of time.
-    const disableAutoFetch =
-      this.pdfDocument?.loadingParams.disableAutoFetch ?? AppOptions.get("disableAutoFetch");
-
-    if (!disableAutoFetch || isNaN(percent)) {
-      return;
+    if (this.pdfDocument?.loadingParams.disableAutoFetch ?? AppOptions.get("disableAutoFetch")) {
+      this.loadingBar.setDisableAutoFetch();
     }
-    if (this.disableAutoFetchLoadingBarTimeout) {
-      clearTimeout(this.disableAutoFetchLoadingBarTimeout);
-      this.disableAutoFetchLoadingBarTimeout = null;
-    }
-    this.loadingBar.show();
-
-    this.disableAutoFetchLoadingBarTimeout = setTimeout(() => {
-      this.loadingBar.hide();
-      this.disableAutoFetchLoadingBarTimeout = null;
-    }, DISABLE_AUTO_FETCH_LOADING_BAR_TIMEOUT);
   }
 
   load(pdfDocument) {
@@ -1892,8 +1899,11 @@ class PDFViewerApplication {
       webViewerVisibilityChange,
       webViewerWheel,
       webViewerTouchStart,
+      webViewerTouchMove,
+      webViewerTouchEnd,
       webViewerClick,
       webViewerKeyDown,
+      webViewerKeyUp,
       webViewerResolutionChange,
     } = this.helper;
 
@@ -1945,8 +1955,15 @@ class PDFViewerApplication {
     window.addEventListener("touchstart", webViewerTouchStart, {
       passive: false,
     });
+    window.addEventListener("touchmove", webViewerTouchMove, {
+      passive: false,
+    });
+    window.addEventListener("touchend", webViewerTouchEnd, {
+      passive: false,
+    });
     window.addEventListener("click", webViewerClick);
     window.addEventListener("keydown", webViewerKeyDown);
+    window.addEventListener("keyup", webViewerKeyUp);
     window.addEventListener("resize", _boundEvents.windowResize);
     window.addEventListener("hashchange", _boundEvents.windowHashChange);
     window.addEventListener("beforeprint", _boundEvents.windowBeforePrint);
@@ -2066,8 +2083,11 @@ class PDFViewerApplication {
       webViewerVisibilityChange,
       webViewerWheel,
       webViewerTouchStart,
+      webViewerTouchMove,
+      webViewerTouchEnd,
       webViewerClick,
       webViewerKeyDown,
+      webViewerKeyUp,
     } = this.helper;
 
     window.removeEventListener("visibilitychange", webViewerVisibilityChange);
@@ -2075,8 +2095,15 @@ class PDFViewerApplication {
     window.removeEventListener("touchstart", webViewerTouchStart, {
       passive: false,
     });
+    window.removeEventListener("touchmove", webViewerTouchMove, {
+      passive: false,
+    });
+    window.removeEventListener("touchend", webViewerTouchEnd, {
+      passive: false,
+    });
     window.removeEventListener("click", webViewerClick);
     window.removeEventListener("keydown", webViewerKeyDown);
+    window.removeEventListener("keyup", webViewerKeyUp);
     window.removeEventListener("resize", _boundEvents.windowResize);
     window.removeEventListener("hashchange", _boundEvents.windowHashChange);
     window.removeEventListener("beforeprint", _boundEvents.windowBeforePrint);
@@ -2091,15 +2118,41 @@ class PDFViewerApplication {
     _boundEvents.windowUpdateFromSandbox = null;
   }
 
-  accumulateWheelTicks(ticks) {
-    // If the scroll direction changed, reset the accumulated wheel ticks.
-    if ((this._wheelUnusedTicks > 0 && ticks < 0) || (this._wheelUnusedTicks < 0 && ticks > 0)) {
-      this._wheelUnusedTicks = 0;
+  accumulateWheelTicks(ticks, prop) {
+    // If the direction changed, reset the accumulated ticks.
+    if ((this[prop] > 0 && ticks < 0) || (this[prop] < 0 && ticks > 0)) {
+      this[prop] = 0;
     }
-    this._wheelUnusedTicks += ticks;
-    const wholeTicks = Math.trunc(this._wheelUnusedTicks);
-    this._wheelUnusedTicks -= wholeTicks;
+    this[prop] += ticks;
+    const wholeTicks = Math.trunc(this[prop]);
+    this[prop] -= wholeTicks;
     return wholeTicks;
+  }
+
+  _accumulateFactor(previousScale, factor, prop) {
+    if (factor === 1) {
+      return 1;
+    }
+    // If the direction changed, reset the accumulated factor.
+    if ((this[prop] > 1 && factor < 1) || (this[prop] < 1 && factor > 1)) {
+      this[prop] = 1;
+    }
+
+    const newFactor =
+      Math.floor(previousScale * factor * this[prop] * 100) / (100 * previousScale);
+    this[prop] = factor / newFactor;
+
+    return newFactor;
+  }
+
+  _centerAtPos(previousScale, x, y) {
+    const { pdfViewer } = this;
+    const scaleDiff = pdfViewer.currentScale / previousScale - 1;
+    if (scaleDiff !== 0) {
+      const [top, left] = pdfViewer.containerTopLeft;
+      pdfViewer.container.scrollLeft += (x - left) * scaleDiff;
+      pdfViewer.container.scrollTop += (y - top) * scaleDiff;
+    }
   }
 
   /**

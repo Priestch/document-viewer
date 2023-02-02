@@ -29,6 +29,10 @@ class DefaultExternalServices {
     throw new Error("Not implemented: createScripting");
   }
 
+  static get supportsPinchToZoom() {
+    return shadow(this, "supportsPinchToZoom", true);
+  }
+
   static get supportsIntegratedFind() {
     return shadow(this, "supportsIntegratedFind", false);
   }

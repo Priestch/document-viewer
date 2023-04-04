@@ -140,33 +140,40 @@ function getViewerConfiguration(document) {
 /**
  * @api
  *
- * @typedef ViewerOptions
+ * @typedef Options
  * @property {HTMLElement} parent - Element the PDF viewer render to.
  * @property {string} src - The src of the PDF document.
  * @property {string} resourcePath - The resource path of pdf.js.
  * @property {boolean} [disableCORSCheck=false] - Disable CORS check of pdf.js
+ * @property {Object} [appOptions={}] - Default app options of pdf.js
  */
 
 /**
  * Create a viewer app.
  * @api
- * @param {ViewerOptions} viewerOptions
+ * @param {Options} options
  * @returns {PDFViewerApplication}
  */
-function createViewerApp(viewerOptions) {
-  const { parent = null, resourcePath, src, disableCORSCheck = false } = viewerOptions;
+function createViewerApp(options) {
+  const { parent = null, resourcePath, src, disableCORSCheck = false, appOptions = {} } = options;
   const workerSrc = `${resourcePath}/build/pdf.worker.js`;
 
-  const options = AppOptions;
-  options.set("workerSrc", workerSrc);
-  options.set("sandboxBundleSrc", `${resourcePath}/build/pdf.sandbox.js`);
-  options.set("defaultUrl", src);
-  options.set("disableCORSCheck", disableCORSCheck);
+  const viewerOptions = AppOptions;
+  Object.keys(appOptions).forEach(function (key) {
+    viewerOptions.set(key, appOptions[key]);
+  });
+  viewerOptions.set("workerSrc", workerSrc);
+  viewerOptions.set("sandboxBundleSrc", `${resourcePath}/build/pdf.sandbox.js`);
+  viewerOptions.set("defaultUrl", src);
+  viewerOptions.set("disableCORSCheck", disableCORSCheck);
+
+  // set disablePreferences to enable custom appOptions work
+  viewerOptions.set("disablePreferences", true);
 
   const localeUrl = `${resourcePath}/web/locale/locale.properties`;
   injectLocaleResource(localeUrl);
 
-  const app = new PDFViewerApplication(options);
+  const app = new PDFViewerApplication(viewerOptions);
 
   activeApp = app;
 

@@ -159,6 +159,7 @@ function createViewerApp(viewerOptions) {
 
   const options = AppOptions;
   options.set("workerSrc", workerSrc);
+  options.set("sandboxBundleSrc", `${resourcePath}/build/pdf.sandbox.js`);
   options.set("defaultUrl", src);
   options.set("disableCORSCheck", disableCORSCheck);
 

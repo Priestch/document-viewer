@@ -821,11 +821,6 @@ class PDFViewerApplication {
     this._unblockDocumentLoadEvent();
     this._hideViewBookmark();
 
-    if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("MOZCENTRAL")) {
-      const { container } = this.appConfig.errorWrapper;
-      container.hidden = true;
-    }
-
     if (!this.pdfLoadingTask) {
       return;
     }

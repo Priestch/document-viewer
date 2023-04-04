@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createViewerApp } from "./app_manager.js";
+import { createViewerApp, getViewerConfiguration } from "./app_manager.js";
 
 /* eslint-disable-next-line no-unused-vars */
 const pdfjsVersion = typeof PDFJSDev !== "undefined" ? PDFJSDev.eval("BUNDLE_VERSION") : void 0;
@@ -24,4 +24,4 @@ const pdfjsBuild = typeof PDFJSDev !== "undefined" ? PDFJSDev.eval("BUNDLE_BUILD
 // works in Firefox; see https://bugzilla.mozilla.org/show_bug.cgi?id=1618553
 document.blockUnblockOnload?.(true);
 
-export { createViewerApp };
+export { createViewerApp, getViewerConfiguration };

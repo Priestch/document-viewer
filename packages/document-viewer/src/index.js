@@ -1,3 +1,3 @@
-import { createViewerApp } from "./app_manager";
+import { createViewerApp, getViewerConfiguration } from "./app_manager";
 
-export { createViewerApp };
+export { createViewerApp, getViewerConfiguration };

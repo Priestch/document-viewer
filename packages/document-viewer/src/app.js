@@ -722,7 +722,8 @@ class PDFViewerApplication {
   }
 
   get loadingBar() {
-    const barElement = document.getElementById("loadingBar");
+    const appContainer = this.appConfig.appContainer;
+    const barElement = appContainer.querySelector('[data-dom-id="loadingBar"]');
     const bar = barElement ? new ProgressBar(barElement) : null;
     return shadow(this, "loadingBar", bar);
   }

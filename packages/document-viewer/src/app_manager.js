@@ -4,6 +4,7 @@ import { injectLocaleResource } from "./utils";
 import getViewerTemplate from "./viewer_template";
 
 let activeApp;
+let manager = null;
 
 function getViewerConfiguration(el) {
   return {
@@ -152,6 +153,7 @@ function getViewerConfiguration(el) {
  * Create a viewer app.
  * @api
  * @param {Options} options
+ *
  * @returns {PDFViewerApplication}
  */
 function createViewerApp(options) {
@@ -189,6 +191,59 @@ function createViewerApp(options) {
 }
 
 /**
+ * @param {string[]} events
+ */
+export function initManager(events) {
+  if (manager) {
+    return manager;
+  }
+
+  manager = {
+    /**
+     * @param {Options} options
+     *
+     * @returns {PDFViewerApplication}
+     */
+    createApp(options) {
+      const app = createViewerApp(options);
+      this._register(app);
+      return app;
+    },
+    _register(app) {
+      let rAF = null;
+      const debounceHandler = function (_app) {
+        if (rAF) {
+          return;
+        }
+        // schedule an invocation of scroll for next animation frame.
+        rAF = window.requestAnimationFrame(() => {
+          rAF = null;
+          manager.activateApp(_app);
+        });
+      };
+
+      app.initializedPromise.then(() => {
+        events.forEach((name) => {
+          app.appConfig.sidebar.outerContainer.addEventListener(name, () => {
+            debounceHandler(app);
+          });
+        });
+      });
+    },
+    activateApp(app) {
+      console.log("activateApp", app.appConfig.appContainer.getAttribute("id"));
+      if (activeApp) {
+        window.removeEventListener("keydown", activeApp.helper.webViewerKeyDown);
+      }
+      activeApp = app;
+      window.addEventListener("keydown", activeApp.helper.webViewerKeyDown);
+    },
+  };
+
+  return manager;
+}
+
+/**
  * Get current active viewer app.
  * @returns {PDFViewerApplication}
  */
@@ -196,4 +251,10 @@ function getActiveApp() {
   return activeApp;
 }
 
-export { getActiveApp, createViewerApp, getViewerConfiguration };
+function createApp(options) {
+  const appManager = initManager(["mousemove", "click", "mousedown", "touchstart"]);
+
+  return appManager.createApp(options);
+}
+
+export { getActiveApp, createApp as createViewerApp, getViewerConfiguration };

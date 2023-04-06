@@ -181,7 +181,7 @@ function createViewerApp(options) {
     const template = getViewerTemplate();
     parent.appendChild(template);
 
-    const config = getViewerConfiguration(document);
+    const config = getViewerConfiguration(parent);
     app.run(config);
   }
 

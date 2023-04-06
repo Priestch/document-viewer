@@ -6,6 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "./bin/gulp.sh",
     "release": "npm run build && npm publish",
+    "transform:html": "node ./bin/transform-html.js",
     "api": "node jsdoc/extract-doc.js"
   },
   "exports": {
@@ -36,6 +37,8 @@
     "package.json"
   ],
   "devDependencies": {
-    "gulp": "^4.0.2"
+    "gulp": "^4.0.2",
+    "html-ast-transform": "^2.0.1",
+    "parse5": "^7.1.2"
   }
 }

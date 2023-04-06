@@ -34,11 +34,19 @@ function wrapWithLabel(node) {
       return item.nodeName === "label" && getAttr(item, "for") === idAttr;
     });
     if (labelNode) {
+      const l10Id = "data-l10n-id";
+      const excludeAttrs = ["for", l10Id, "class"];
       const attrs = labelNode.attrs.filter(function (item) {
-        return item.name !== "for";
+        return !excludeAttrs.includes(item.name);
       });
       const replacedInput = replaceIdAttr(node);
-      return h("label", attrs, [replacedInput]);
+      const textAttrs = [{ name: "class", value: "toolbarLabel" }];
+      const l10nAttr = getAttr(labelNode, l10Id);
+      if (l10nAttr) {
+        textAttrs.push({ name: l10Id, value: l10nAttr });
+      }
+      const textNode = h("span", textAttrs, labelNode.childNodes);
+      return h("label", attrs, [replacedInput, textNode]);
     } else {
       return replaceIdAttr(node);
     }

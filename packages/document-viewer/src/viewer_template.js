@@ -125,40 +125,50 @@ const template = `
         data-dom-id="findbarOptionsOneContainer"
         class="findbarOptionsOneContainer"
       >
-        <label class="toolbarLabel" data-l10n-id="find_highlight"
+        <label
           ><input
             type="checkbox"
             tabindex="94"
             data-dom-id="findHighlightAll"
-            class="toolbarField findHighlightAll" /></label
+            class="toolbarField findHighlightAll"
+          /><span class="toolbarLabel" data-l10n-id="find_highlight"
+            >Highlight All</span
+          ></label
         ><!--Removed!--><label
-          class="toolbarLabel"
-          data-l10n-id="find_match_case_label"
           ><input
             type="checkbox"
             tabindex="95"
             data-dom-id="findMatchCase"
-            class="toolbarField findMatchCase" /></label
+            class="toolbarField findMatchCase"
+          /><span class="toolbarLabel" data-l10n-id="find_match_case_label"
+            >Match Case</span
+          ></label
         ><!--Removed!-->
       </div>
       <div
         data-dom-id="findbarOptionsTwoContainer"
         class="findbarOptionsTwoContainer"
       >
-        <label class="toolbarLabel" data-l10n-id="find_match_diacritics_label"
+        <label
           ><input
             type="checkbox"
             tabindex="96"
             data-dom-id="findMatchDiacritics"
-            class="toolbarField findMatchDiacritics" /></label
+            class="toolbarField findMatchDiacritics"
+          /><span
+            class="toolbarLabel"
+            data-l10n-id="find_match_diacritics_label"
+            >Match Diacritics</span
+          ></label
         ><!--Removed!--><label
-          class="toolbarLabel"
-          data-l10n-id="find_entire_word_label"
           ><input
             type="checkbox"
             tabindex="97"
             data-dom-id="findEntireWord"
-            class="toolbarField findEntireWord" /></label
+            class="toolbarField findEntireWord"
+          /><span class="toolbarLabel" data-l10n-id="find_entire_word_label"
+            >Whole Words</span
+          ></label
         ><!--Removed!-->
       </div>
       <div
@@ -181,19 +191,18 @@ const template = `
       <div class="editorParamsToolbarContainer">
         <div class="editorParamsSetter">
           <!--Removed!--><label
-            class="editorParamsLabel"
-            data-l10n-id="editor_free_text_color"
             ><input
               type="color"
               tabindex="100"
               data-dom-id="editorFreeTextColor"
               class="editorParamsColor editorFreeTextColor"
-          /></label>
+            /><span class="toolbarLabel" data-l10n-id="editor_free_text_color"
+              >Color</span
+            ></label
+          >
         </div>
         <div class="editorParamsSetter">
           <!--Removed!--><label
-            class="editorParamsLabel"
-            data-l10n-id="editor_free_text_size"
             ><input
               type="range"
               value="10"
@@ -203,7 +212,10 @@ const template = `
               tabindex="101"
               data-dom-id="editorFreeTextFontSize"
               class="editorParamsSlider editorFreeTextFontSize"
-          /></label>
+            /><span class="toolbarLabel" data-l10n-id="editor_free_text_size"
+              >Size</span
+            ></label
+          >
         </div>
       </div>
     </div>
@@ -214,19 +226,18 @@ const template = `
       <div class="editorParamsToolbarContainer">
         <div class="editorParamsSetter">
           <!--Removed!--><label
-            class="editorParamsLabel"
-            data-l10n-id="editor_ink_color"
             ><input
               type="color"
               tabindex="102"
               data-dom-id="editorInkColor"
               class="editorParamsColor editorInkColor"
-          /></label>
+            /><span class="toolbarLabel" data-l10n-id="editor_ink_color"
+              >Color</span
+            ></label
+          >
         </div>
         <div class="editorParamsSetter">
           <!--Removed!--><label
-            class="editorParamsLabel"
-            data-l10n-id="editor_ink_thickness"
             ><input
               type="range"
               value="1"
@@ -236,12 +247,13 @@ const template = `
               tabindex="103"
               data-dom-id="editorInkThickness"
               class="editorParamsSlider editorInkThickness"
-          /></label>
+            /><span class="toolbarLabel" data-l10n-id="editor_ink_thickness"
+              >Thickness</span
+            ></label
+          >
         </div>
         <div class="editorParamsSetter">
           <!--Removed!--><label
-            class="editorParamsLabel"
-            data-l10n-id="editor_ink_opacity"
             ><input
               type="range"
               value="100"
@@ -251,7 +263,10 @@ const template = `
               tabindex="104"
               data-dom-id="editorInkOpacity"
               class="editorParamsSlider editorInkOpacity"
-          /></label>
+            /><span class="toolbarLabel" data-l10n-id="editor_ink_opacity"
+              >Opacity</span
+            ></label
+          >
         </div>
       </div>
     </div>

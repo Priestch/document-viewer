@@ -36,4 +36,4 @@ make it easier to integrate PDF viewer to your project.
 - [x] Display single PDF document
 - [ ] Cli starter
 - [ ] Docs
-- [ ] Display multiple documents
+- [x] Display multiple documents

@@ -54,6 +54,11 @@ function buildGenericApp(defines) {
   }).pipe(gulp.dest(GENERIC_DIR + "web"));
 }
 
+function overrideStyle() {
+  const options = { cwd: ROOT_DIR };
+  return gulp.src("src/assets/viewer.css", options).pipe(gulp.dest("dist/generic/web", options));
+}
+
 gulp.task(
   "app",
   gulp.series(
@@ -69,6 +74,7 @@ gulp.task(
 
       return buildGenericApp(defines);
     },
-    copyToDist
+    copyToDist,
+    overrideStyle
   )
 );

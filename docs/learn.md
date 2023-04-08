@@ -1,6 +1,4 @@
-# How to Learn PDF.js
-
-## PDF.js Architecture
+# PDF.js Architecture
 
 ![Overview of the PDF.js Architecture](https://hacks.mozilla.org/files/2021/09/pdfjs_architecture.png)
 

@@ -166,7 +166,11 @@ function createHelper(PDFViewerApplication) {
     try {
       if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
         if (file) {
-          PDFViewerApplication.open({ url: file });
+          if (typeof file === "string" || file instanceof URL) {
+            PDFViewerApplication.open({url: file});
+          } else {
+            PDFViewerApplication.open(file);
+          }
         } else {
           PDFViewerApplication._hideViewBookmark();
         }

@@ -2,6 +2,8 @@ const jsdoc2md = require("jsdoc-to-markdown");
 const fs = require("fs-extra");
 const path = require("path");
 
+const definedTypes = {};
+
 jsdoc2md
   .getTemplateData({
     files: ["./src/app_manager.js"],
@@ -20,8 +22,29 @@ jsdoc2md
         return;
       }
       commitIds.add(comment.id);
-      items.push(comment);
+      if (comment.kind === "typedef") {
+        definedTypes[comment.id] = comment;
+      } else {
+        comment.params = comment.params.map((param) => {
+          return {
+            value: param.type.names[0],
+            ...param,
+          };
+        });
+        comment.returns = comment.returns.map((item) => {
+          return {
+            value: item.type.names[0],
+            ...item,
+          };
+        });
+      }
+      items.push({
+        comment,
+        definedTypes,
+      });
     });
+
+    console.log(definedTypes);
 
     jsdoc2md
       .render({

@@ -6,3 +6,7 @@ Handlebars.registerHelper("equals", function compare(a, b, options) {
   }
   return options.inverse(this);
 });
+
+Handlebars.registerHelper("isDefined", function (value) {
+  return value !== undefined;
+});

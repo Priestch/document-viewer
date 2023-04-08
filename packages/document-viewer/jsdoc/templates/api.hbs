@@ -1,25 +1,33 @@
 # API
 {{#each this}}
+{{#with comment}}
 {{~#if customTags~}}
 {{#equals kind "typedef" }}
 ## {{name}}
-### properties
-|name|type|description|
-|---|---|---|
+#### properties
+|name|type|description|defaultValue|
+|---|---|---|---|
 {{#each properties}}
-|{{name}}|`{{{type.names}}}`|{{{description}}} {{#if optional}}`optional`{{/if}}|
+|{{name}} {{#if optional}}`optional`{{/if}}|`{{{type.names}}}`|{{{description}}}| {{#if (isDefined defaultvalue)}}{{defaultvalue}}{{else}}-{{/if}}|
 {{/each}}
 {{/equals}}
 
 {{#equals kind "function" }}
+{{log this}}
 ## {{name}}
+
+```typescript
+function {{name}}({{~#each params~}} {{name}}: {{value}} {{~/each~}}): {{#each returns~}} {{value}} {{~/each}} {
+}
+```
 
 {{description}}
 {{#each params}}
-  * [{{name}}](#{{name}})
+  * [{{value}}](#{{value}})
 {{/each}}
 
 {{/equals}}
 
 {{~/if~}}
+{{/with}}
 {{/each}}

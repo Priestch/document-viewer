@@ -4,15 +4,16 @@
 
 Create a viewer app.
 
-- [viewerOptions](#viewerOptions)
+- [options](#options)
 
-## ViewerOptions
+## Options
 
 ### properties
 
-| name             | type          | description                             |
-| ---------------- | ------------- | --------------------------------------- |
-| parent           | `HTMLElement` | Element the PDF viewer render to.       |
-| src              | `string`      | The src of the PDF document.            |
-| resourcePath     | `string`      | The resource path of pdf.js.            |
-| disableCORSCheck | `boolean`     | Disable CORS check of pdf.js `optional` |
+| name             | type          | description                              |
+| ---------------- | ------------- | ---------------------------------------- |
+| parent           | `HTMLElement` | Element the PDF viewer render to.        |
+| src              | `string`      | The src of the PDF document.             |
+| resourcePath     | `string`      | The resource path of pdf.js.             |
+| disableCORSCheck | `boolean`     | Disable CORS check of pdf.js `optional`  |
+| appOptions       | `Object`      | Default app options of pdf.js `optional` |

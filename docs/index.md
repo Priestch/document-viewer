@@ -18,16 +18,15 @@ npm run dev
 
 ## Prepare Resources
 
-PDF.js depends on some resources to work. All these resources in `node_modules/@document-kits/viewer/dist/generic/`.
-You must copy these resources when using bundler build the app.
+PDF.js depends on some resources to work.
+
+All the necessary resources are located in `node_modules/@document-kits/viewer/dist/generic/`.
+When building the app using a bundler, make sure to copy these resources.
 
 ###### Resource List
 
-- `viewer.properties` for i18n
-- `pdf.worker.js`
-
-## PDF.js Architecture
-
-![Overview of the PDF.js Architecture](https://hacks.mozilla.org/files/2021/09/pdfjs_architecture.png)
-
-[Read more](https://hacks.mozilla.org/2021/10/implementing-form-filling-and-accessibility-in-the-firefox-pdf-viewer/)
+- `web/locale/viewer.properties` for i18n
+- `web/viewer.css` for viewer style
+- `build/pdf.worker.js`
+- `build/pdf.sandbox.js`
+- `web/standard_fonts/*`

@@ -26,6 +26,8 @@ const config = {
     nav: [
       { text: "Home", link: "/" },
       { text: "API", link: "/api" },
+      { text: "Resources", link: "/resources" },
+      { text: "Learn PDF.js", link: "/learn" },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/Priestch/document-viewer" }],
   },

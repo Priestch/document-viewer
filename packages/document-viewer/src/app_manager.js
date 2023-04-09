@@ -231,7 +231,9 @@ export function initManager(events) {
       });
     },
     activateApp(app) {
-      console.log("activateApp", app.appConfig.appContainer.getAttribute("id"));
+      if (activeApp === app) {
+        return;
+      }
       if (activeApp) {
         window.removeEventListener("keydown", activeApp.helper.webViewerKeyDown);
       }

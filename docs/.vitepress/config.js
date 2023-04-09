@@ -16,7 +16,7 @@ const config = {
   base: "/document-viewer/",
   lastUpdated: true,
   markdown: {
-    lineNumbers: true,
+    lineNumbers: false,
   },
   head: [
     ["script", { src: "https://www.googletagmanager.com/gtag/js?id=G-6648ZRLKLT", async: true }],

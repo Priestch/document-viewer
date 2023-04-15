@@ -168,8 +168,8 @@ function createHelper(PDFViewerApplication) {
         if (file) {
           if (typeof file === "string" || file instanceof URL) {
             PDFViewerApplication.open({url: file});
-          } else {
-            PDFViewerApplication.open(file);
+          } else if (file.byteLength) {
+            PDFViewerApplication.open({data: file});
           }
         } else {
           PDFViewerApplication._hideViewBookmark();

@@ -25,6 +25,23 @@ if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("CHROME")) {
   throw new Error('Module "pdfjs-web/chromecom" shall not be used outside CHROME build.');
 }
 
+function rewriteUrlClosure(AppOptions) {
+  // Run this code outside DOMContentLoaded to make sure that the URL
+  // is rewritten as soon as possible.
+  const queryString = document.location.search.slice(1);
+  const m = /(^|&)file=([^&]*)/.exec(queryString);
+  const defaultUrl = m ? decodeURIComponent(m[2]) : "";
+
+  // Example: chrome-extension://.../http://example.com/file.pdf
+  const humanReadableUrl = "/" + defaultUrl + location.hash;
+  history.replaceState(history.state, "", humanReadableUrl);
+  if (top === window) {
+    chrome.runtime.sendMessage("showPageAction");
+  }
+
+  AppOptions.set("defaultUrl", defaultUrl);
+}
+
 const ChromeCom = {
   /**
    * Creates an event that the extension is listening for and will
@@ -418,6 +435,7 @@ class ChromeExternalServices extends DefaultExternalServices {
 }
 
 function bindExternalService(app) {
+  rewriteUrlClosure(app.appOptions);
   app.externalServices = ChromeExternalServices;
 }
 

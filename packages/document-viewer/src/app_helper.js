@@ -16,7 +16,6 @@ const WHEEL_ZOOM_DISABLED_TIMEOUT = 1000; // ms
 
 function createHelper(PDFViewerApplication) {
   const AppOptions = PDFViewerApplication.appOptions;
-
   if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
     const HOSTED_VIEWER_ORIGINS = [
       "null",
@@ -54,17 +53,14 @@ function createHelper(PDFViewerApplication) {
       }
     };
   }
-
   async function loadFakeWorker() {
     GlobalWorkerOptions.workerSrc ||= AppOptions.get("workerSrc");
-
     if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("PRODUCTION")) {
-      window.pdfjsWorker = await import("pdfjs/core/worker.js");
+      window.pdfjsWorker = await import("pdfjs/pdf.worker.js");
       return;
     }
     await loadScript(PDFWorker.workerSrc);
   }
-
   async function loadPDFBug(self) {
     const { debuggerScriptPath } = self.appConfig;
     const { PDFBug } =
@@ -74,7 +70,6 @@ function createHelper(PDFViewerApplication) {
 
     self._PDFBug = PDFBug;
   }
-
   function reportPageStatsPDFBug({ pageNumber }) {
     if (!globalThis.Stats?.enabled) {
       return;
@@ -84,9 +79,8 @@ function createHelper(PDFViewerApplication) {
     );
     globalThis.Stats.add(pageNumber, pageView?.pdfPage?.stats);
   }
-
   function webViewerInitialized() {
-    const { appConfig, eventBus } = PDFViewerApplication;
+    const { appConfig, eventBus, l10n } = PDFViewerApplication;
     let file;
     if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
       const queryString = document.location.search.substring(1);
@@ -98,11 +92,9 @@ function createHelper(PDFViewerApplication) {
     } else if (PDFJSDev.test("CHROME")) {
       file = AppOptions.get("defaultUrl");
     }
-
     if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
       const fileInput = appConfig.openFileInput;
       fileInput.value = null;
-
       fileInput.addEventListener("change", function (evt) {
         const { files } = evt.target;
         if (!files || files.length === 0) {
@@ -117,13 +109,11 @@ function createHelper(PDFViewerApplication) {
       // Enable dragging-and-dropping a new PDF file onto the viewerContainer.
       appConfig.mainContainer.addEventListener("dragover", function (evt) {
         evt.preventDefault();
-
         evt.dataTransfer.dropEffect =
           evt.dataTransfer.effectAllowed === "copy" ? "copy" : "move";
       });
       appConfig.mainContainer.addEventListener("drop", function (evt) {
         evt.preventDefault();
-
         const { files } = evt.dataTransfer;
         if (!files || files.length === 0) {
           return;
@@ -134,10 +124,9 @@ function createHelper(PDFViewerApplication) {
         });
       });
     }
-
     if (!PDFViewerApplication.supportsDocumentFonts) {
       AppOptions.set("disableFontFace", true);
-      PDFViewerApplication.l10n.get("web_fonts_disabled").then((msg) => {
+      l10n.get("web_fonts_disabled").then((msg) => {
         console.warn(msg);
       });
     }
@@ -182,7 +171,7 @@ function createHelper(PDFViewerApplication) {
         throw new Error("Not implemented: webViewerInitialized");
       }
     } catch (reason) {
-      PDFViewerApplication.l10n.get("loading_error").then((msg) => {
+      l10n.get("loading_error").then((msg) => {
         PDFViewerApplication._documentError(msg, reason);
       });
     }
@@ -394,14 +383,10 @@ function createHelper(PDFViewerApplication) {
     PDFViewerApplication.downloadOrSave();
   }
   function webViewerFirstPage() {
-    if (PDFViewerApplication.pdfDocument) {
-      PDFViewerApplication.page = 1;
-    }
+    PDFViewerApplication.page = 1;
   }
   function webViewerLastPage() {
-    if (PDFViewerApplication.pdfDocument) {
-      PDFViewerApplication.page = PDFViewerApplication.pagesCount;
-    }
+    PDFViewerApplication.page = PDFViewerApplication.pagesCount;
   }
   function webViewerNextPage() {
     PDFViewerApplication.pdfViewer.nextPage();
@@ -576,12 +561,16 @@ function createHelper(PDFViewerApplication) {
     // The following formula is a bit strange but it comes from:
     // https://searchfox.org/mozilla-central/rev/d62c4c4d5547064487006a1506287da394b64724/widget/InputData.cpp#618-626
     let scaleFactor = Math.exp(-evt.deltaY / 100);
+    const isBuiltInMac =
+      typeof PDFJSDev !== "undefined" &&
+      PDFJSDev.test("MOZCENTRAL") &&
+      FeatureTest.platform.isMac;
     const isPinchToZoom =
       evt.ctrlKey &&
       !PDFViewerApplication._isCtrlKeyDown &&
       deltaMode === WheelEvent.DOM_DELTA_PIXEL &&
       evt.deltaX === 0 &&
-      Math.abs(scaleFactor - 1) < 0.05 &&
+      (Math.abs(scaleFactor - 1) < 0.05 || isBuiltInMac) &&
       evt.deltaZ === 0;
     if (
       isPinchToZoom ||
@@ -841,12 +830,15 @@ function createHelper(PDFViewerApplication) {
           if (!PDFViewerApplication.supportsIntegratedFind) {
             const { state } = PDFViewerApplication.findController;
             if (state) {
-              const eventState = Object.assign(Object.create(null), state, {
+              const newState = {
                 source: window,
                 type: "again",
                 findPrevious: cmd === 5 || cmd === 12,
+              };
+              eventBus.dispatch("find", {
+                ...state,
+                ...newState,
               });
-              eventBus.dispatch("find", eventState);
             }
             handled = true;
           }
@@ -856,18 +848,14 @@ function createHelper(PDFViewerApplication) {
         case 187: // Chrome '+'
         case 171:
           // FF with German keyboard
-          if (!isViewerInPresentationMode) {
-            PDFViewerApplication.zoomIn();
-          }
+          PDFViewerApplication.zoomIn();
           handled = true;
           break;
         case 173: // FF/Mac '-'
         case 109: // FF '-'
         case 189:
           // Chrome '-'
-          if (!isViewerInPresentationMode) {
-            PDFViewerApplication.zoomOut();
-          }
+          PDFViewerApplication.zoomOut();
           handled = true;
           break;
         case 48: // '0'

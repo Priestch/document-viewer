@@ -3,6 +3,7 @@ import {
   apiPageLayoutToViewerModes,
   apiPageModeToSidebarView,
   AutoPrintRegExp,
+  CursorTool,
   DEFAULT_SCALE_VALUE,
   getActiveOrFocusedElement,
   isValidRotation,
@@ -22,6 +23,7 @@ import {
   AnnotationEditorType,
   build,
   createPromiseCapability,
+  FeatureTest,
   getDocument,
   getFilenameFromUrl,
   getPdfFilenameFromUrl,
@@ -39,27 +41,27 @@ import {
 } from "pdfjs-lib";
 import { AppOptions, OptionKind } from "../pdf.js/web/app_options.js";
 import { AutomationEventBus, EventBus } from "../pdf.js/web/event_utils.js";
-import { CursorTool, PDFCursorTools } from "../pdf.js/web/pdf_cursor_tools.js";
 import { LinkTarget, PDFLinkService } from "../pdf.js/web/pdf_link_service.js";
-import { AnnotationEditorParams } from "../pdf.js/web/annotation_editor_params.js";
+import { AnnotationEditorParams } from "web-annotation_editor_params";
 import { OverlayManager } from "../pdf.js/web/overlay_manager.js";
 import { PasswordPrompt } from "../pdf.js/web/password_prompt.js";
-import { PDFAttachmentViewer } from "../pdf.js/web/pdf_attachment_viewer.js";
-import { PDFDocumentProperties } from "../pdf.js/web/pdf_document_properties.js";
-import { PDFFindBar } from "../pdf.js/web/pdf_find_bar.js";
+import { PDFAttachmentViewer } from "web-pdf_attachment_viewer";
+import { PDFCursorTools } from "web-pdf_cursor_tools";
+import { PDFDocumentProperties } from "web-pdf_document_properties";
+import { PDFFindBar } from "web-pdf_find_bar";
 import { PDFFindController } from "../pdf.js/web/pdf_find_controller.js";
 import { PDFHistory } from "../pdf.js/web/pdf_history.js";
-import { PDFLayerViewer } from "../pdf.js/web/pdf_layer_viewer.js";
-import { PDFOutlineViewer } from "../pdf.js/web/pdf_outline_viewer.js";
-import { PDFPresentationMode } from "../pdf.js/web/pdf_presentation_mode.js";
+import { PDFLayerViewer } from "web-pdf_layer_viewer";
+import { PDFOutlineViewer } from "web-pdf_outline_viewer";
+import { PDFPresentationMode } from "web-pdf_presentation_mode";
 import { PDFRenderingQueue } from "../pdf.js/web/pdf_rendering_queue.js";
 import { PDFScriptingManager } from "../pdf.js/web/pdf_scripting_manager.js";
-import { PDFSidebar } from "../pdf.js/web/pdf_sidebar.js";
-import { PDFSidebarResizer } from "../pdf.js/web/pdf_sidebar_resizer.js";
-import { PDFThumbnailViewer } from "../pdf.js/web/pdf_thumbnail_viewer.js";
+import { PDFSidebar } from "web-pdf_sidebar";
+import { PDFSidebarResizer } from "web-pdf_sidebar_resizer";
+import { PDFThumbnailViewer } from "web-pdf_thumbnail_viewer";
 import { PDFViewer } from "../pdf.js/web/pdf_viewer.js";
-import { SecondaryToolbar } from "../pdf.js/web/secondary_toolbar.js";
-import { Toolbar } from "../pdf.js/web/toolbar.js";
+import { SecondaryToolbar } from "web-secondary_toolbar";
+import { Toolbar } from "web-toolbar";
 import { ViewHistory } from "../pdf.js/web/view_history.js";
 import { DefaultExternalServices } from "./default_external_services.js";
 const FORCE_PAGES_LOADED_TIMEOUT = 10000; // ms
@@ -169,8 +171,7 @@ class ViewerApplication {
     const { appOptions: AppOptions } = this;
     this.preferences = this.externalServices.createPreferences();
     this.appConfig = appConfig;
-    await this._readPreferences();
-    await this._parseHashParameters();
+    await this._initializeOptions();
     this._forceCssTheme();
     await this._initializeL10n();
     if (this.isViewerEmbedded && AppOptions.get("externalLinkTarget") === LinkTarget.NONE) {
@@ -199,17 +200,20 @@ class ViewerApplication {
   /**
    * @private
    */
-  async _readPreferences() {
+  async _initializeOptions() {
     const { appOptions: AppOptions } = this;
-    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("!PRODUCTION || GENERIC")) {
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
       if (AppOptions.get("disablePreferences")) {
+        if (AppOptions.get("pdfBugEnabled")) {
+          await this._parseHashParams();
+        }
         // Give custom implementations of the default viewer a simpler way to
         // opt-out of having the `Preferences` override existing `AppOptions`.
         return;
       }
       if (AppOptions._hasUserOptions()) {
         console.warn(
-          "_readPreferences: The Preferences may override manually set AppOptions; " +
+          "_initializeOptions: The Preferences may override manually set AppOptions; " +
             'please use the "disablePreferences"-option in order to prevent that.'
         );
       }
@@ -217,29 +221,34 @@ class ViewerApplication {
     try {
       AppOptions.setAll(await this.preferences.getAll());
     } catch (reason) {
-      console.error(`_readPreferences: "${reason?.message}".`);
+      console.error(`_initializeOptions: "${reason.message}".`);
+    }
+    if (AppOptions.get("pdfBugEnabled")) {
+      await this._parseHashParams();
     }
   }
   /**
    * Potentially parse special debugging flags in the hash section of the URL.
    * @private
    */
-  async _parseHashParameters() {
+  async _parseHashParams() {
     const { appOptions: AppOptions } = this;
-    if (!AppOptions.get("pdfBugEnabled")) {
-      return;
-    }
     const hash = document.location.hash.substring(1);
     if (!hash) {
       return;
     }
     const { mainContainer, viewerContainer } = this.appConfig,
       params = parseQueryString(hash);
-    if (params.get("disableworker") === "true") {
+    if (
+      (typeof PDFJSDev === "undefined" || !PDFJSDev.test("PRODUCTION")) &&
+      params.get("workermodules") === "true"
+    ) {
+      AppOptions.set("workerSrc", "../src/pdf.worker.js");
+    } else if (params.get("disableworker") === "true") {
       try {
         await loadFakeWorker();
       } catch (ex) {
-        console.error(`_parseHashParameters: "${ex.message}".`);
+        console.error(`_parseHashParams: "${ex.message}".`);
       }
     }
     if (params.has("disablerange")) {
@@ -273,7 +282,7 @@ class ViewerApplication {
             await loadPDFBug(this);
             this._PDFBug.loadCSS();
           } catch (ex) {
-            console.error(`_parseHashParameters: "${ex.message}".`);
+            console.error(`_parseHashParams: "${ex.message}".`);
           }
           break;
       }
@@ -292,7 +301,7 @@ class ViewerApplication {
           enabled
         );
       } catch (ex) {
-        console.error(`_parseHashParameters: "${ex.message}".`);
+        console.error(`_parseHashParams: "${ex.message}".`);
       }
     }
     // It is not possible to change locale for the (various) extension builds.
@@ -380,7 +389,8 @@ class ViewerApplication {
     const findController = new PDFFindController({
       linkService: pdfLinkService,
       eventBus,
-      updateMatchesCountOnProgress: typeof PDFJSDev === "undefined" || !PDFJSDev.test("GECKOVIEW"),
+      updateMatchesCountOnProgress:
+        typeof PDFJSDev === "undefined" ? !window.isGECKOVIEW : !PDFJSDev.test("GECKOVIEW"),
     });
     this.findController = findController;
     const pdfScriptingManager = new PDFScriptingManager({
@@ -434,7 +444,6 @@ class ViewerApplication {
     if (appConfig.sidebar?.thumbnailView) {
       this.pdfThumbnailViewer = new PDFThumbnailViewer({
         container: appConfig.sidebar.thumbnailView,
-        eventBus,
         renderingQueue: pdfRenderingQueue,
         linkService: pdfLinkService,
         l10n: this.l10n,
@@ -478,11 +487,16 @@ class ViewerApplication {
         }
       );
     }
-    this.pdfCursorTools = new PDFCursorTools({
-      container,
-      eventBus,
-      cursorToolOnLoad: AppOptions.get("cursorToolOnLoad"),
-    });
+
+    // NOTE: The cursor-tools are unlikely to be helpful/useful in GeckoView,
+    // in particular the `HandTool` which basically simulates touch scrolling.
+    if (appConfig.secondaryToolbar?.cursorHandToolButton) {
+      this.pdfCursorTools = new PDFCursorTools({
+        container,
+        eventBus,
+        cursorToolOnLoad: AppOptions.get("cursorToolOnLoad"),
+      });
+    }
     if (appConfig.toolbar) {
       this.toolbar = new Toolbar(appConfig.toolbar, eventBus, this.l10n);
     }
@@ -493,7 +507,7 @@ class ViewerApplication {
         this.externalServices
       );
     }
-    if (this.supportsFullscreen) {
+    if (this.supportsFullscreen && appConfig.secondaryToolbar?.presentationModeButton) {
       this.pdfPresentationMode = new PDFPresentationMode({
         container,
         pdfViewer: this.pdfViewer,
@@ -620,11 +634,9 @@ class ViewerApplication {
       throw new Error("Not implemented: initPassiveLoading");
     }
     this.externalServices.initPassiveLoading({
-      onOpenWithTransport: (url, length, transport) => {
+      onOpenWithTransport: (range) => {
         this.open({
-          url,
-          length,
-          range: transport,
+          range,
         });
       },
       onOpenWithData: (data, contentDispositionFilename) => {
@@ -791,39 +803,25 @@ class ViewerApplication {
       await this.close();
     }
     // Set the necessary global worker parameters, using the available options.
-    const workerParameters = AppOptions.getAll(OptionKind.WORKER);
-    for (const key in workerParameters) {
-      GlobalWorkerOptions[key] = workerParameters[key];
-    }
-    const parameters = Object.create(null);
+    const workerParams = AppOptions.getAll(OptionKind.WORKER);
+    Object.assign(GlobalWorkerOptions, workerParams);
     if ((typeof PDFJSDev === "undefined" || !PDFJSDev.test("MOZCENTRAL")) && args.url) {
       // The Firefox built-in viewer always calls `setTitleUsingUrl`, before
       // `initPassiveLoading`, and it never provides an `originalUrl` here.
-      if (args.originalUrl) {
-        this.setTitleUsingUrl(args.originalUrl, /* downloadUrl = */ args.url);
-        delete args.originalUrl;
-      } else {
-        this.setTitleUsingUrl(args.url, /* downloadUrl = */ args.url);
-      }
+      this.setTitleUsingUrl(args.originalUrl || args.url, /* downloadUrl = */ args.url);
     }
-    // Set the necessary API parameters, using the available options.
-    const apiParameters = AppOptions.getAll(OptionKind.API);
-    for (const key in apiParameters) {
-      let value = apiParameters[key];
-      if (key === "docBaseUrl") {
-        if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("PRODUCTION")) {
-          value ||= document.URL.split("#")[0];
-        } else if (PDFJSDev.test("MOZCENTRAL || CHROME")) {
-          value ||= this.baseUrl;
-        }
-      }
-      parameters[key] = value;
+    // Set the necessary API parameters, using all the available options.
+    const apiParams = AppOptions.getAll(OptionKind.API);
+    const params = {
+      ...apiParams,
+      ...args,
+    };
+    if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("PRODUCTION")) {
+      params.docBaseUrl ||= document.URL.split("#")[0];
+    } else if (PDFJSDev.test("MOZCENTRAL || CHROME")) {
+      params.docBaseUrl ||= this.baseUrl;
     }
-    // Finally, update the API parameters with the arguments.
-    for (const key in args) {
-      parameters[key] = args[key];
-    }
-    const loadingTask = getDocument(parameters);
+    const loadingTask = getDocument(params);
     this.pdfLoadingTask = loadingTask;
     loadingTask.onPassword = (updateCallback, reason) => {
       if (this.isViewerEmbedded) {
@@ -1096,23 +1094,26 @@ class ViewerApplication {
               spreadMode = stored.spreadMode | 0;
             }
           }
-          // Always let the user preference/view history take precedence.
-          if (pageMode && sidebarView === SidebarView.UNKNOWN) {
-            sidebarView = apiPageModeToSidebarView(pageMode);
-          }
-          // NOTE: Always ignore the pageLayout in GeckoView since there's
-          // no UI available to change Scroll/Spread modes for the user.
+          // NOTE: Ignore the pageMode/pageLayout in GeckoView since there's no
+          // sidebar available, nor any UI for changing the Scroll/Spread modes.
           if (
-            (typeof PDFJSDev === "undefined" || !PDFJSDev.test("GECKOVIEW")) &&
-            pageLayout &&
-            scrollMode === ScrollMode.UNKNOWN &&
-            spreadMode === SpreadMode.UNKNOWN
+            typeof PDFJSDev === "undefined" ? !window.isGECKOVIEW : !PDFJSDev.test("GECKOVIEW")
           ) {
-            const modes = apiPageLayoutToViewerModes(pageLayout);
-            // TODO: Try to improve page-switching when using the mouse-wheel
-            // and/or arrow-keys before allowing the document to control this.
-            // scrollMode = modes.scrollMode;
-            spreadMode = modes.spreadMode;
+            // Always let the user preference/view history take precedence.
+            if (pageMode && sidebarView === SidebarView.UNKNOWN) {
+              sidebarView = apiPageModeToSidebarView(pageMode);
+            }
+            if (
+              pageLayout &&
+              scrollMode === ScrollMode.UNKNOWN &&
+              spreadMode === SpreadMode.UNKNOWN
+            ) {
+              const modes = apiPageLayoutToViewerModes(pageLayout);
+              // TODO: Try to improve page-switching when using the mouse-wheel
+              // and/or arrow-keys before allowing the document to control this.
+              // scrollMode = modes.scrollMode;
+              spreadMode = modes.spreadMode;
+            }
           }
           this.setInitialView(hash, {
             rotation,
@@ -1184,37 +1185,43 @@ class ViewerApplication {
         type: "pageInfo",
         timestamp: data.timestamp,
       });
-      pdfDocument.getOutline().then((outline) => {
-        if (pdfDocument !== this.pdfDocument) {
-          return; // The document was closed while the outline resolved.
-        }
+      if (this.pdfOutlineViewer) {
+        pdfDocument.getOutline().then((outline) => {
+          if (pdfDocument !== this.pdfDocument) {
+            return; // The document was closed while the outline resolved.
+          }
 
-        this.pdfOutlineViewer?.render({
-          outline,
-          pdfDocument,
+          this.pdfOutlineViewer.render({
+            outline,
+            pdfDocument,
+          });
         });
-      });
-      pdfDocument.getAttachments().then((attachments) => {
-        if (pdfDocument !== this.pdfDocument) {
-          return; // The document was closed while the attachments resolved.
-        }
+      }
+      if (this.pdfAttachmentViewer) {
+        pdfDocument.getAttachments().then((attachments) => {
+          if (pdfDocument !== this.pdfDocument) {
+            return; // The document was closed while the attachments resolved.
+          }
 
-        this.pdfAttachmentViewer?.render({
-          attachments,
+          this.pdfAttachmentViewer.render({
+            attachments,
+          });
         });
-      });
-      // Ensure that the layers accurately reflects the current state in the
-      // viewer itself, rather than the default state provided by the API.
-      pdfViewer.optionalContentConfigPromise.then((optionalContentConfig) => {
-        if (pdfDocument !== this.pdfDocument) {
-          return; // The document was closed while the layers resolved.
-        }
+      }
+      if (this.pdfLayerViewer) {
+        // Ensure that the layers accurately reflects the current state in the
+        // viewer itself, rather than the default state provided by the API.
+        pdfViewer.optionalContentConfigPromise.then((optionalContentConfig) => {
+          if (pdfDocument !== this.pdfDocument) {
+            return; // The document was closed while the layers resolved.
+          }
 
-        this.pdfLayerViewer?.render({
-          optionalContentConfig,
-          pdfDocument,
+          this.pdfLayerViewer.render({
+            optionalContentConfig,
+            pdfDocument,
+          });
         });
-      });
+      }
     });
     this._initializePageLabels(pdfDocument);
     this._initializeMetadata(pdfDocument);
@@ -1361,6 +1368,9 @@ class ViewerApplication {
    */
   async _initializePageLabels(pdfDocument) {
     const { appOptions: AppOptions } = this;
+    if (typeof PDFJSDev === "undefined" ? window.isGECKOVIEW : PDFJSDev.test("GECKOVIEW")) {
+      return;
+    }
     const labels = await pdfDocument.getPageLabels();
     if (pdfDocument !== this.pdfDocument) {
       return; // The document was closed while the page labels resolved.

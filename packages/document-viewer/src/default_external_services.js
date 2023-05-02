@@ -55,6 +55,10 @@ class DefaultExternalServices {
   static updateEditorStates(data) {
     throw new Error("Not implemented: updateEditorStates");
   }
+
+  static get canvasMaxAreaInBytes() {
+    return shadow(this, "canvasMaxAreaInBytes", -1);
+  }
 }
 
 export { DefaultExternalServices };

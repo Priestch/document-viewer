@@ -813,6 +813,7 @@ class ViewerApplication {
     // Set the necessary API parameters, using all the available options.
     const apiParams = AppOptions.getAll(OptionKind.API);
     const params = {
+      canvasMaxAreaInBytes: this.externalServices.canvasMaxAreaInBytes,
       ...apiParams,
       ...args,
     };
@@ -1018,20 +1019,14 @@ class ViewerApplication {
     });
     this.toolbar?.setPagesCount(pdfDocument.numPages, false);
     this.secondaryToolbar?.setPagesCount(pdfDocument.numPages);
-    let baseDocumentUrl;
-    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-      baseDocumentUrl = null;
-    } else if (PDFJSDev.test("MOZCENTRAL")) {
-      baseDocumentUrl = this.baseUrl;
-    } else if (PDFJSDev.test("CHROME")) {
-      baseDocumentUrl = location.href.split("#")[0];
-    }
-    if (baseDocumentUrl && isDataScheme(baseDocumentUrl)) {
+    if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("CHROME")) {
+      const baseUrl = location.href.split("#")[0];
       // Ignore "data:"-URLs for performance reasons, even though it may cause
       // internal links to not work perfectly in all cases (see bug 1803050).
-      baseDocumentUrl = null;
+      this.pdfLinkService.setDocument(pdfDocument, isDataScheme(baseUrl) ? null : baseUrl);
+    } else {
+      this.pdfLinkService.setDocument(pdfDocument);
     }
-    this.pdfLinkService.setDocument(pdfDocument, baseDocumentUrl);
     this.pdfDocumentProperties?.setDocument(pdfDocument);
     const pdfViewer = this.pdfViewer;
     pdfViewer.setDocument(pdfDocument);

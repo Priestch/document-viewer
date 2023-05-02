@@ -439,6 +439,11 @@ class FirefoxExternalServices extends DefaultExternalServices {
     const isInAutomation = FirefoxCom.requestSync("isInAutomation");
     return shadow(this, "isInAutomation", isInAutomation);
   }
+
+  static get canvasMaxAreaInBytes() {
+    const maxArea = FirefoxCom.requestSync("getCanvasMaxArea");
+    return shadow(this, "canvasMaxAreaInBytes", maxArea);
+  }
 }
 
 // l10n.js for Firefox extension expects services to be set.

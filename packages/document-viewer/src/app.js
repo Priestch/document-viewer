@@ -354,6 +354,40 @@ class PDFViewerApplication extends ViewerApplication {
     _boundEvents.windowAfterPrint = null;
     _boundEvents.windowUpdateFromSandbox = null;
   }
+
+  /**
+   * @private
+   */
+  _initializeAnnotationStorageCallbacks(pdfDocument) {
+    if (pdfDocument !== this.pdfDocument) {
+      return;
+    }
+    const { annotationStorage } = pdfDocument;
+    annotationStorage.onSetModified = () => {
+      window.addEventListener("beforeunload", this.helper.beforeUnload);
+      if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
+        this._annotationStorageModified = true;
+      }
+    };
+    annotationStorage.onResetModified = () => {
+      window.removeEventListener("beforeunload", this.helper.beforeUnload);
+      if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
+        delete this._annotationStorageModified;
+      }
+    };
+    annotationStorage.onAnnotationEditor = (typeStr) => {
+      this._hasAnnotationEditors = !!typeStr;
+      this.setTitle();
+      if (typeStr) {
+        this.externalServices.reportTelemetry({
+          type: "editing",
+          data: {
+            type: typeStr,
+          },
+        });
+      }
+    };
+  }
 }
 
 export { PDFViewerApplication };

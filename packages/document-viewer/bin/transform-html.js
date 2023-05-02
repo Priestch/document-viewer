@@ -74,6 +74,7 @@ fs.readFile(viewerHtml, "utf-8", (err, data) => {
       select: replaceIdAttr,
       a: replaceIdAttr,
       span: replaceIdAttr,
+      p: replaceIdAttr,
     },
   });
 

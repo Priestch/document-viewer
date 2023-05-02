@@ -819,7 +819,13 @@ const template = `
           class="fileNameLabel"
           >File name:</span
         >
-        <p id="fileNameField" aria-labelledby="fileNameLabel">-</p>
+        <p
+          aria-labelledby="fileNameLabel"
+          data-dom-id="fileNameField"
+          class="fileNameField"
+        >
+          -
+        </p>
       </div>
       <div class="row">
         <span
@@ -828,7 +834,13 @@ const template = `
           class="fileSizeLabel"
           >File size:</span
         >
-        <p id="fileSizeField" aria-labelledby="fileSizeLabel">-</p>
+        <p
+          aria-labelledby="fileSizeLabel"
+          data-dom-id="fileSizeField"
+          class="fileSizeField"
+        >
+          -
+        </p>
       </div>
       <div class="separator"></div>
       <div class="row">
@@ -838,7 +850,13 @@ const template = `
           class="titleLabel"
           >Title:</span
         >
-        <p id="titleField" aria-labelledby="titleLabel">-</p>
+        <p
+          aria-labelledby="titleLabel"
+          data-dom-id="titleField"
+          class="titleField"
+        >
+          -
+        </p>
       </div>
       <div class="row">
         <span
@@ -847,7 +865,13 @@ const template = `
           class="authorLabel"
           >Author:</span
         >
-        <p id="authorField" aria-labelledby="authorLabel">-</p>
+        <p
+          aria-labelledby="authorLabel"
+          data-dom-id="authorField"
+          class="authorField"
+        >
+          -
+        </p>
       </div>
       <div class="row">
         <span
@@ -856,7 +880,13 @@ const template = `
           class="subjectLabel"
           >Subject:</span
         >
-        <p id="subjectField" aria-labelledby="subjectLabel">-</p>
+        <p
+          aria-labelledby="subjectLabel"
+          data-dom-id="subjectField"
+          class="subjectField"
+        >
+          -
+        </p>
       </div>
       <div class="row">
         <span
@@ -865,7 +895,13 @@ const template = `
           class="keywordsLabel"
           >Keywords:</span
         >
-        <p id="keywordsField" aria-labelledby="keywordsLabel">-</p>
+        <p
+          aria-labelledby="keywordsLabel"
+          data-dom-id="keywordsField"
+          class="keywordsField"
+        >
+          -
+        </p>
       </div>
       <div class="row">
         <span
@@ -874,7 +910,13 @@ const template = `
           class="creationDateLabel"
           >Creation Date:</span
         >
-        <p id="creationDateField" aria-labelledby="creationDateLabel">-</p>
+        <p
+          aria-labelledby="creationDateLabel"
+          data-dom-id="creationDateField"
+          class="creationDateField"
+        >
+          -
+        </p>
       </div>
       <div class="row">
         <span
@@ -883,7 +925,11 @@ const template = `
           class="modificationDateLabel"
           >Modification Date:</span
         >
-        <p id="modificationDateField" aria-labelledby="modificationDateLabel">
+        <p
+          aria-labelledby="modificationDateLabel"
+          data-dom-id="modificationDateField"
+          class="modificationDateField"
+        >
           -
         </p>
       </div>
@@ -894,7 +940,13 @@ const template = `
           class="creatorLabel"
           >Creator:</span
         >
-        <p id="creatorField" aria-labelledby="creatorLabel">-</p>
+        <p
+          aria-labelledby="creatorLabel"
+          data-dom-id="creatorField"
+          class="creatorField"
+        >
+          -
+        </p>
       </div>
       <div class="separator"></div>
       <div class="row">
@@ -904,7 +956,13 @@ const template = `
           class="producerLabel"
           >PDF Producer:</span
         >
-        <p id="producerField" aria-labelledby="producerLabel">-</p>
+        <p
+          aria-labelledby="producerLabel"
+          data-dom-id="producerField"
+          class="producerField"
+        >
+          -
+        </p>
       </div>
       <div class="row">
         <span
@@ -913,7 +971,13 @@ const template = `
           class="versionLabel"
           >PDF Version:</span
         >
-        <p id="versionField" aria-labelledby="versionLabel">-</p>
+        <p
+          aria-labelledby="versionLabel"
+          data-dom-id="versionField"
+          class="versionField"
+        >
+          -
+        </p>
       </div>
       <div class="row">
         <span
@@ -922,7 +986,13 @@ const template = `
           class="pageCountLabel"
           >Page Count:</span
         >
-        <p id="pageCountField" aria-labelledby="pageCountLabel">-</p>
+        <p
+          aria-labelledby="pageCountLabel"
+          data-dom-id="pageCountField"
+          class="pageCountField"
+        >
+          -
+        </p>
       </div>
       <div class="row">
         <span
@@ -931,7 +1001,13 @@ const template = `
           class="pageSizeLabel"
           >Page Size:</span
         >
-        <p id="pageSizeField" aria-labelledby="pageSizeLabel">-</p>
+        <p
+          aria-labelledby="pageSizeLabel"
+          data-dom-id="pageSizeField"
+          class="pageSizeField"
+        >
+          -
+        </p>
       </div>
       <div class="separator"></div>
       <div class="row">
@@ -941,7 +1017,13 @@ const template = `
           class="linearizedLabel"
           >Fast Web View:</span
         >
-        <p id="linearizedField" aria-labelledby="linearizedLabel">-</p>
+        <p
+          aria-labelledby="linearizedLabel"
+          data-dom-id="linearizedField"
+          class="linearizedField"
+        >
+          -
+        </p>
       </div>
       <div class="buttonRow">
         <button

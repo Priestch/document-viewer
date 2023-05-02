@@ -1,7 +1,12 @@
 #!/usr/bin/env sh
 #set -ex
 
-cd pdf.js && npm ci --force && cd -
+if [ "${REBUILD_PDFJS}" ]; then
+  cd pdf.js && npm ci --force && cd -
+else
+  echo "Skip build pdf.js."
+  echo
+fi
 
 TEMPLATE_FILE="$(pwd)/bin/gulpfile.template.js"
 GULPFILE="$(pwd)/pdf.js/gulpfile.js"

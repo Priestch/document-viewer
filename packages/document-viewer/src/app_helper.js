@@ -45,8 +45,10 @@ function createHelper(PDFViewerApplication) {
           throw new Error("file origin does not match viewer's");
         }
       } catch (ex) {
-        PDFViewerApplication.l10n.get("loading_error").then(msg => {
-          PDFViewerApplication._documentError(msg, { message: ex?.message });
+        PDFViewerApplication.l10n.get("loading_error").then((msg) => {
+          PDFViewerApplication._documentError(msg, {
+            message: ex?.message,
+          });
         });
         throw ex;
       }
@@ -135,34 +137,33 @@ function createHelper(PDFViewerApplication) {
 
     if (!PDFViewerApplication.supportsDocumentFonts) {
       AppOptions.set("disableFontFace", true);
-      PDFViewerApplication.l10n.get("web_fonts_disabled").then(msg => {
+      PDFViewerApplication.l10n.get("web_fonts_disabled").then((msg) => {
         console.warn(msg);
       });
     }
-
     if (!PDFViewerApplication.supportsPrinting) {
       appConfig.toolbar?.print.classList.add("hidden");
       appConfig.secondaryToolbar?.printButton.classList.add("hidden");
     }
-
     if (!PDFViewerApplication.supportsFullscreen) {
-      appConfig.secondaryToolbar?.presentationModeButton.classList.add("hidden");
+      appConfig.secondaryToolbar?.presentationModeButton.classList.add(
+        "hidden"
+      );
     }
-
     if (PDFViewerApplication.supportsIntegratedFind) {
       appConfig.toolbar?.viewFind.classList.add("hidden");
     }
-
     appConfig.mainContainer.addEventListener(
       "transitionend",
       function (evt) {
         if (evt.target === /* mainContainer */ this) {
-          eventBus.dispatch("resize", { source: this });
+          eventBus.dispatch("resize", {
+            source: this,
+          });
         }
       },
       true
     );
-
     try {
       if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
         if (file) {
@@ -181,12 +182,11 @@ function createHelper(PDFViewerApplication) {
         throw new Error("Not implemented: webViewerInitialized");
       }
     } catch (reason) {
-      PDFViewerApplication.l10n.get("loading_error").then(msg => {
+      PDFViewerApplication.l10n.get("loading_error").then((msg) => {
         PDFViewerApplication._documentError(msg, reason);
       });
     }
   }
-
   function webViewerPageRender({ pageNumber }) {
     // If the page is (the most) visible when it starts rendering,
     // ensure that the page number input loading indicator is displayed.
@@ -194,7 +194,6 @@ function createHelper(PDFViewerApplication) {
       PDFViewerApplication.toolbar?.updateLoadingIndicatorState(true);
     }
   }
-
   function webViewerPageRendered({ pageNumber, error }) {
     // If the page is still visible when it has finished rendering,
     // ensure that the page number input loading indicator is hidden.
@@ -207,21 +206,20 @@ function createHelper(PDFViewerApplication) {
       const pageView = PDFViewerApplication.pdfViewer.getPageView(
         /* index = */ pageNumber - 1
       );
-      const thumbnailView = PDFViewerApplication.pdfThumbnailViewer?.getThumbnail(
-        /* index = */ pageNumber - 1
-      );
+      const thumbnailView =
+        PDFViewerApplication.pdfThumbnailViewer?.getThumbnail(
+          /* index = */ pageNumber - 1
+        );
       if (pageView && thumbnailView) {
         thumbnailView.setImage(pageView);
       }
     }
-
     if (error) {
-      PDFViewerApplication.l10n.get("rendering_error").then(msg => {
+      PDFViewerApplication.l10n.get("rendering_error").then((msg) => {
         PDFViewerApplication._otherError(msg, error);
       });
     }
   }
-
   function webViewerPageMode({ mode }) {
     // Handle the 'pagemode' hash parameter, see also `PDFLinkService_setHash`.
     let view;
@@ -230,13 +228,16 @@ function createHelper(PDFViewerApplication) {
         view = SidebarView.THUMBS;
         break;
       case "bookmarks":
-      case "outline": // non-standard
+      case "outline":
+        // non-standard
         view = SidebarView.OUTLINE;
         break;
-      case "attachments": // non-standard
+      case "attachments":
+        // non-standard
         view = SidebarView.ATTACHMENTS;
         break;
-      case "layers": // non-standard
+      case "layers":
+        // non-standard
         view = SidebarView.LAYERS;
         break;
       case "none":
@@ -248,7 +249,6 @@ function createHelper(PDFViewerApplication) {
     }
     PDFViewerApplication.pdfSidebar?.switchView(view, /* forceOpen = */ true);
   }
-
   function webViewerNamedAction(evt) {
     // Processing a couple of named actions that might be useful, see also
     // `PDFLinkService.executeNamedAction`.
@@ -256,31 +256,25 @@ function createHelper(PDFViewerApplication) {
       case "GoToPage":
         PDFViewerApplication.appConfig.toolbar?.pageNumber.select();
         break;
-
       case "Find":
         if (!PDFViewerApplication.supportsIntegratedFind) {
-          PDFViewerApplication.findBar?.toggle();
+          PDFViewerApplication?.findBar.toggle();
         }
         break;
-
       case "Print":
         PDFViewerApplication.triggerPrinting();
         break;
-
       case "SaveAs":
         PDFViewerApplication.downloadOrSave();
         break;
     }
   }
-
   function webViewerPresentationModeChanged(evt) {
     PDFViewerApplication.pdfViewer.presentationModeState = evt.state;
   }
-
   function webViewerSidebarViewChanged({ view }) {
     PDFViewerApplication.pdfRenderingQueue.isThumbnailViewEnabled =
       view === SidebarView.THUMBS;
-
     if (PDFViewerApplication.isInitialViewSet) {
       // Only update the storage when the document has been loaded *and* rendered.
       PDFViewerApplication.store?.set("sidebarView", view).catch(() => {
@@ -288,7 +282,6 @@ function createHelper(PDFViewerApplication) {
       });
     }
   }
-
   function webViewerUpdateViewarea({ location }) {
     if (PDFViewerApplication.isInitialViewSet) {
       // Only update the storage when the document has been loaded *and* rendered.
@@ -312,7 +305,6 @@ function createHelper(PDFViewerApplication) {
         href;
     }
   }
-
   function webViewerScrollModeChanged(evt) {
     if (
       PDFViewerApplication.isInitialViewSet &&
@@ -324,7 +316,6 @@ function createHelper(PDFViewerApplication) {
       });
     }
   }
-
   function webViewerSpreadModeChanged(evt) {
     if (
       PDFViewerApplication.isInitialViewSet &&
@@ -336,15 +327,12 @@ function createHelper(PDFViewerApplication) {
       });
     }
   }
-
   function webViewerResize() {
     const { pdfDocument, pdfViewer, pdfRenderingQueue } = PDFViewerApplication;
-
     if (pdfRenderingQueue.printing && window.matchMedia("print").matches) {
       // Work-around issue 15324 by ignoring "resize" events during printing.
       return;
     }
-
     if (!pdfDocument) {
       return;
     }
@@ -359,7 +347,6 @@ function createHelper(PDFViewerApplication) {
     }
     pdfViewer.update();
   }
-
   function webViewerHashchange(evt) {
     const hash = evt.hash;
     if (!hash) {
@@ -371,15 +358,14 @@ function createHelper(PDFViewerApplication) {
       PDFViewerApplication.pdfLinkService.setHash(hash);
     }
   }
-
   if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
     // eslint-disable-next-line no-var
     var webViewerFileInputChange = function (evt) {
       if (PDFViewerApplication.pdfViewer?.isInPresentationMode) {
         return; // Opening a new PDF file isn't supported in Presentation Mode.
       }
-      const file = evt.fileInput.files[0];
 
+      const file = evt.fileInput.files[0];
       PDFViewerApplication.open({
         url: URL.createObjectURL(file),
         originalUrl: file.name,
@@ -392,7 +378,6 @@ function createHelper(PDFViewerApplication) {
       fileInput.click();
     };
   }
-
   function webViewerPresentationMode() {
     PDFViewerApplication.requestPresentationMode();
   }
@@ -474,7 +459,6 @@ function createHelper(PDFViewerApplication) {
   function webViewerDocumentProperties() {
     PDFViewerApplication.pdfDocumentProperties?.open();
   }
-
   function webViewerFindFromUrlHash(evt) {
     PDFViewerApplication.eventBus.dispatch("find", {
       source: evt.source,
@@ -488,21 +472,21 @@ function createHelper(PDFViewerApplication) {
       matchDiacritics: true,
     });
   }
-
   function webViewerUpdateFindMatchesCount({ matchesCount }) {
     if (PDFViewerApplication.supportsIntegratedFind) {
-      PDFViewerApplication.externalServices.updateFindMatchesCount(matchesCount);
+      PDFViewerApplication.externalServices.updateFindMatchesCount(
+        matchesCount
+      );
     } else {
       PDFViewerApplication.findBar.updateResultsCount(matchesCount);
     }
   }
-
   function webViewerUpdateFindControlState({
-                                             state,
-                                             previous,
-                                             matchesCount,
-                                             rawQuery,
-                                           }) {
+    state,
+    previous,
+    matchesCount,
+    rawQuery,
+  }) {
     if (PDFViewerApplication.supportsIntegratedFind) {
       PDFViewerApplication.externalServices.updateFindControlState({
         result: state,
@@ -511,30 +495,28 @@ function createHelper(PDFViewerApplication) {
         rawQuery,
       });
     } else {
-      PDFViewerApplication.findBar?.updateUIState(state, previous, matchesCount);
+      PDFViewerApplication.findBar?.updateUIState(
+        state,
+        previous,
+        matchesCount
+      );
     }
   }
-
   function webViewerScaleChanging(evt) {
     PDFViewerApplication.toolbar?.setPageScale(evt.presetValue, evt.scale);
-
     PDFViewerApplication.pdfViewer.update();
   }
-
   function webViewerRotationChanging(evt) {
     if (PDFViewerApplication.pdfThumbnailViewer) {
       PDFViewerApplication.pdfThumbnailViewer.pagesRotation = evt.pagesRotation;
     }
-
     PDFViewerApplication.forceRendering();
     // Ensure that the active page doesn't change during rotation.
     PDFViewerApplication.pdfViewer.currentPageNumber = evt.pageNumber;
   }
-
   function webViewerPageChanging({ pageNumber, pageLabel }) {
     PDFViewerApplication.toolbar?.setPageNumber(pageNumber, pageLabel);
     PDFViewerApplication.secondaryToolbar?.setPageNumber(pageNumber);
-
     if (PDFViewerApplication.pdfSidebar?.visibleView === SidebarView.THUMBS) {
       PDFViewerApplication.pdfThumbnailViewer?.scrollThumbnailIntoView(
         pageNumber
@@ -549,12 +531,9 @@ function createHelper(PDFViewerApplication) {
       currentPage?.renderingState === RenderingStates.RUNNING
     );
   }
-
   function webViewerResolutionChange(evt) {
     PDFViewerApplication.pdfViewer.refresh();
   }
-
-
   function webViewerVisibilityChange(evt) {
     if (document.visibilityState === "visible") {
       // Ignore mouse wheel zooming during tab switches (bug 1503412).
@@ -571,14 +550,12 @@ function createHelper(PDFViewerApplication) {
       zoomDisabledTimeout = null;
     }, WHEEL_ZOOM_DISABLED_TIMEOUT);
   }
-
   function webViewerWheel(evt) {
     const {
       pdfViewer,
       supportedMouseWheelZoomModifierKeys,
       supportsPinchToZoom,
     } = PDFViewerApplication;
-
     if (pdfViewer.isInPresentationMode) {
       return;
     }
@@ -599,7 +576,6 @@ function createHelper(PDFViewerApplication) {
     // The following formula is a bit strange but it comes from:
     // https://searchfox.org/mozilla-central/rev/d62c4c4d5547064487006a1506287da394b64724/widget/InputData.cpp#618-626
     let scaleFactor = Math.exp(-evt.deltaY / 100);
-
     const isPinchToZoom =
       evt.ctrlKey &&
       !PDFViewerApplication._isCtrlKeyDown &&
@@ -607,7 +583,6 @@ function createHelper(PDFViewerApplication) {
       evt.deltaX === 0 &&
       Math.abs(scaleFactor - 1) < 0.05 &&
       evt.deltaZ === 0;
-
     if (
       isPinchToZoom ||
       (evt.ctrlKey && supportedMouseWheelZoomModifierKeys.ctrlKey) ||
@@ -619,7 +594,6 @@ function createHelper(PDFViewerApplication) {
       if (zoomDisabledTimeout || document.visibilityState === "hidden") {
         return;
       }
-
       const previousScale = pdfViewer.currentScale;
       if (isPinchToZoom && supportsPinchToZoom) {
         scaleFactor = PDFViewerApplication._accumulateFactor(
@@ -636,7 +610,6 @@ function createHelper(PDFViewerApplication) {
         }
       } else {
         const delta = normalizeWheelEventDirection(evt);
-
         let ticks = 0;
         if (
           deltaMode === WheelEvent.DOM_DELTA_LINE ||
@@ -664,7 +637,6 @@ function createHelper(PDFViewerApplication) {
             "_wheelUnusedTicks"
           );
         }
-
         if (ticks < 0) {
           PDFViewerApplication.zoomOut(-ticks);
         } else if (ticks > 0) {
@@ -677,12 +649,15 @@ function createHelper(PDFViewerApplication) {
       // After scaling the page via zoomIn/zoomOut, the position of the upper-
       // left corner is restored. When the mouse wheel is used, the position
       // under the cursor should be restored instead.
-      PDFViewerApplication._centerAtPos(previousScale, evt.clientX, evt.clientY);
+      PDFViewerApplication._centerAtPos(
+        previousScale,
+        evt.clientX,
+        evt.clientY
+      );
     } else {
       setZoomDisabledTimeout();
     }
   }
-
   function webViewerTouchStart(evt) {
     if (
       PDFViewerApplication.pdfViewer.isInPresentationMode ||
@@ -691,12 +666,10 @@ function createHelper(PDFViewerApplication) {
       return;
     }
     evt.preventDefault();
-
     if (evt.touches.length !== 2) {
       PDFViewerApplication._touchInfo = null;
       return;
     }
-
     let [touch0, touch1] = evt.touches;
     if (touch0.identifier > touch1.identifier) {
       [touch0, touch1] = [touch1, touch0];
@@ -708,12 +681,10 @@ function createHelper(PDFViewerApplication) {
       touch1Y: touch1.pageY,
     };
   }
-
   function webViewerTouchMove(evt) {
     if (!PDFViewerApplication._touchInfo || evt.touches.length !== 2) {
       return;
     }
-
     const { pdfViewer, _touchInfo, supportsPinchToZoom } = PDFViewerApplication;
     let [touch0, touch1] = evt.touches;
     if (touch0.identifier > touch1.identifier) {
@@ -727,7 +698,6 @@ function createHelper(PDFViewerApplication) {
       touch1X: pTouch1X,
       touch1Y: pTouch1Y,
     } = _touchInfo;
-
     if (
       Math.abs(pTouch0X - page0X) <= 1 &&
       Math.abs(pTouch0Y - page0Y) <= 1 &&
@@ -738,12 +708,10 @@ function createHelper(PDFViewerApplication) {
       // geometry in order to guess something.
       return;
     }
-
     _touchInfo.touch0X = page0X;
     _touchInfo.touch0Y = page0Y;
     _touchInfo.touch1X = page1X;
     _touchInfo.touch1Y = page1Y;
-
     if (pTouch0X === page0X && pTouch0Y === page0Y) {
       // First touch is fixed, if the vectors are collinear then we've a pinch.
       const v1X = pTouch1X - page0X;
@@ -776,9 +744,7 @@ function createHelper(PDFViewerApplication) {
         return;
       }
     }
-
     evt.preventDefault();
-
     const distance = Math.hypot(page0X - page1X, page0Y - page1Y) || 1;
     const pDistance = Math.hypot(pTouch0X - pTouch1X, pTouch0Y - pTouch1Y) || 1;
     const previousScale = pdfViewer.currentScale;
@@ -809,25 +775,21 @@ function createHelper(PDFViewerApplication) {
         return;
       }
     }
-
     PDFViewerApplication._centerAtPos(
       previousScale,
       (page0X + page1X) / 2,
       (page0Y + page1Y) / 2
     );
   }
-
   function webViewerTouchEnd(evt) {
     if (!PDFViewerApplication._touchInfo) {
       return;
     }
-
     evt.preventDefault();
     PDFViewerApplication._touchInfo = null;
     PDFViewerApplication._touchUnusedTicks = 0;
     PDFViewerApplication._touchUnusedFactor = 1;
   }
-
   function webViewerClick(evt) {
     if (!PDFViewerApplication.secondaryToolbar?.isOpen) {
       return;
@@ -841,23 +803,19 @@ function createHelper(PDFViewerApplication) {
       PDFViewerApplication.secondaryToolbar.close();
     }
   }
-
   function webViewerKeyUp(evt) {
     // evt.ctrlKey is false hence we use evt.key.
     if (evt.key === "Control") {
       PDFViewerApplication._isCtrlKeyDown = false;
     }
   }
-
   function webViewerKeyDown(evt) {
     PDFViewerApplication._isCtrlKeyDown = evt.key === "Control";
-
     if (PDFViewerApplication.overlayManager.active) {
       return;
     }
     const { eventBus, pdfViewer } = PDFViewerApplication;
     const isViewerInPresentationMode = pdfViewer.isInPresentationMode;
-
     let handled = false,
       ensureViewerFocused = false;
     const cmd =
@@ -871,13 +829,15 @@ function createHelper(PDFViewerApplication) {
     if (cmd === 1 || cmd === 8 || cmd === 5 || cmd === 12) {
       // either CTRL or META key with optional SHIFT.
       switch (evt.keyCode) {
-        case 70: // f
+        case 70:
+          // f
           if (!PDFViewerApplication.supportsIntegratedFind && !evt.shiftKey) {
             PDFViewerApplication.findBar?.open();
             handled = true;
           }
           break;
-        case 71: // g
+        case 71:
+          // g
           if (!PDFViewerApplication.supportsIntegratedFind) {
             const { state } = PDFViewerApplication.findController;
             if (state) {
@@ -894,7 +854,8 @@ function createHelper(PDFViewerApplication) {
         case 61: // FF/Mac '='
         case 107: // FF '+' and '='
         case 187: // Chrome '+'
-        case 171: // FF with German keyboard
+        case 171:
+          // FF with German keyboard
           if (!isViewerInPresentationMode) {
             PDFViewerApplication.zoomIn();
           }
@@ -902,14 +863,16 @@ function createHelper(PDFViewerApplication) {
           break;
         case 173: // FF/Mac '-'
         case 109: // FF '-'
-        case 189: // Chrome '-'
+        case 189:
+          // Chrome '-'
           if (!isViewerInPresentationMode) {
             PDFViewerApplication.zoomOut();
           }
           handled = true;
           break;
         case 48: // '0'
-        case 96: // '0' on Numpad of Swedish keyboard
+        case 96:
+          // '0' on Numpad of Swedish keyboard
           if (!isViewerInPresentationMode) {
             // keeping it unhandled (to restore page zoom to 100%)
             setTimeout(function () {
@@ -919,15 +882,16 @@ function createHelper(PDFViewerApplication) {
             handled = false;
           }
           break;
-
-        case 38: // up arrow
+        case 38:
+          // up arrow
           if (isViewerInPresentationMode || PDFViewerApplication.page > 1) {
             PDFViewerApplication.page = 1;
             handled = true;
             ensureViewerFocused = true;
           }
           break;
-        case 40: // down arrow
+        case 40:
+          // down arrow
           if (
             isViewerInPresentationMode ||
             PDFViewerApplication.page < PDFViewerApplication.pagesCount
@@ -939,19 +903,23 @@ function createHelper(PDFViewerApplication) {
           break;
       }
     }
-
     if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC || CHROME")) {
       // CTRL or META without shift
       if (cmd === 1 || cmd === 8) {
         switch (evt.keyCode) {
-          case 83: // s
-            eventBus.dispatch("download", { source: window });
+          case 83:
+            // s
+            eventBus.dispatch("download", {
+              source: window,
+            });
             handled = true;
             break;
-
-          case 79: // o
+          case 79:
+            // o
             if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-              eventBus.dispatch("openfile", { source: window });
+              eventBus.dispatch("openfile", {
+                source: window,
+              });
               handled = true;
             }
             break;
@@ -962,15 +930,19 @@ function createHelper(PDFViewerApplication) {
     // CTRL+ALT or Option+Command
     if (cmd === 3 || cmd === 10) {
       switch (evt.keyCode) {
-        case 80: // p
+        case 80:
+          // p
           PDFViewerApplication.requestPresentationMode();
           handled = true;
           PDFViewerApplication.externalServices.reportTelemetry({
             type: "buttons",
-            data: { id: "presentationModeKeyboard" },
+            data: {
+              id: "presentationModeKeyboard",
+            },
           });
           break;
-        case 71: // g
+        case 71:
+          // g
           // focuses input#pageNumber field
           if (PDFViewerApplication.appConfig.toolbar) {
             PDFViewerApplication.appConfig.toolbar.pageNumber.select();
@@ -979,7 +951,6 @@ function createHelper(PDFViewerApplication) {
           break;
       }
     }
-
     if (handled) {
       if (ensureViewerFocused && !isViewerInPresentationMode) {
         pdfViewer.focus();
@@ -1010,30 +981,35 @@ function createHelper(PDFViewerApplication) {
         turnOnlyIfPageFit = false;
       switch (evt.keyCode) {
         case 38: // up arrow
-        case 33: // pg up
+        case 33:
+          // pg up
           // vertical scrolling using arrow/pg keys
           if (pdfViewer.isVerticalScrollbarEnabled) {
             turnOnlyIfPageFit = true;
           }
           turnPage = -1;
           break;
-        case 8: // backspace
+        case 8:
+          // backspace
           if (!isViewerInPresentationMode) {
             turnOnlyIfPageFit = true;
           }
           turnPage = -1;
           break;
-        case 37: // left arrow
+        case 37:
+          // left arrow
           // horizontal scrolling using arrow keys
           if (pdfViewer.isHorizontalScrollbarEnabled) {
             turnOnlyIfPageFit = true;
           }
         /* falls through */
         case 75: // 'k'
-        case 80: // 'p'
+        case 80:
+          // 'p'
           turnPage = -1;
           break;
-        case 27: // esc key
+        case 27:
+          // esc key
           if (PDFViewerApplication.secondaryToolbar?.isOpen) {
             PDFViewerApplication.secondaryToolbar.close();
             handled = true;
@@ -1047,7 +1023,8 @@ function createHelper(PDFViewerApplication) {
           }
           break;
         case 40: // down arrow
-        case 34: // pg down
+        case 34:
+          // pg down
           // vertical scrolling using arrow/pg keys
           if (pdfViewer.isVerticalScrollbarEnabled) {
             turnOnlyIfPageFit = true;
@@ -1055,31 +1032,35 @@ function createHelper(PDFViewerApplication) {
           turnPage = 1;
           break;
         case 13: // enter key
-        case 32: // spacebar
+        case 32:
+          // spacebar
           if (!isViewerInPresentationMode) {
             turnOnlyIfPageFit = true;
           }
           turnPage = 1;
           break;
-        case 39: // right arrow
+        case 39:
+          // right arrow
           // horizontal scrolling using arrow keys
           if (pdfViewer.isHorizontalScrollbarEnabled) {
             turnOnlyIfPageFit = true;
           }
         /* falls through */
         case 74: // 'j'
-        case 78: // 'n'
+        case 78:
+          // 'n'
           turnPage = 1;
           break;
-
-        case 36: // home
+        case 36:
+          // home
           if (isViewerInPresentationMode || PDFViewerApplication.page > 1) {
             PDFViewerApplication.page = 1;
             handled = true;
             ensureViewerFocused = true;
           }
           break;
-        case 35: // end
+        case 35:
+          // end
           if (
             isViewerInPresentationMode ||
             PDFViewerApplication.page < PDFViewerApplication.pagesCount
@@ -1089,23 +1070,23 @@ function createHelper(PDFViewerApplication) {
             ensureViewerFocused = true;
           }
           break;
-
-        case 83: // 's'
+        case 83:
+          // 's'
           PDFViewerApplication.pdfCursorTools?.switchTool(CursorTool.SELECT);
           break;
-        case 72: // 'h'
+        case 72:
+          // 'h'
           PDFViewerApplication.pdfCursorTools?.switchTool(CursorTool.HAND);
           break;
-
-        case 82: // 'r'
+        case 82:
+          // 'r'
           PDFViewerApplication.rotatePages(90);
           break;
-
-        case 115: // F4
+        case 115:
+          // F4
           PDFViewerApplication.pdfSidebar?.toggle();
           break;
       }
-
       if (
         turnPage !== 0 &&
         (!turnOnlyIfPageFit || pdfViewer.currentScaleValue === "page-fit")
@@ -1123,7 +1104,8 @@ function createHelper(PDFViewerApplication) {
     if (cmd === 4) {
       switch (evt.keyCode) {
         case 13: // enter key
-        case 32: // spacebar
+        case 32:
+          // spacebar
           if (
             !isViewerInPresentationMode &&
             pdfViewer.currentScaleValue !== "page-fit"
@@ -1131,16 +1113,14 @@ function createHelper(PDFViewerApplication) {
             break;
           }
           pdfViewer.previousPage();
-
           handled = true;
           break;
-
-        case 82: // 'r'
+        case 82:
+          // 'r'
           PDFViewerApplication.rotatePages(-90);
           break;
       }
     }
-
     if (!handled && !isViewerInPresentationMode) {
       // 33=Page Up  34=Page Down  35=End    36=Home
       // 37=Left     38=Up         39=Right  40=Down
@@ -1152,85 +1132,85 @@ function createHelper(PDFViewerApplication) {
         ensureViewerFocused = true;
       }
     }
-
     if (ensureViewerFocused && !pdfViewer.containsElement(curElement)) {
       // The page container is not focused, but a page navigation key has been
       // pressed. Change the focus to the viewer container to make sure that
       // navigation by keyboard works as expected.
       pdfViewer.focus();
     }
-
     if (handled) {
       evt.preventDefault();
     }
   }
-
   function beforeUnload(evt) {
     evt.preventDefault();
     evt.returnValue = "";
     return false;
   }
-
   function webViewerAnnotationEditorStatesChanged(data) {
     PDFViewerApplication.externalServices.updateEditorStates(data);
   }
 
+  /* Abstract factory for the print service. */
   return {
-    validateFileURL,
-    loadFakeWorker,
-    loadPDFBug,
-    reportPageStatsPDFBug,
-    webViewerInitialized,
-    webViewerPageRendered,
-    webViewerPageMode,
-    webViewerNamedAction,
-    webViewerPresentationModeChanged,
-    webViewerSidebarViewChanged,
-    webViewerUpdateViewarea,
-    webViewerScrollModeChanged,
-    webViewerSpreadModeChanged,
-    webViewerResize,
-    webViewerHashchange,
-    webViewerFileInputChange,
-    webViewerOpenFile,
-    webViewerPresentationMode,
-    webViewerPrint,
-    webViewerDownload,
-    webViewerFirstPage,
-    webViewerLastPage,
-    webViewerNextPage,
-    webViewerPreviousPage,
-    webViewerZoomIn,
-    webViewerZoomOut,
-    webViewerZoomReset,
-    webViewerPageNumberChanged,
-    webViewerScaleChanged,
-    webViewerRotateCw,
-    webViewerRotateCcw,
-    webViewerOptionalContentConfig,
-    webViewerSwitchScrollMode,
-    webViewerSwitchSpreadMode,
-    webViewerDocumentProperties,
-    webViewerFindFromUrlHash,
-    webViewerUpdateFindMatchesCount,
-    webViewerUpdateFindControlState,
-    webViewerScaleChanging,
-    webViewerRotationChanging,
-    webViewerPageChanging,
-    webViewerVisibilityChange,
-    webViewerWheel,
-    webViewerTouchStart,
-    webViewerClick,
-    webViewerKeyDown,
-    beforeUnload,
-    webViewerSwitchAnnotationEditorMode,
-    webViewerSwitchAnnotationEditorParams,
-    webViewerResolutionChange,
-    webViewerAnnotationEditorStatesChanged,
-    webViewerPageRender,
-  }
+    validateFileURL: validateFileURL,
+    loadFakeWorker: loadFakeWorker,
+    loadPDFBug: loadPDFBug,
+    reportPageStatsPDFBug: reportPageStatsPDFBug,
+    webViewerInitialized: webViewerInitialized,
+    webViewerPageRender: webViewerPageRender,
+    webViewerPageRendered: webViewerPageRendered,
+    webViewerPageMode: webViewerPageMode,
+    webViewerNamedAction: webViewerNamedAction,
+    webViewerPresentationModeChanged: webViewerPresentationModeChanged,
+    webViewerSidebarViewChanged: webViewerSidebarViewChanged,
+    webViewerUpdateViewarea: webViewerUpdateViewarea,
+    webViewerScrollModeChanged: webViewerScrollModeChanged,
+    webViewerSpreadModeChanged: webViewerSpreadModeChanged,
+    webViewerResize: webViewerResize,
+    webViewerHashchange: webViewerHashchange,
+    webViewerFileInputChange: webViewerFileInputChange,
+    webViewerOpenFile: webViewerOpenFile,
+    webViewerPresentationMode: webViewerPresentationMode,
+    webViewerSwitchAnnotationEditorMode: webViewerSwitchAnnotationEditorMode,
+    webViewerSwitchAnnotationEditorParams:
+      webViewerSwitchAnnotationEditorParams,
+    webViewerPrint: webViewerPrint,
+    webViewerDownload: webViewerDownload,
+    webViewerFirstPage: webViewerFirstPage,
+    webViewerLastPage: webViewerLastPage,
+    webViewerNextPage: webViewerNextPage,
+    webViewerPreviousPage: webViewerPreviousPage,
+    webViewerZoomIn: webViewerZoomIn,
+    webViewerZoomOut: webViewerZoomOut,
+    webViewerZoomReset: webViewerZoomReset,
+    webViewerPageNumberChanged: webViewerPageNumberChanged,
+    webViewerScaleChanged: webViewerScaleChanged,
+    webViewerRotateCw: webViewerRotateCw,
+    webViewerRotateCcw: webViewerRotateCcw,
+    webViewerOptionalContentConfig: webViewerOptionalContentConfig,
+    webViewerSwitchScrollMode: webViewerSwitchScrollMode,
+    webViewerSwitchSpreadMode: webViewerSwitchSpreadMode,
+    webViewerDocumentProperties: webViewerDocumentProperties,
+    webViewerFindFromUrlHash: webViewerFindFromUrlHash,
+    webViewerUpdateFindMatchesCount: webViewerUpdateFindMatchesCount,
+    webViewerUpdateFindControlState: webViewerUpdateFindControlState,
+    webViewerScaleChanging: webViewerScaleChanging,
+    webViewerRotationChanging: webViewerRotationChanging,
+    webViewerPageChanging: webViewerPageChanging,
+    webViewerResolutionChange: webViewerResolutionChange,
+    webViewerVisibilityChange: webViewerVisibilityChange,
+    setZoomDisabledTimeout: setZoomDisabledTimeout,
+    webViewerWheel: webViewerWheel,
+    webViewerTouchStart: webViewerTouchStart,
+    webViewerTouchMove: webViewerTouchMove,
+    webViewerTouchEnd: webViewerTouchEnd,
+    webViewerClick: webViewerClick,
+    webViewerKeyUp: webViewerKeyUp,
+    webViewerKeyDown: webViewerKeyDown,
+    beforeUnload: beforeUnload,
+    webViewerAnnotationEditorStatesChanged:
+      webViewerAnnotationEditorStatesChanged,
+  };
 }
-
-export {
-  createHelper,
-}
+export { createHelper };

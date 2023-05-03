@@ -10,10 +10,16 @@ You can use the starter to initialize a demo app to explore how to use this pack
 # initialize a demo project with a quick starter
 npm create @document-kits/viewer@latest my-app
 
+# There will be prompt to let you choose a template to start,
+# currently only one `vite-vue-template` supported.
+
 cd my-app
 
+# install dependencies
 npm install
-npm run dev
+
+# run the dev server and open the default browser to view the demo
+npm run dev --open
 ```
 
 ## Prepare Resources

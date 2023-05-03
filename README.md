@@ -34,6 +34,6 @@ make it easier to integrate PDF viewer to your project.
 # Planed Todos
 
 - [x] Display single PDF document
-- [ ] Cli starter
-- [ ] Docs
+- [x] Cli starter
+- [x] Docs
 - [x] Display multiple documents

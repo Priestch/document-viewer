@@ -6,7 +6,9 @@ An out-of-the-box PDF viewer builds on PDF.js.
 
 You can use the starter to initialize a demo app to explore how to use this package in your own project.
 
-```bash
+::: code-group
+
+```bash [npm]
 # initialize a demo project with a quick starter
 npm create @document-kits/viewer@latest my-app
 
@@ -20,6 +22,22 @@ npm install
 
 # run the dev server and open the default browser to view the demo
 npm run dev --open
+```
+
+```bash [pnpm]
+# initialize a demo project with a quick starter
+pnpm create @document-kits/viewer@latest my-app
+
+# There will be prompt to let you choose a template to start,
+# currently only one `vite-vue-template` supported.
+
+cd my-app
+
+# install dependencies
+pnpm install
+
+# run the dev server and open the default browser to view the demo
+pnpm run dev --open
 ```
 
 ## Prepare Resources

@@ -142,8 +142,8 @@ function getViewerConfiguration(el) {
  * @api
  *
  * @typedef Options
- * @property {HTMLElement} parent - Element the PDF viewer render to.
- * @property {string | TypedArray | ArrayBuffer} src - The src of the PDF document.
+ * @property {HTMLElement} parent - Element the PDF viewer will be render to.
+ * @property {string | TypedArray | ArrayBuffer} src - The source of the PDF document.
  * @property {string} resourcePath - The resource path of pdf.js.
  * @property {boolean} [disableCORSCheck=false] - Disable CORS check of pdf.js
  * @property {object} [appOptions={}] - Default app options of pdf.js

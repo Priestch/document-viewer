@@ -28,6 +28,10 @@ const config = {
       { text: "API", link: "/api" },
       { text: "Resources", link: "/resources" },
       { text: "Learn PDF.js", link: "/learn" },
+      {
+        text: "Links",
+        items: [{ text: "Releases", link: "https://github.com/Priestch/document-viewer/tags" }],
+      },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/Priestch/document-viewer" }],
   },

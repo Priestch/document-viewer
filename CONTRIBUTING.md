@@ -14,3 +14,4 @@ to build based on submodule `pdf.js` in `packages/document-viewer/pdf.js`. The s
 
 1. Update the pdf.js submodule to a specific release version.
 2. Run `pnpm syncWithUpstream`
+3. Manually review `@document-kits/viewer/src/app_helper.js`, `@document-kits/viewer/src/default_app.js` and `@document-kits/viewer/src/viewer_template.js`

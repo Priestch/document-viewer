@@ -5,6 +5,9 @@ const t = require("@babel/types");
 const generator = require("@babel/generator");
 const prettier = require("prettier");
 
+const configPath = path.resolve(__dirname, "../pdf.js/.prettierrc");
+const prettierConfig = JSON.parse(fs.readFileSync(configPath, { encoding: "utf-8" }));
+
 const globalObjName = "PDFViewerApplication";
 const exportedName = "ViewerApplication";
 
@@ -175,7 +178,7 @@ function writeApp(instance) {
     t.exportNamedDeclaration(null, specifiers),
   ]);
   const result = generator.default(program);
-  writeToFile(appFile, prettier.format(result.code, { parser: "babel" }));
+  writeToFile(appFile, prettier.format(result.code, { ...prettierConfig, parser: "babel" }));
 }
 
 function writeDefaultServices(instance) {
@@ -205,7 +208,7 @@ function writeDefaultServices(instance) {
     t.exportNamedDeclaration(null, specifiers),
   ]);
   const result = generator.default(program);
-  writeToFile(helperFile, prettier.format(result.code));
+  writeToFile(helperFile, prettier.format(result.code, { ...prettierConfig, parser: "babel" }));
 }
 
 function transformObjToClass() {

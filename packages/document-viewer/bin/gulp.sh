@@ -1,10 +1,11 @@
 #!/usr/bin/env sh
 #set -ex
 
-if [ "${REBUILD_PDFJS}" ]; then
+if [ "${FORCE_INSTALL_DEPENDENCIES}" ]; then
+  # install dependencies for PDF.js
   cd pdf.js && npm ci --force && cd -
 else
-  echo "Skip build pdf.js."
+  echo "Skip preparing dependencies for PDF.js."
   echo
 fi
 

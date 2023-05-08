@@ -44,7 +44,7 @@ function createHelper(PDFViewerApplication) {
           throw new Error("file origin does not match viewer's");
         }
       } catch (ex) {
-        PDFViewerApplication.l10n.get("loading_error").then((msg) => {
+        PDFViewerApplication.l10n.get("loading_error").then(msg => {
           PDFViewerApplication._documentError(msg, {
             message: ex?.message,
           });
@@ -126,7 +126,7 @@ function createHelper(PDFViewerApplication) {
     }
     if (!PDFViewerApplication.supportsDocumentFonts) {
       AppOptions.set("disableFontFace", true);
-      l10n.get("web_fonts_disabled").then((msg) => {
+      l10n.get("web_fonts_disabled").then(msg => {
         console.warn(msg);
       });
     }
@@ -171,7 +171,7 @@ function createHelper(PDFViewerApplication) {
         throw new Error("Not implemented: webViewerInitialized");
       }
     } catch (reason) {
-      l10n.get("loading_error").then((msg) => {
+      l10n.get("loading_error").then(msg => {
         PDFViewerApplication._documentError(msg, reason);
       });
     }
@@ -204,7 +204,7 @@ function createHelper(PDFViewerApplication) {
       }
     }
     if (error) {
-      PDFViewerApplication.l10n.get("rendering_error").then((msg) => {
+      PDFViewerApplication.l10n.get("rendering_error").then(msg => {
         PDFViewerApplication._otherError(msg, error);
       });
     }

@@ -7,6 +7,7 @@
     "build": "./bin/gulp.sh",
     "release": "npm run build && npm publish",
     "transform:html": "node ./bin/transform-html.js",
+    "syncWithUpstream": "pnpm run transform:html && pnpm run extract:js",
     "extract:js": "node ./bin/extract-from-source.js",
     "api": "node jsdoc/extract-doc.js"
   },

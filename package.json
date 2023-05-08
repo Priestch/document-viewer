@@ -10,6 +10,7 @@
     "docs:extract": "pnpm --filter @document-kits/viewer run api",
     "docs:build": "pnpm --filter viewer-docs run build",
     "docs:preview": "pnpm --filter viewer-docs run preview",
+    "syncWithUpstream": "pnpm --filter @document-kits/viewer run syncWithUpstream",
     "fmt": "npx prettier --write --ignore-unknown ."
   },
   "lint-staged": {

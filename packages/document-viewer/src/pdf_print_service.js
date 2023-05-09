@@ -61,42 +61,41 @@ function renderPage(
   );
 }
 
-function PDFPrintService(
-  pdfDocument,
-  pagesOverview,
-  printContainer,
-  printResolution,
-  optionalContentConfigPromise = null,
-  printAnnotationStoragePromise = null,
-  l10n
-) {
-  this.pdfDocument = pdfDocument;
-  this.pagesOverview = pagesOverview;
-  this.printContainer = printContainer;
-  this._printResolution = printResolution || 150;
-  this._optionalContentConfigPromise =
-    optionalContentConfigPromise || pdfDocument.getOptionalContentConfig();
-  this._printAnnotationStoragePromise = printAnnotationStoragePromise || Promise.resolve();
-  this.l10n = l10n;
-  this.currentPage = -1;
-  // The temporary canvas where renderPage paints one page at a time.
-  this.scratchCanvas = document.createElement("canvas");
-}
+class PDFPrintService {
+  constructor(
+    pdfDocument,
+    pagesOverview,
+    printContainer,
+    printResolution,
+    optionalContentConfigPromise = null,
+    printAnnotationStoragePromise = null,
+    l10n
+  ) {
+    this.pdfDocument = pdfDocument;
+    this.pagesOverview = pagesOverview;
+    this.printContainer = printContainer;
+    this._printResolution = printResolution || 150;
+    this._optionalContentConfigPromise =
+      optionalContentConfigPromise || pdfDocument.getOptionalContentConfig();
+    this._printAnnotationStoragePromise = printAnnotationStoragePromise || Promise.resolve();
+    this.l10n = l10n;
+    this.currentPage = -1;
+    // The temporary canvas where renderPage paints one page at a time.
+    this.scratchCanvas = document.createElement("canvas");
+  }
 
-PDFPrintService.prototype = {
   layout() {
     this.throwIfInactive();
 
     const body = document.querySelector("body");
     body.setAttribute("data-pdfjsprinting", true);
 
-    const hasEqualPageSizes = this.pagesOverview.every(function (size) {
-      return (
-        size.width === this.pagesOverview[0].width && size.height === this.pagesOverview[0].height
-      );
-    }, this);
+    const { width, height } = this.pagesOverview[0];
+    const hasEqualPageSizes = this.pagesOverview.every(
+      (size) => size.width === width && size.height === height
+    );
     if (!hasEqualPageSizes) {
-      console.warn("Not all pages have the same size. The printed " + "result may be incorrect!");
+      console.warn("Not all pages have the same size. The printed result may be incorrect!");
     }
 
     // Insert a @page + size rule to make sure that the page size is correctly
@@ -105,15 +104,13 @@ PDFPrintService.prototype = {
     // TODO(robwu): Use named pages when size calculation bugs get resolved
     // (e.g. https://crbug.com/355116) AND when support for named pages is
     // added (http://www.w3.org/TR/css3-page/#using-named-pages).
-    // In browsers where @page + size is not supported (such as Firefox,
-    // https://bugzil.la/851441), the next stylesheet will be ignored and the
-    // user has to select the correct paper size in the UI if wanted.
+    // In browsers where @page + size is not supported, the next stylesheet
+    // will be ignored and the user has to select the correct paper size in
+    // the UI if wanted.
     this.pageStyleSheet = document.createElement("style");
-    const pageSize = this.pagesOverview[0];
-    this.pageStyleSheet.textContent =
-      "@page { size: " + pageSize.width + "pt " + pageSize.height + "pt;}";
+    this.pageStyleSheet.textContent = `@page { size: ${width}pt ${height}pt;}`;
     body.append(this.pageStyleSheet);
-  },
+  }
 
   destroy() {
     if (activeService !== this) {
@@ -138,7 +135,7 @@ PDFPrintService.prototype = {
         overlayManager.close(dialog);
       }
     });
-  },
+  }
 
   renderPages() {
     if (this.pdfDocument.isPureXfa) {
@@ -171,7 +168,7 @@ PDFPrintService.prototype = {
         }, reject);
     };
     return new Promise(renderNextPage);
-  },
+  }
 
   useRenderedPage() {
     this.throwIfInactive();
@@ -194,7 +191,7 @@ PDFPrintService.prototype = {
       img.onload = resolve;
       img.onerror = reject;
     });
-  },
+  }
 
   performPrint() {
     this.throwIfInactive();
@@ -212,18 +209,18 @@ PDFPrintService.prototype = {
         setTimeout(resolve, 20); // Tidy-up.
       }, 0);
     });
-  },
+  }
 
   get active() {
     return this === activeService;
-  },
+  }
 
   throwIfInactive() {
     if (!this.active) {
       throw new Error("This print request was cancelled or completed.");
     }
-  },
-};
+  }
+}
 
 const print = window.print;
 window.print = function () {
@@ -272,8 +269,11 @@ window.print = function () {
 };
 
 function dispatchEvent(eventType) {
-  const event = document.createEvent("CustomEvent");
-  event.initCustomEvent(eventType, false, false, "custom");
+  const event = new CustomEvent(eventType, {
+    bubbles: false,
+    cancelable: false,
+    detail: "custom",
+  });
   window.dispatchEvent(event);
 }
 
@@ -285,7 +285,8 @@ function abort() {
 }
 
 function renderProgress(index, total, l10n) {
-  dialog ||= document.getElementById("printServiceDialog");
+  const app = getActiveApp();
+  dialog ||= app.appConfig.appContainer.querySelector(".printServiceDialog");
   const progress = Math.round((100 * index) / total);
   const progressBar = dialog.querySelector("progress");
   const progressPerc = dialog.querySelector(".relative-progress");
@@ -336,11 +337,11 @@ function ensureOverlay() {
     if (!overlayManager) {
       throw new Error("The overlay manager has not yet been initialized.");
     }
-    dialog ||= document.getElementById("printServiceDialog");
+    dialog ||= app.appConfig.appContainer.querySelector(".printServiceDialog");
 
     overlayPromise = overlayManager.register(dialog, /* canForceClose = */ true);
 
-    document.getElementById("printCancel").onclick = abort;
+    app.appConfig.appContainer.querySelector(".printCancel").onclick = abort;
     dialog.addEventListener("close", abort);
   }
   return overlayPromise;

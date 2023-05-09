@@ -16,4 +16,14 @@ to build based on submodule `pdf.js` in `packages/document-viewer/pdf.js`. The s
    - Run `git submodule update --remote` to update PDF.js
    - Checkout to the release version want to sync
 2. Run `pnpm syncWithUpstream`
-3. Manually review `@document-kits/viewer/src/app_helper.js`, `@document-kits/viewer/src/default_app.js` and `@document-kits/viewer/src/viewer_template.js`
+3. Review auto-generated files
+   - `@document-kits/viewer/src/app_helper.js`
+   - `@document-kits/viewer/src/default_app.js`
+   - `@document-kits/viewer/src/viewer_template.js`
+   - `@document-kits/viewer/src/default_external_services.js`
+4. Review commit history to update files
+   - `@document-kits/viewer/src/firefox_print_service.js`
+   - `@document-kits/viewer/src/firefoxcom.js`
+   - `@document-kits/viewer/src/chromecom.js`
+   - `@document-kits/viewer/src/genericcom.js`
+   - `@document-kits/viewer/src/pdf_print_service.js`

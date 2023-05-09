@@ -71,6 +71,7 @@ class PDFViewerApplication extends ViewerApplication {
       webViewerSwitchAnnotationEditorParams,
       webViewerAnnotationEditorStatesChanged,
       webViewerPageRender,
+      webViewerOpenInExternalApp,
     } = this.helper;
 
     eventBus._on("resize", webViewerResize);
@@ -92,6 +93,7 @@ class PDFViewerApplication extends ViewerApplication {
     eventBus._on("switchannotationeditorparams", webViewerSwitchAnnotationEditorParams);
     eventBus._on("print", webViewerPrint);
     eventBus._on("download", webViewerDownload);
+    eventBus._on("openinexternalapp", webViewerOpenInExternalApp);
     // eventBus._on("save", webViewerSave);
     eventBus._on("firstpage", webViewerFirstPage);
     eventBus._on("lastpage", webViewerLastPage);
@@ -254,6 +256,7 @@ class PDFViewerApplication extends ViewerApplication {
       webViewerFileInputChange,
       webViewerOpenFile,
       webViewerPageRender,
+      webViewerOpenInExternalApp,
     } = this.helper;
 
     eventBus._off("resize", webViewerResize);
@@ -273,6 +276,7 @@ class PDFViewerApplication extends ViewerApplication {
     eventBus._off("presentationmode", webViewerPresentationMode);
     eventBus._off("print", webViewerPrint);
     eventBus._off("download", webViewerDownload);
+    eventBus._off("openinexternalapp", webViewerOpenInExternalApp);
     // eventBus._off("save", webViewerSave);
     eventBus._off("firstpage", webViewerFirstPage);
     eventBus._off("lastpage", webViewerLastPage);

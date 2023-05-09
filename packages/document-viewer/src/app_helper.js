@@ -55,7 +55,7 @@ function createHelper(PDFViewerApplication) {
   }
   async function loadFakeWorker() {
     GlobalWorkerOptions.workerSrc ||= AppOptions.get("workerSrc");
-    if (typeof PDFJSDev === "undefined" || !PDFJSDev.test("PRODUCTION")) {
+    if (typeof PDFJSDev === "undefined") {
       window.pdfjsWorker = await import("pdfjs/pdf.worker.js");
       return;
     }
@@ -64,7 +64,7 @@ function createHelper(PDFViewerApplication) {
   async function loadPDFBug(self) {
     const { debuggerScriptPath } = self.appConfig;
     const { PDFBug } =
-      typeof PDFJSDev === "undefined" || !PDFJSDev.test("PRODUCTION")
+      typeof PDFJSDev === "undefined"
         ? await import(debuggerScriptPath) // eslint-disable-line no-unsanitized/method
         : await __non_webpack_import__(debuggerScriptPath); // eslint-disable-line no-undef
 
@@ -131,7 +131,7 @@ function createHelper(PDFViewerApplication) {
       });
     }
     if (!PDFViewerApplication.supportsPrinting) {
-      appConfig.toolbar?.print.classList.add("hidden");
+      appConfig.toolbar?.print?.classList.add("hidden");
       appConfig.secondaryToolbar?.printButton.classList.add("hidden");
     }
     if (!PDFViewerApplication.supportsFullscreen) {
@@ -140,7 +140,7 @@ function createHelper(PDFViewerApplication) {
       );
     }
     if (PDFViewerApplication.supportsIntegratedFind) {
-      appConfig.toolbar?.viewFind.classList.add("hidden");
+      appConfig.toolbar?.viewFind?.classList.add("hidden");
     }
     appConfig.mainContainer.addEventListener(
       "transitionend",
@@ -382,6 +382,9 @@ function createHelper(PDFViewerApplication) {
   function webViewerDownload() {
     PDFViewerApplication.downloadOrSave();
   }
+  function webViewerOpenInExternalApp() {
+    PDFViewerApplication.openInExternalApp();
+  }
   function webViewerFirstPage() {
     PDFViewerApplication.page = 1;
   }
@@ -449,7 +452,6 @@ function createHelper(PDFViewerApplication) {
       source: evt.source,
       type: "",
       query: evt.query,
-      phraseSearch: evt.phraseSearch,
       caseSensitive: false,
       entireWord: false,
       highlightAll: true,
@@ -1165,6 +1167,7 @@ function createHelper(PDFViewerApplication) {
       webViewerSwitchAnnotationEditorParams,
     webViewerPrint: webViewerPrint,
     webViewerDownload: webViewerDownload,
+    webViewerOpenInExternalApp: webViewerOpenInExternalApp,
     webViewerFirstPage: webViewerFirstPage,
     webViewerLastPage: webViewerLastPage,
     webViewerNextPage: webViewerNextPage,

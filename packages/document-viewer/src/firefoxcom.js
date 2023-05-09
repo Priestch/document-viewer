@@ -39,11 +39,14 @@ class FirefoxCom {
     const request = document.createTextNode("");
     document.documentElement.append(request);
 
-    const sender = document.createEvent("CustomEvent");
-    sender.initCustomEvent("pdf.js.message", true, false, {
-      action,
-      data,
-      sync: true,
+    const sender = new CustomEvent("pdf.js.message", {
+      bubbles: true,
+      cancelable: false,
+      detail: {
+        action,
+        data,
+        sync: true,
+      },
     });
     request.dispatchEvent(sender);
     const response = sender.detail.response;
@@ -87,12 +90,15 @@ class FirefoxCom {
     }
     document.documentElement.append(request);
 
-    const sender = document.createEvent("CustomEvent");
-    sender.initCustomEvent("pdf.js.message", true, false, {
-      action,
-      data,
-      sync: false,
-      responseExpected: !!callback,
+    const sender = new CustomEvent("pdf.js.message", {
+      bubbles: true,
+      cancelable: false,
+      detail: {
+        action,
+        data,
+        sync: false,
+        responseExpected: !!callback,
+      },
     });
     request.dispatchEvent(sender);
   }
@@ -101,10 +107,11 @@ class FirefoxCom {
 class DownloadManager {
   #openBlobUrls = new WeakMap();
 
-  downloadUrl(url, filename) {
+  downloadUrl(url, filename, options = {}) {
     FirefoxCom.request("download", {
       originalUrl: url,
       filename,
+      options,
     });
   }
 
@@ -153,14 +160,14 @@ class DownloadManager {
     return false;
   }
 
-  download(blob, url, filename, sourceEventType = "download") {
+  download(blob, url, filename, options = {}) {
     const blobUrl = URL.createObjectURL(blob);
 
     FirefoxCom.requestAsync("download", {
       blobUrl,
       originalUrl: url,
       filename,
-      sourceEventType,
+      options,
     }).then((error) => {
       if (error) {
         // If downloading failed in `PdfStreamConverter.jsm` it's very unlikely
@@ -229,7 +236,6 @@ class MozL10n {
       source: window,
       type: type.substring(findLen),
       query: detail.query,
-      phraseSearch: true,
       caseSensitive: !!detail.caseSensitive,
       entireWord: !!detail.entireWord,
       highlightAll: !!detail.highlightAll,

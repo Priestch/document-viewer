@@ -13,5 +13,7 @@ to build based on submodule `pdf.js` in `packages/document-viewer/pdf.js`. The s
 ## How to upgrade PDF.js
 
 1. Update the pdf.js submodule to a specific release version.
+   - Run `git submodule update --remote` to update PDF.js
+   - Checkout to the release version want to sync
 2. Run `pnpm syncWithUpstream`
 3. Manually review `@document-kits/viewer/src/app_helper.js`, `@document-kits/viewer/src/default_app.js` and `@document-kits/viewer/src/viewer_template.js`

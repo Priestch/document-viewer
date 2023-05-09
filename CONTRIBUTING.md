@@ -6,7 +6,7 @@ To develop and test the `@document-kits/viewer`, run `pnpm examples:dev` in the 
 to build based on submodule `pdf.js` in `packages/document-viewer/pdf.js`. The specific process is as follows:
 
 1. Install dependencies for PDF.js if `FORCE_INSTALL_DEPENDENCIES` environment was set
-2. Programmatically create a gulp config `packages/document-viewer/pdf.js/gulpfile.custom.js` defines a `app` task
+2. Programmatically create a gulp config `packages/document-viewer/pdf.js/gulpfile.custom.js` defines an `app` task
 3. Run the custom `app` task to build `@document-kits/viewer` package based on submodule `pdf.js`
 4. Start a Vite dev server to test the `@document-kits/viewer` package
 

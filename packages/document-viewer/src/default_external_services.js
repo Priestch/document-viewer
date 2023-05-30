@@ -59,6 +59,10 @@ class DefaultExternalServices {
   static get canvasMaxAreaInBytes() {
     return shadow(this, "canvasMaxAreaInBytes", -1);
   }
+
+  static getNimbusExperimentData() {
+    return shadow(this, "getNimbusExperimentData", Promise.resolve(null));
+  }
 }
 
 export { DefaultExternalServices };

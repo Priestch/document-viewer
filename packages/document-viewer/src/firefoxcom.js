@@ -450,6 +450,11 @@ class FirefoxExternalServices extends DefaultExternalServices {
     const maxArea = FirefoxCom.requestSync("getCanvasMaxArea");
     return shadow(this, "canvasMaxAreaInBytes", maxArea);
   }
+
+  static async getNimbusExperimentData() {
+    const nimbusData = await FirefoxCom.requestAsync("getNimbusExperimentData", null);
+    return nimbusData && JSON.parse(nimbusData);
+  }
 }
 
 // l10n.js for Firefox extension expects services to be set.

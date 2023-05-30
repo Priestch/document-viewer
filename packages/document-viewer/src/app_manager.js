@@ -64,6 +64,7 @@ function getViewerConfiguration(el) {
       outerContainer: el.querySelector("[data-dom-id='outerContainer']"),
       sidebarContainer: el.querySelector("[data-dom-id='sidebarContainer']"),
       toggleButton: el.querySelector("[data-dom-id='sidebarToggle']"),
+      resizer: el.querySelector("[data-dom-id='sidebarResizer']"),
       // Buttons
       thumbnailButton: el.querySelector("[data-dom-id='viewThumbnail']"),
       outlineButton: el.querySelector("[data-dom-id='viewOutline']"),
@@ -77,10 +78,6 @@ function getViewerConfiguration(el) {
       // View-specific options
       outlineOptionsContainer: el.querySelector("[data-dom-id='outlineOptionsContainer']"),
       currentOutlineItemButton: el.querySelector("[data-dom-id='currentOutlineItem']"),
-    },
-    sidebarResizer: {
-      outerContainer: el.querySelector("[data-dom-id='outerContainer']"),
-      resizer: el.querySelector("[data-dom-id='sidebarResizer']"),
     },
     findBar: {
       bar: el.querySelector("[data-dom-id='findbar']"),

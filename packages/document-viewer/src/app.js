@@ -789,6 +789,9 @@ class PDFViewerApplication {
       // Embedded PDF viewers should not be changing their parent page's title.
       return;
     }
+    if (this.appOptions.get("disableAutoSetTitle")) {
+      return;
+    }
     const editorIndicator = this._hasAnnotationEditors && !this.pdfRenderingQueue.printing;
     document.title = `${editorIndicator ? "* " : ""}${title}`;
   }

@@ -131,6 +131,19 @@ class PDFViewerApplication extends ViewerApplication {
     }
   }
 
+  setTitle(title = this._title) {
+    this._title = title;
+    if (this.isViewerEmbedded) {
+      // Embedded PDF viewers should not be changing their parent page's title.
+      return;
+    }
+    if (this.appOptions.get("disableAutoSetTitle")) {
+      return;
+    }
+    const editorIndicator = this._hasAnnotationEditors && !this.pdfRenderingQueue.printing;
+    document.title = `${editorIndicator ? "* " : ""}${title}`;
+  }
+
   bindWindowEvents() {
     const { eventBus, _boundEvents } = this;
 

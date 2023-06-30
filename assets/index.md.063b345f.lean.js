@@ -1,0 +1,1 @@
+import{_ as e,c as s,o as a,N as o}from"./chunks/framework.380fba35.js";const y=JSON.parse('{"title":"PDF Viewer","description":"","frontmatter":{},"headers":[],"relativePath":"index.md","lastUpdated":1688115212000}'),n={name:"index.md"},t=o("",10),r=[t];function l(p,c,i,d,u,h){return a(),s("div",null,r)}const C=e(n,[["render",l]]);export{y as __pageData,C as default};

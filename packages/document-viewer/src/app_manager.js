@@ -143,6 +143,7 @@ function getViewerConfiguration(el) {
  * @property {string | TypedArray | ArrayBuffer} src - The source of the PDF document.
  * @property {string} resourcePath - The resource path of pdf.js.
  * @property {boolean} [disableCORSCheck=false] - Disable CORS check of pdf.js
+ * @property {boolean} [disableAutoSetTitle=false] - Disable auto-set title of document.
  * @property {object} [appOptions={}] - Default app options of pdf.js
  */
 
@@ -154,7 +155,14 @@ function getViewerConfiguration(el) {
  * @returns {PDFViewerApplication}
  */
 function createViewerApp(options) {
-  const { parent = null, resourcePath, src, disableCORSCheck = false, appOptions = {} } = options;
+  const {
+    parent = null,
+    resourcePath,
+    src,
+    disableCORSCheck = false,
+    disableAutoSetTitle = false,
+    appOptions = {},
+  } = options;
   const workerSrc = `${resourcePath}/build/pdf.worker.js`;
 
   const viewerOptions = AppOptions;
@@ -165,6 +173,7 @@ function createViewerApp(options) {
   viewerOptions.set("sandboxBundleSrc", `${resourcePath}/build/pdf.sandbox.js`);
   viewerOptions.set("defaultUrl", src);
   viewerOptions.set("disableCORSCheck", disableCORSCheck);
+  viewerOptions.set("disableAutoSetTitle", disableAutoSetTitle);
 
   // set disablePreferences to enable custom appOptions work
   viewerOptions.set("disablePreferences", true);

@@ -16,10 +16,11 @@ Create a viewer app.
 
 #### properties
 
-| name                        | type                            | description                               | defaultValue |
-| --------------------------- | ------------------------------- | ----------------------------------------- | ------------ |
-| parent                      | `HTMLElement`                   | Element the PDF viewer will be render to. | -            |
-| src                         | `string,TypedArray,ArrayBuffer` | The source of the PDF document.           | -            |
-| resourcePath                | `string`                        | The resource path of pdf.js.              | -            |
-| disableCORSCheck `optional` | `boolean`                       | Disable CORS check of pdf.js              | false        |
-| appOptions `optional`       | `object`                        | Default app options of pdf.js             | {}           |
+| name                           | type                            | description                                          | defaultValue |
+| ------------------------------ | ------------------------------- | ---------------------------------------------------- | ------------ |
+| parent                         | `HTMLElement`                   | Element the PDF viewer will be render to.            | -            |
+| src                            | `string,TypedArray,ArrayBuffer` | The source of the PDF document.                      | -            |
+| resourcePath                   | `string`                        | The resource path of pdf.js.                         | -            |
+| disableCORSCheck `optional`    | `boolean`                       | Disable CORS check of pdf.js                         | false        |
+| disableAutoSetTitle `optional` | `boolean`                       | Disable auto-set title of document caused by pdf.js. | false        |
+| appOptions `optional`          | `object`                        | Default app options of pdf.js                        | {}           |

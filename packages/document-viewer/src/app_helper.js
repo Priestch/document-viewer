@@ -79,103 +79,6 @@ function createHelper(PDFViewerApplication) {
     );
     globalThis.Stats.add(pageNumber, pageView?.pdfPage?.stats);
   }
-  function webViewerInitialized() {
-    const { appConfig, eventBus, l10n } = PDFViewerApplication;
-    let file;
-    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-      const queryString = document.location.search.substring(1);
-      const params = parseQueryString(queryString);
-      file = params.get("file") ?? AppOptions.get("defaultUrl");
-      validateFileURL(file);
-    } else if (PDFJSDev.test("MOZCENTRAL")) {
-      file = window.location.href;
-    } else if (PDFJSDev.test("CHROME")) {
-      file = AppOptions.get("defaultUrl");
-    }
-    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-      const fileInput = appConfig.openFileInput;
-      fileInput.value = null;
-      fileInput.addEventListener("change", function (evt) {
-        const { files } = evt.target;
-        if (!files || files.length === 0) {
-          return;
-        }
-        eventBus.dispatch("fileinputchange", {
-          source: this,
-          fileInput: evt.target,
-        });
-      });
-
-      // Enable dragging-and-dropping a new PDF file onto the viewerContainer.
-      appConfig.mainContainer.addEventListener("dragover", function (evt) {
-        evt.preventDefault();
-        evt.dataTransfer.dropEffect =
-          evt.dataTransfer.effectAllowed === "copy" ? "copy" : "move";
-      });
-      appConfig.mainContainer.addEventListener("drop", function (evt) {
-        evt.preventDefault();
-        const { files } = evt.dataTransfer;
-        if (!files || files.length === 0) {
-          return;
-        }
-        eventBus.dispatch("fileinputchange", {
-          source: this,
-          fileInput: evt.dataTransfer,
-        });
-      });
-    }
-    if (!PDFViewerApplication.supportsDocumentFonts) {
-      AppOptions.set("disableFontFace", true);
-      l10n.get("web_fonts_disabled").then(msg => {
-        console.warn(msg);
-      });
-    }
-    if (!PDFViewerApplication.supportsPrinting) {
-      appConfig.toolbar?.print?.classList.add("hidden");
-      appConfig.secondaryToolbar?.printButton.classList.add("hidden");
-    }
-    if (!PDFViewerApplication.supportsFullscreen) {
-      appConfig.secondaryToolbar?.presentationModeButton.classList.add(
-        "hidden"
-      );
-    }
-    if (PDFViewerApplication.supportsIntegratedFind) {
-      appConfig.toolbar?.viewFind?.classList.add("hidden");
-    }
-    appConfig.mainContainer.addEventListener(
-      "transitionend",
-      function (evt) {
-        if (evt.target === /* mainContainer */ this) {
-          eventBus.dispatch("resize", {
-            source: this,
-          });
-        }
-      },
-      true
-    );
-    try {
-      if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-        if (file) {
-          if (typeof file === "string" || file instanceof URL) {
-            PDFViewerApplication.open({url: file});
-          } else if (file.byteLength) {
-            PDFViewerApplication.open({data: file});
-          }
-        } else {
-          PDFViewerApplication._hideViewBookmark();
-        }
-      } else if (PDFJSDev.test("MOZCENTRAL || CHROME")) {
-        PDFViewerApplication.setTitleUsingUrl(file, /* downloadUrl = */ file);
-        PDFViewerApplication.initPassiveLoading();
-      } else {
-        throw new Error("Not implemented: webViewerInitialized");
-      }
-    } catch (reason) {
-      l10n.get("loading_error").then(msg => {
-        PDFViewerApplication._documentError(msg, reason);
-      });
-    }
-  }
   function webViewerPageRender({ pageNumber }) {
     // If the page is (the most) visible when it starts rendering,
     // ensure that the page number input loading indicator is displayed.
@@ -1147,7 +1050,6 @@ function createHelper(PDFViewerApplication) {
     loadFakeWorker: loadFakeWorker,
     loadPDFBug: loadPDFBug,
     reportPageStatsPDFBug: reportPageStatsPDFBug,
-    webViewerInitialized: webViewerInitialized,
     webViewerPageRender: webViewerPageRender,
     webViewerPageRendered: webViewerPageRendered,
     webViewerPageMode: webViewerPageMode,

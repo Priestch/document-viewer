@@ -17,8 +17,8 @@ class PDFViewerApplication extends ViewerApplication {
   }
 
   run(config) {
-    const { webViewerInitialized } = this.helper;
-    this.initialize(config).then(webViewerInitialized);
+    const { validateFileURL } = this.helper;
+    return super.run(config, validateFileURL);
   }
 
   bindEvents() {

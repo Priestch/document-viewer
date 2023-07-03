@@ -146,7 +146,7 @@ function isRuntimeAvailable() {
     if (chrome.runtime?.getManifest()) {
       return true;
     }
-  } catch (e) {}
+  } catch {}
   return false;
 }
 

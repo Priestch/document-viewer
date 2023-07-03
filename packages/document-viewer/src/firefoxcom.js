@@ -180,13 +180,8 @@ class DownloadManager {
 }
 
 class FirefoxPreferences extends BasePreferences {
-  async _writeToStorage(prefObj) {
-    return FirefoxCom.requestAsync("setPreferences", prefObj);
-  }
-
   async _readFromStorage(prefObj) {
-    const prefStr = await FirefoxCom.requestAsync("getPreferences", prefObj);
-    return JSON.parse(prefStr);
+    return FirefoxCom.requestAsync("getPreferences", prefObj);
   }
 }
 

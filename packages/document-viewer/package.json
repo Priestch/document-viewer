@@ -39,11 +39,11 @@
     "package.json"
   ],
   "devDependencies": {
-    "gulp": "^4.0.2",
-    "html-ast-transform": "^2.0.1",
-    "parse5": "^7.1.2",
     "@babel/core": "^7.21.5",
     "@babel/generator": "^7.21.5",
-    "@babel/types": "^7.21.5"
+    "@babel/types": "^7.21.5",
+    "gulp": "^4.0.2",
+    "html-ast-transform": "^2.0.1",
+    "parse5": "^7.1.2"
   }
 }

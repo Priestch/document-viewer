@@ -8,12 +8,11 @@
 |name|type|description|defaultValue|
 |---|---|---|---|
 {{#each properties}}
-|{{name}} {{#if optional}}`optional`{{/if}}|`{{{type.names}}}`|{{{description}}}| {{#if (isDefined defaultvalue)}}{{defaultvalue}}{{else}}-{{/if}}|
+|{{{getProperty this (lookup ../.. "definedTypes") }}}|`{{{type.names}}}`|{{{description}}}| {{#if (isDefined defaultvalue)}}{{defaultvalue}}{{else}}-{{/if}}|
 {{/each}}
 {{/equals}}
 
 {{#equals kind "function" }}
-{{log this}}
 ## {{name}}
 
 ```typescript

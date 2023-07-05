@@ -11,7 +11,7 @@ jsdoc2md
   .then((comments) => {
     const apiComments = comments.filter((comment) => {
       if (comment.customTags) {
-        return comment.customTags?.find((t) => t.tag === "api");
+        return comment.customTags?.find((t) => t.tag === "docs");
       }
       return false;
     });
@@ -38,13 +38,15 @@ jsdoc2md
           };
         });
       }
-      items.push({
-        comment,
-        definedTypes,
-      });
+      if (!comment.ignore) {
+        items.push({
+          comment,
+          definedTypes,
+        });
+      }
     });
 
-    console.log(definedTypes);
+    // console.log(definedTypes);
 
     jsdoc2md
       .render({

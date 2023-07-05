@@ -136,20 +136,28 @@ function getViewerConfiguration(el) {
 }
 
 /**
- * @api
+ * @docs
+ * @ignore
+ *
+ * @see https://github.com/mozilla/pdf.js/blob/master/web/app_options.js
+ * @typedef {object} AppOptions
+ */
+
+/**
+ * @docs
  *
  * @typedef Options
  * @property {HTMLElement} parent - Element the PDF viewer will be render to.
  * @property {string | TypedArray | ArrayBuffer} src - The source of the PDF document.
  * @property {string} resourcePath - The resource path of pdf.js.
- * @property {boolean} [disableCORSCheck=false] - Disable CORS check of pdf.js
+ * @property {boolean} [disableCORSCheck=false] - Disable CORS check of pdf.js.
  * @property {boolean} [disableAutoSetTitle=false] - Disable auto-set title of document caused by pdf.js.
- * @property {object} [appOptions={}] - Default app options of pdf.js
+ * @property {AppOptions} [appOptions={}] - Default app options of pdf.js.
  */
 
 /**
  * Create a viewer app.
- * @api
+ * @docs
  * @param {Options} options
  *
  * @returns {PDFViewerApplication}

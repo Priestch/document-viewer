@@ -16,5 +16,5 @@ OUTPUT_FILE="$(pwd)/pdf.js/gulpfile.custom.mjs"
 cat $GULPFILE > $OUTPUT_FILE
 cat $TEMPLATE_FILE >> $OUTPUT_FILE
 
-gulp -f pdf.js/gulpfile.custom.js app
+gulp -f pdf.js/gulpfile.custom.mjs app
 rm $OUTPUT_FILE

@@ -10,8 +10,8 @@ else
 fi
 
 TEMPLATE_FILE="$(pwd)/bin/gulpfile.template.js"
-GULPFILE="$(pwd)/pdf.js/gulpfile.js"
-OUTPUT_FILE="$(pwd)/pdf.js/gulpfile.custom.js"
+GULPFILE="$(pwd)/pdf.js/gulpfile.mjs"
+OUTPUT_FILE="$(pwd)/pdf.js/gulpfile.custom.mjs"
 
 cat $GULPFILE > $OUTPUT_FILE
 cat $TEMPLATE_FILE >> $OUTPUT_FILE

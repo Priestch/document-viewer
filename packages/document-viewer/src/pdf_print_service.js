@@ -285,6 +285,9 @@ function abort() {
 }
 
 function renderProgress(index, total, l10n) {
+  if (typeof PDFJSDev === "undefined" && window.isGECKOVIEW) {
+    return;
+  }
   const app = getActiveApp();
   dialog ||= app.appConfig.appContainer.querySelector(".printServiceDialog");
   const progress = Math.round((100 * index) / total);
@@ -330,6 +333,11 @@ if ("onbeforeprint" in window) {
 
 let overlayPromise;
 function ensureOverlay() {
+  if (typeof PDFJSDev === "undefined" && window.isGECKOVIEW) {
+    return Promise.reject(
+      new Error("ensureOverlay not implemented in GECKOVIEW development mode.")
+    );
+  }
   if (!overlayPromise) {
     const app = getActiveApp();
     // const overlayContainer = app.appConfig.printServiceOverlay;

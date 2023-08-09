@@ -274,7 +274,7 @@ function createHelper(PDFViewerApplication) {
     PDFViewerApplication.requestPresentationMode();
   }
   function webViewerSwitchAnnotationEditorMode(evt) {
-    PDFViewerApplication.pdfViewer.annotationEditorMode = evt.mode;
+    PDFViewerApplication.pdfViewer.annotationEditorMode = evt;
   }
   function webViewerSwitchAnnotationEditorParams(evt) {
     PDFViewerApplication.pdfViewer.annotationEditorParams = evt;

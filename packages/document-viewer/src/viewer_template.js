@@ -596,11 +596,22 @@ const template = `
             >
               <button
                 disabled="disabled"
+                title="Image"
+                role="radio"
+                aria-checked="false"
+                tabindex="34"
+                data-l10n-id="editor_stamp"
+                data-dom-id="editorStamp"
+                class="toolbarButton hidden editorStamp"
+              >
+                <span data-l10n-id="editor_stamp_label">Image</span></button
+              ><button
+                disabled="disabled"
                 title="Text"
                 role="radio"
                 aria-checked="false"
                 aria-controls="editorFreeTextParamsToolbar"
-                tabindex="34"
+                tabindex="35"
                 data-l10n-id="editor_free_text2"
                 data-dom-id="editorFreeText"
                 class="toolbarButton editorFreeText"
@@ -612,7 +623,7 @@ const template = `
                 role="radio"
                 aria-checked="false"
                 aria-controls="editorInkParamsToolbar"
-                tabindex="35"
+                tabindex="36"
                 data-l10n-id="editor_ink2"
                 data-dom-id="editorInk"
                 class="toolbarButton editorInk"

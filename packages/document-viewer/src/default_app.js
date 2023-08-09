@@ -31,7 +31,6 @@ import {
   isPdfFile,
   loadScript,
   MissingPDFException,
-  OPS,
   PDFWorker,
   PromiseCapability,
   shadow,
@@ -288,13 +287,7 @@ class ViewerApplication {
       const enabled = params.get("pdfbug").split(",");
       try {
         await loadPDFBug(this);
-        this._PDFBug.init(
-          {
-            OPS,
-          },
-          mainContainer,
-          enabled
-        );
+        this._PDFBug.init(mainContainer, enabled);
       } catch (ex) {
         console.error(`_parseHashParams: "${ex.message}".`);
       }
@@ -398,6 +391,8 @@ class ViewerApplication {
     const container = appConfig.mainContainer,
       viewer = appConfig.viewerContainer;
     const annotationEditorMode = AppOptions.get("annotationEditorMode");
+    const isOffscreenCanvasSupported =
+      AppOptions.get("isOffscreenCanvasSupported") && FeatureTest.isOffscreenCanvasSupported;
     const pageColors =
       AppOptions.get("forcePageColors") || window.matchMedia("(forced-colors: active)").matches
         ? {
@@ -420,8 +415,7 @@ class ViewerApplication {
       annotationEditorMode,
       imageResourcesPath: AppOptions.get("imageResourcesPath"),
       enablePrintAutoRotate: AppOptions.get("enablePrintAutoRotate"),
-      useOnlyCssZoom: AppOptions.get("useOnlyCssZoom"),
-      isOffscreenCanvasSupported: AppOptions.get("isOffscreenCanvasSupported"),
+      isOffscreenCanvasSupported,
       maxCanvasPixels: AppOptions.get("maxCanvasPixels"),
       enablePermissions: AppOptions.get("enablePermissions"),
       pageColors,
@@ -456,6 +450,9 @@ class ViewerApplication {
     }
     if (appConfig.annotationEditorParams) {
       if (annotationEditorMode !== AnnotationEditorType.DISABLE) {
+        if (AppOptions.get("enableStampEditor") && isOffscreenCanvasSupported) {
+          appConfig.toolbar?.editorStampButton?.classList.remove("hidden");
+        }
         this.annotationEditorParams = new AnnotationEditorParams(
           appConfig.annotationEditorParams,
           eventBus
@@ -560,10 +557,10 @@ class ViewerApplication {
       };
     }
   }
-  async run(config, validateFileURL) {
+  async run(config) {
     const { appOptions: AppOptions } = this;
     await this.initialize(config);
-    const { appConfig, eventBus, l10n } = this;
+    const { appConfig, eventBus } = this;
     let file;
     if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
       const queryString = document.location.search.substring(1);
@@ -608,7 +605,7 @@ class ViewerApplication {
     }
     if (!this.supportsDocumentFonts) {
       AppOptions.set("disableFontFace", true);
-      l10n.get("web_fonts_disabled").then((msg) => {
+      this.l10n.get("web_fonts_disabled").then((msg) => {
         console.warn(msg);
       });
     }
@@ -633,24 +630,18 @@ class ViewerApplication {
       },
       true
     );
-    try {
-      if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-        if (file) {
-          this.open({
-            url: file,
-          });
-        } else {
-          this._hideViewBookmark();
-        }
-      } else if (PDFJSDev.test("MOZCENTRAL || CHROME")) {
-        this.initPassiveLoading(file);
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
+      if (file) {
+        this.open({
+          url: file,
+        });
       } else {
-        throw new Error("Not implemented: run");
+        this._hideViewBookmark();
       }
-    } catch (reason) {
-      l10n.get("loading_error").then((msg) => {
-        this._documentError(msg, reason);
-      });
+    } else if (PDFJSDev.test("MOZCENTRAL || CHROME")) {
+      this.initPassiveLoading(file);
+    } else {
+      throw new Error("Not implemented: run");
     }
   }
   get initialized() {
@@ -1104,13 +1095,13 @@ class ViewerApplication {
 
     // Since the `setInitialView` call below depends on this being resolved,
     // fetch it early to avoid delaying initial rendering of the PDF document.
-    const pageLayoutPromise = pdfDocument.getPageLayout().catch(function () {
+    const pageLayoutPromise = pdfDocument.getPageLayout().catch(() => {
       /* Avoid breaking initial rendering; ignoring errors. */
     });
-    const pageModePromise = pdfDocument.getPageMode().catch(function () {
+    const pageModePromise = pdfDocument.getPageMode().catch(() => {
       /* Avoid breaking initial rendering; ignoring errors. */
     });
-    const openActionPromise = pdfDocument.getOpenAction().catch(function () {
+    const openActionPromise = pdfDocument.getOpenAction().catch(() => {
       /* Avoid breaking initial rendering; ignoring errors. */
     });
     this.toolbar?.setPagesCount(pdfDocument.numPages, false);
@@ -1141,7 +1132,6 @@ class ViewerApplication {
       })
       .catch(() => {
         /* Unable to read from storage; ignoring errors. */
-        return Object.create(null);
       });
     firstPagePromise.then((pdfPage) => {
       this.loadingBar?.setWidth(this.appConfig.viewerContainer);
@@ -1169,7 +1159,7 @@ class ViewerApplication {
           let sidebarView = AppOptions.get("sidebarViewOnLoad");
           let scrollMode = AppOptions.get("scrollModeOnLoad");
           let spreadMode = AppOptions.get("spreadModeOnLoad");
-          if (stored.page && viewOnLoad !== ViewOnLoad.INITIAL) {
+          if (stored?.page && viewOnLoad !== ViewOnLoad.INITIAL) {
             hash =
               `page=${stored.page}&zoom=${zoom || stored.zoom},` +
               `${stored.scrollLeft},${stored.scrollTop}`;

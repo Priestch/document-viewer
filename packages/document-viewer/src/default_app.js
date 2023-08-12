@@ -557,7 +557,7 @@ class ViewerApplication {
       };
     }
   }
-  async run(config) {
+  async run(config, validateFileURL) {
     const { appOptions: AppOptions } = this;
     await this.initialize(config);
     const { appConfig, eventBus } = this;

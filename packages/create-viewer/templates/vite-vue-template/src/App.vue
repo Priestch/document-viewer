@@ -4,7 +4,7 @@
 import DocumentViewer from "./components/DocumentViewer.vue";
 
 const options = {
-  src: "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf",
+  src: "compressed.tracemonkey-pldi-09.pdf",
   resourcePath: "document-viewer",
   disableCORSCheck: true,
 };

@@ -1,0 +1,10 @@
+html,
+body,
+document-viewer,
+#viewer {
+  height: 100%;
+}
+
+document-viewer {
+  display: block;
+}

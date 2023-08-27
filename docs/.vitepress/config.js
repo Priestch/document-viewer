@@ -31,7 +31,10 @@ const config = {
         items: [{ text: "Releases", link: "https://github.com/Priestch/document-viewer/tags" }],
       },
     ],
-    socialLinks: [{ icon: "github", link: "https://github.com/Priestch/document-viewer" }],
+    socialLinks: [
+      { icon: "github", link: "https://github.com/Priestch/document-viewer" },
+      { icon: "discord", link: "https://discord.gg/hYXtcr37tz" },
+    ],
   },
 };
 

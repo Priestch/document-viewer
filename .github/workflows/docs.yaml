@@ -39,7 +39,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --filter viewer-docs
+        run: pnpm install --filter viewer-docs && pnpm install --filter examples
 
       - name: Build Docs
         run: pnpm docs:build

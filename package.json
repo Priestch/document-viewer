@@ -6,6 +6,7 @@
     "release": "node scripts/release.mjs",
     "cli:build": "pnpm --filter @document-kits/create-viewer run build",
     "examples:dev": "pnpm run viewer:build && pnpm --filter examples run dev",
+    "examples:build": "pnpm run viewer:build && pnpm --filter examples run build",
     "docs:dev": "pnpm --filter viewer-docs run dev",
     "docs:extract": "pnpm --filter @document-kits/viewer run api",
     "docs:build": "pnpm --filter viewer-docs run build",

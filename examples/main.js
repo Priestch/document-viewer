@@ -2,8 +2,9 @@ import { createViewerApp } from "@document-kits/viewer";
 import "@document-kits/viewer/viewer.css";
 import "./style.css";
 
+let src = "./document-viewer/web/compressed.tracemonkey-pldi-09.pdf";
 const appOptions = {
-  src: "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf",
+  src,
   resourcePath: "document-viewer",
   disableCORSCheck: true,
   disableAutoSetTitle: true,

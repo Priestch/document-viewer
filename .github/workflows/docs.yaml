@@ -47,7 +47,7 @@ jobs:
         run: echo "Build demos..."
 
       - name: Remix
-        run: rm -r dist && mkdir dist && cp demos/index.html dist && cp -r docs/.vitepress/dist dist/docs
+        run: rm -rf dist && mkdir dist && cp demos/index.html dist && cp -r docs/.vitepress/dist dist/docs
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3

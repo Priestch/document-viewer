@@ -46,7 +46,7 @@ jobs:
         run: pnpm docs:build
 
       - name: Build Demos
-        run: pnpm examples:build
+        run: pnpm examples:build --debug
 
       - name: Remix
         run: rm -rf dist && mkdir dist && cp demos/index.html dist && cp -r docs/.vitepress/dist dist/docs && cp -r examples/dist dist/demos

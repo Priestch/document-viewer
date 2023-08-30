@@ -5,6 +5,7 @@ on:
     paths:
       - docs/**
       - examples/**
+      - .github/**
 
 jobs:
   deploy:

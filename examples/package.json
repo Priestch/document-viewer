@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@document-kits/viewer": "workspace:^"
+    "@document-kits/viewer": "*"
   },
   "devDependencies": {
     "vite-plugin-static-copy": "^0.7.0"

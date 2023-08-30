@@ -40,11 +40,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --filter viewer-docs
 
-      - name: Build
+      - name: Build Docs
         run: pnpm docs:build
+
+      - name: Build Demos
+        run: echo "Build demos..."
+
+      - name: Remix
+        run: rm -r dist && mkdir dist && cp demos/index.html dist && cp -r docs/.vitepress/dist dist/docs
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/.vitepress/dist
+          publish_dir: dist

@@ -13,7 +13,7 @@ const config = {
   title: "PDF Viewer",
   titleTemplate: "Free PDF Viewer build on PDF.js",
   description:
-    "The open source out-of-the-box PDF reader & viewer build on PDF.js. Integrate the PDF Viewer to your project at ease!",
+    "The free out-of-the-box PDF reader & viewer build on PDF.js. Integrate the PDF Viewer to your project at ease!",
   base: "/document-viewer/docs",
   lastUpdated: true,
   markdown: {

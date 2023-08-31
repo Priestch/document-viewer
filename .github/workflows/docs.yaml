@@ -49,7 +49,7 @@ jobs:
         run: pnpm examples:build
 
       - name: Remix
-        run: rm -rf dist && mkdir dist && cp demos/index.html dist && cp -r docs/.vitepress/dist dist/docs
+        run: rm -rf dist && mkdir dist && cp demos/index.html dist && cp -r docs/.vitepress/dist dist/docs && cp -r examples/dist dist/demos
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3

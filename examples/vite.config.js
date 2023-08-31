@@ -20,6 +20,7 @@ export default defineConfig({
       include: [/document-viewer/],
     },
   },
+  base: "/document-viewer/demos/",
   resolve: {
     alias: [
       {

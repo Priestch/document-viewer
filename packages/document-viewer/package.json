@@ -16,7 +16,6 @@
     "./viewer.css": "./dist/generic/web/viewer.css",
     "./*": "./dist/generic/web/*"
   },
-  "main": "./dist/generic/web/app.js",
   "author": "",
   "license": "ISC",
   "publishConfig": {

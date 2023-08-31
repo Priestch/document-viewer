@@ -17,7 +17,7 @@ export default defineConfig({
   },
   build: {
     commonjsOptions: {
-      // include: [/document-viewer/],
+      include: [/document-viewer/],
     },
   },
   resolve: {

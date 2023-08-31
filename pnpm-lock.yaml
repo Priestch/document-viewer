@@ -61,7 +61,7 @@ importers:
   examples:
     dependencies:
       '@document-kits/viewer':
-        specifier: 0.7.1
+        specifier: 0.7.2
         version: link:../packages/document-viewer
     devDependencies:
       vite-plugin-static-copy:

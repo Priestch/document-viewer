@@ -840,7 +840,7 @@ class ViewerApplication {
     this._contentLength = null;
     this._saveInProgress = false;
     this._hasAnnotationEditors = false;
-    promises.push(this.pdfScriptingManager.destroyPromise);
+    promises.push(this.pdfScriptingManager.destroyPromise, this.passwordPrompt.close());
     this.setTitle();
     this.pdfSidebar?.reset();
     this.pdfOutlineViewer?.reset();
@@ -1349,35 +1349,32 @@ class ViewerApplication {
    * @private
    */
   async _initializeAutoPrint(pdfDocument, openActionPromise) {
-    const [openAction, javaScript] = await Promise.all([
+    const [openAction, jsActions] = await Promise.all([
       openActionPromise,
-      !this.pdfViewer.enableScripting ? pdfDocument.getJavaScript() : null,
+      this.pdfViewer.enableScripting ? null : pdfDocument.getJSActions(),
     ]);
     if (pdfDocument !== this.pdfDocument) {
       return; // The document was closed while the auto print data resolved.
     }
 
-    let triggerAutoPrint = false;
-    if (openAction?.action === "Print") {
-      triggerAutoPrint = true;
-    }
-    if (javaScript) {
-      javaScript.some((js) => {
-        if (!js) {
-          // Don't warn/fallback for empty JavaScript actions.
-          return false;
+    let triggerAutoPrint = openAction?.action === "Print";
+    if (jsActions) {
+      console.warn("Warning: JavaScript support is not enabled");
+
+      // Hack to support auto printing.
+      for (const name in jsActions) {
+        if (triggerAutoPrint) {
+          break;
         }
-        console.warn("Warning: JavaScript support is not enabled");
-        return true;
-      });
-      if (!triggerAutoPrint) {
-        // Hack to support auto printing.
-        for (const js of javaScript) {
-          if (js && AutoPrintRegExp.test(js)) {
-            triggerAutoPrint = true;
-            break;
-          }
+        switch (name) {
+          case "WillClose":
+          case "WillSave":
+          case "DidSave":
+          case "WillPrint":
+          case "DidPrint":
+            continue;
         }
+        triggerAutoPrint = jsActions[name].some((js) => AutoPrintRegExp.test(js));
       }
     }
     if (triggerAutoPrint) {

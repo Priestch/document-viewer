@@ -271,6 +271,22 @@ const template = `
       </div>
     </div>
     <div
+      data-dom-id="editorStampParamsToolbar"
+      class="editorParamsToolbar hidden doorHangerRight editorStampParamsToolbar"
+    >
+      <div class="editorParamsToolbarContainer">
+        <button
+          title="Add image"
+          tabindex="105"
+          data-l10n-id="editor_stamp_add_image"
+          data-dom-id="editorStampAddImage"
+          class="secondaryToolbarButton editorStampAddImage"
+        >
+          <span data-l10n-id="editor_stamp_add_image_label">Add image</span>
+        </button>
+      </div>
+    </div>
+    <div
       class="secondaryToolbar hidden doorHangerRight"
       data-dom-id="secondaryToolbar"
     >
@@ -596,22 +612,11 @@ const template = `
             >
               <button
                 disabled="disabled"
-                title="Image"
-                role="radio"
-                aria-checked="false"
-                tabindex="34"
-                data-l10n-id="editor_stamp"
-                data-dom-id="editorStamp"
-                class="toolbarButton hidden editorStamp"
-              >
-                <span data-l10n-id="editor_stamp_label">Image</span></button
-              ><button
-                disabled="disabled"
                 title="Text"
                 role="radio"
                 aria-checked="false"
                 aria-controls="editorFreeTextParamsToolbar"
-                tabindex="35"
+                tabindex="34"
                 data-l10n-id="editor_free_text2"
                 data-dom-id="editorFreeText"
                 class="toolbarButton editorFreeText"
@@ -623,12 +628,26 @@ const template = `
                 role="radio"
                 aria-checked="false"
                 aria-controls="editorInkParamsToolbar"
-                tabindex="36"
+                tabindex="35"
                 data-l10n-id="editor_ink2"
                 data-dom-id="editorInk"
                 class="toolbarButton editorInk"
               >
-                <span data-l10n-id="editor_ink2_label">Draw</span>
+                <span data-l10n-id="editor_ink2_label">Draw</span></button
+              ><button
+                disabled="disabled"
+                title="Add or edit images"
+                role="radio"
+                aria-checked="false"
+                aria-controls="editorStampParamsToolbar"
+                tabindex="36"
+                data-l10n-id="editor_stamp1"
+                data-dom-id="editorStamp"
+                class="toolbarButton hidden editorStamp"
+              >
+                <span data-l10n-id="editor_stamp1_label"
+                  >Add or edit images</span
+                >
               </button>
             </div>
             <div

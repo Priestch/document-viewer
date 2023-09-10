@@ -126,6 +126,7 @@ function getViewerConfiguration(el) {
       editorInkColor: el.querySelector("[data-dom-id='editorInkColor']"),
       editorInkThickness: el.querySelector("[data-dom-id='editorInkThickness']"),
       editorInkOpacity: el.querySelector("[data-dom-id='editorInkOpacity']"),
+      editorStampAddImage: el.querySelector("[data-dom-id='editorStampAddImage']"),
     },
     printContainer: el.querySelector("[data-dom-id='printContainer']"),
     openFileInput:

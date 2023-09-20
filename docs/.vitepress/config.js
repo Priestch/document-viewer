@@ -31,6 +31,7 @@ const config = {
       {
         text: "Learn PDF.js",
         items: [
+          { text: "AppOptions", link: "/options" },
           { text: "Architecture", link: "/architecture" },
           { text: "Common Pitfalls", link: "/pitfalls" },
         ],

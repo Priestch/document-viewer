@@ -21,6 +21,9 @@ const config = {
   },
   head: [["script", {}, scriptContent]],
   themeConfig: {
+    search: {
+      provider: "local",
+    },
     nav: [
       { text: "Home", link: "/" },
       { text: "API", link: "/api" },

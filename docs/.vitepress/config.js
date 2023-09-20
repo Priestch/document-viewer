@@ -32,11 +32,14 @@ const config = {
           { text: "Common Pitfalls", link: "/pitfalls" },
         ],
       },
-      { text: "Demos", link: "https://priestch.github.io/document-viewer/demos/" },
       {
         text: "Links",
-        items: [{ text: "Releases", link: "https://github.com/Priestch/document-viewer/tags" }],
+        items: [
+          { text: "Npm Package", link: "https://www.npmjs.com/package/@document-kits/viewer" },
+          { text: "Releases", link: "https://github.com/Priestch/document-viewer/tags" },
+        ],
       },
+      { text: "Demos", link: "https://priestch.github.io/document-viewer/demos/" },
     ],
     socialLinks: [
       { icon: "github", link: "https://github.com/Priestch/document-viewer" },

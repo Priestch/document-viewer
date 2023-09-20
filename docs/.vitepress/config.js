@@ -25,7 +25,13 @@ const config = {
       { text: "Home", link: "/" },
       { text: "API", link: "/api" },
       { text: "Resources", link: "/resources" },
-      { text: "Learn PDF.js", link: "/learn" },
+      {
+        text: "Learn PDF.js",
+        items: [
+          { text: "Architecture", link: "/architecture" },
+          { text: "Common Pitfalls", link: "/pitfalls" },
+        ],
+      },
       { text: "Demos", link: "https://priestch.github.io/document-viewer/demos/" },
       {
         text: "Links",

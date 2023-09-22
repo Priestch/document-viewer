@@ -1,8 +1,4 @@
-# Acknowledge
-
-> This is all I learned from the PDF.js. It may not be accurate, but I hope it can help you to understand the PDF.js better.
-
-## AppOptions
+# AppOptions
 
 There are dozens of times options in PDF.js, and they all belong to four kinds for now. You may wonder why there are so many options, and what they mean at the first time. This document will help you to understand them.
 

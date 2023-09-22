@@ -31,7 +31,7 @@ const config = {
       {
         text: "Learn PDF.js",
         items: [
-          { text: "Learned Knowledge", link: "/learned-knowledge" },
+          { text: "Learned Knowledge", link: "/learned-knowledge/" },
           { text: "Architecture", link: "/architecture" },
           { text: "Common Pitfalls", link: "/pitfalls" },
         ],

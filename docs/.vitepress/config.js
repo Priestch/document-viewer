@@ -34,6 +34,7 @@ const config = {
           { text: "Learned Knowledge", link: "/learned-knowledge/" },
           { text: "Architecture", link: "/architecture" },
           { text: "Common Pitfalls", link: "/pitfalls" },
+          { text: "Threads Communication", link: "/communication" },
         ],
       },
       {

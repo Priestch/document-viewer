@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant M as Main Thread
+    participant W as Worker Thread
+
+    M->>W: send("test", ...)
+    Note over M,W: Ensure that TypedArrays <br /> can be sent to the worker
+    W-->>M: send("test", ...)
+    Note over M,W: Tell the test result
+    break when worker is destroyed
+        W-->M: <br />
+    end
+    alt If can send
+        M->>W: send("configure", { verbosity: this.verbosity })
+        Note over M,W: Configure worker
+    else Can not send
+        M->>W: Terminate the worker
+    end
+
+    alt when worker promise is resolved
+        M->>W: sendWithPromise("GetDocRequest", ...)
+        Note over M,W: Gonna to download PDF, make doc message handler ready
+    end
+
+    alt when worker get prepared and networkStreamPromise is resolved
+        M-->W: send("Ready", null)
+    end

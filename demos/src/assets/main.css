@@ -1,0 +1,13 @@
+@import "./base.css";
+
+#app {
+  height: 100%;
+  display: flex;
+
+  font-weight: normal;
+}
+
+a {
+  text-decoration: none;
+  transition: 0.4s;
+}

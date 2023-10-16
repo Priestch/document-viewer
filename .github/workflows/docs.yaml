@@ -40,16 +40,16 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --filter viewer-docs && pnpm install --filter examples
+        run: pnpm install --filter viewer-docs && pnpm install --filter demos
 
       - name: Build Docs
         run: pnpm docs:build
 
       - name: Build Demos
-        run: pnpm examples:build
+        run: pnpm demos:build
 
       - name: Remix
-        run: rm -rf dist && mkdir dist && cp .github/index.html dist && cp -r docs/.vitepress/dist dist/docs && cp -r examples/dist dist/demos
+        run: rm -rf dist && mkdir dist && cp .github/index.html dist && cp -r docs/.vitepress/dist dist/docs && cp -r demos/dist dist/demos
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3

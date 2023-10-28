@@ -31,7 +31,6 @@ console.log("route", route);
 
 <style scoped>
 aside {
-  padding: 1em 0.5em;
   width: var(--sidebar-width);
   height: 100%;
   z-index: 101;
@@ -48,10 +47,14 @@ a:visited {
 
 .nav-link {
   display: block;
+  height: 3em;
+  line-height: 3em;
+  padding-left: 1em;
 }
 
 .nav-link.active {
-  color: #00bd7e;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 main {

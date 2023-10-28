@@ -61,6 +61,7 @@ function updatePageNumber(evt) {
   height: 40px;
   display: flex;
   border-bottom: 1px solid #c7c7c7;
+  background: #f9f9fa;
 }
 
 .header-item {
@@ -72,6 +73,8 @@ function updatePageNumber(evt) {
 .page-input {
   width: 3em;
   outline: none;
+  height: 2em;
+  text-align: center;
 }
 
 .viewer-content {

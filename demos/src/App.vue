@@ -39,7 +39,7 @@ aside {
   position: fixed;
   left: 0;
   top: 0;
-  background: gainsboro;
+  background: #f9f9fa;
 }
 
 a:visited {

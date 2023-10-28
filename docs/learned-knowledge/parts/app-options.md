@@ -20,7 +20,7 @@ Let's crack on them one by one!
 
 - Type `URL | string | Uint8Array`
 
-The url of the PDF file. If you got [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) issue when loading a PDF file from a different origin, see details at [origin match error](../pitfalls#origin-not-match) section in common pitfalls page .
+The url of the PDF file. If you got [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) issue when loading a PDF file from a different origin, see details at [origin match error](/pitfalls#origin-not-match) section in common pitfalls page .
 
 #### locale
 

@@ -27,9 +27,9 @@ component, and it suffers some other issues.
 I learn a lot from the pdf.js project. This project is somehow giving back to the community. I will try to
 make it easier to integrate PDF viewer to your project.
 
-# Resources
+# Docs
 
-[PDF.js Architecture](https://hacks.mozilla.org/2021/10/implementing-form-filling-and-accessibility-in-the-firefox-pdf-viewer/)
+See https://priestch.github.io/document-viewer/
 
 # Planed Todos
 

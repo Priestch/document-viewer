@@ -2,7 +2,7 @@
 
 ## Repo Setup
 
-To develop and test the `@document-kits/viewer`, run `pnpm examples:dev` in the root folder. It will use a custom gulp task
+To develop and test the `@document-kits/viewer`, run `pnpm demos:dev` in the root folder. It will use a custom gulp task
 to build based on submodule `pdf.js` in `packages/document-viewer/pdf.js`. The specific process is as follows:
 
 1. Install dependencies for PDF.js if `FORCE_INSTALL_DEPENDENCIES` environment was set

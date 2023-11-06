@@ -19,6 +19,14 @@ function toggleOutline() {
   app$.value.pdfSidebar.toggle();
 }
 
+function goPrevPage() {
+  app$.value.eventBus.dispatch("previouspage");
+}
+
+function goNextPage() {
+  app$.value.eventBus.dispatch("nextpage");
+}
+
 function updatePageNumber(evt) {
   const pageNumber = parseInt(evt.target.value, 10);
   app$.value.pdfViewer.currentPageNumber = pageNumber;
@@ -29,23 +37,30 @@ function updatePageNumber(evt) {
   <div class="pdf-viewer">
     <div class="viewer-header">
       <div class="header-item">
-        <button @click="toggleOutline" class="menu-outline">
+        <button @click="toggleOutline" class="menu-outline header-icon">
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            x="0px"
-            y="0px"
+            viewBox="0 0 24 24"
             width="22"
             height="22"
-            viewBox="0 0 30 30"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <path
-              d="M 3 7 A 1.0001 1.0001 0 1 0 3 9 L 27 9 A 1.0001 1.0001 0 1 0 27 7 L 3 7 z M 3 14 A 1.0001 1.0001 0 1 0 3 16 L 27 16 A 1.0001 1.0001 0 1 0 27 14 L 3 14 z M 3 21 A 1.0001 1.0001 0 1 0 3 23 L 27 23 A 1.0001 1.0001 0 1 0 27 21 L 3 21 z"
-            ></path>
+            <path d="M4 6H20V8H4V6ZM4 11H20V13H4V11ZM4 16H20V18H4V16Z" fill="black"></path>
           </svg>
         </button>
       </div>
       <div class="header-item">
+        <button @click="goPrevPage" class="prev-page header-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" width="22" height="22">
+            <path d="M7.5,2l-4,4,4,4,1-1-3-3,3-3Z"></path>
+          </svg>
+        </button>
         <input class="page-input" type="text" :value="pageNumber$" @change="updatePageNumber" />
+        <button @click="goNextPage" class="next-page header-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" width="22" height="22">
+            <path d="M4.5,10l4-4-4-4-1,1,3,3-3,3Z"></path>
+          </svg>
+        </button>
       </div>
     </div>
     <div ref="el$" class="viewer-content"></div>
@@ -58,7 +73,7 @@ function updatePageNumber(evt) {
 }
 
 .viewer-header {
-  height: 40px;
+  height: 46px;
   display: flex;
   border-bottom: 1px solid #c7c7c7;
   background: #f9f9fa;
@@ -68,6 +83,30 @@ function updatePageNumber(evt) {
   flex: 1;
   display: flex;
   align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  .header-icon {
+    padding: 4px 4px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    outline: none;
+    vertical-align: bottom;
+
+    &:hover {
+      background: #dcdcdc74;
+    }
+  }
+
+  .prev-page {
+    margin-right: 10px;
+  }
+
+  .next-page {
+    margin-left: 10px;
+  }
 }
 
 .page-input {
@@ -78,7 +117,7 @@ function updatePageNumber(evt) {
 }
 
 .viewer-content {
-  height: calc(100% - 40px);
+  height: calc(100% - 47px);
 }
 
 :deep(.toolbar) {
@@ -86,11 +125,6 @@ function updatePageNumber(evt) {
 }
 
 .menu-outline {
-  background: none;
-  border: none;
-  cursor: pointer;
-  outline: none;
-  padding: 0 8px;
   margin: 0;
 }
 

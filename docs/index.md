@@ -16,8 +16,12 @@ hero:
 features:
   - title: Framework Agnostic
     details: Developed using vanilla JavaScript, it can seamlessly be integrated into any project regardless of what the frontend framework employed.
-  - title: Easy to Sync With Upstream
-    details: The majority of the task of synchronizing upstream code will be done automatically.
   - title: Multiple Document Support
     details: Supports displaying multiple PDF documents simultaneously and is compatible with all PDF.js supported shortcut keys.
+    link: ../demos/#/multiple-pdf-files
+  - title: Custom Toolbar
+    details: Custom the toolbar of PDF viewer can be easy.
+    link: ../demos/#/custom-toolbar
+  - title: Easy to Sync With Upstream
+    details: The majority of the task of synchronizing upstream code will be done automatically.
 ---

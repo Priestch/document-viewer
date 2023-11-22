@@ -485,7 +485,11 @@ function createHelper(PDFViewerApplication) {
       // Only zoom the pages, not the entire viewer.
       evt.preventDefault();
       // NOTE: this check must be placed *after* preventDefault.
-      if (zoomDisabledTimeout || document.visibilityState === "hidden") {
+      if (
+        zoomDisabledTimeout ||
+        document.visibilityState === "hidden" ||
+        PDFViewerApplication.overlayManager.active
+      ) {
         return;
       }
       const previousScale = pdfViewer.currentScale;
@@ -560,7 +564,10 @@ function createHelper(PDFViewerApplication) {
       return;
     }
     evt.preventDefault();
-    if (evt.touches.length !== 2) {
+    if (
+      evt.touches.length !== 2 ||
+      PDFViewerApplication.overlayManager.active
+    ) {
       PDFViewerApplication._touchInfo = null;
       return;
     }
@@ -1043,6 +1050,9 @@ function createHelper(PDFViewerApplication) {
   function webViewerAnnotationEditorStatesChanged(data) {
     PDFViewerApplication.externalServices.updateEditorStates(data);
   }
+  function webViewerReportTelemetry({ details }) {
+    PDFViewerApplication.externalServices.reportTelemetry(details);
+  }
 
   /* Abstract factory for the print service. */
   return {
@@ -1104,6 +1114,7 @@ function createHelper(PDFViewerApplication) {
     beforeUnload: beforeUnload,
     webViewerAnnotationEditorStatesChanged:
       webViewerAnnotationEditorStatesChanged,
+    webViewerReportTelemetry: webViewerReportTelemetry,
   };
 }
 export { createHelper };

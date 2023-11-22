@@ -1066,6 +1066,111 @@ const template = `
         </button>
       </div>
     </dialog>
+    <dialog
+      aria-labelledby="dialogLabel"
+      aria-describedby="dialogDescription"
+      data-dom-id="altTextDialog"
+      class="altTextDialog"
+    >
+      <div data-dom-id="altTextContainer" class="altTextContainer">
+        <div data-dom-id="overallDescription" class="overallDescription">
+          <span
+            data-l10n-id="editor_alt_text_dialog_label"
+            data-dom-id="dialogLabel"
+            class="title dialogLabel"
+            >Choose an option</span
+          ><span
+            data-l10n-id="editor_alt_text_dialog_description"
+            data-dom-id="dialogDescription"
+            class="dialogDescription"
+          >
+            Alt text (alternative text) helps when people can’t see the image or
+            when it doesn’t load.
+          </span>
+        </div>
+        <div data-dom-id="addDescription" class="addDescription">
+          <div class="radio">
+            <div class="radioButton">
+              <label
+                ><input
+                  type="radio"
+                  name="altTextOption"
+                  tabindex="0"
+                  aria-describedby="descriptionAreaLabel"
+                  checked=""
+                  data-dom-id="descriptionButton"
+                  class="descriptionButton"
+                /><span
+                  class="toolbarLabel"
+                  data-l10n-id="editor_alt_text_add_description_label"
+                  >Add a description</span
+                ></label
+              ><!--Removed!-->
+            </div>
+            <div class="radioLabel">
+              <span
+                data-l10n-id="editor_alt_text_add_description_description"
+                data-dom-id="descriptionAreaLabel"
+                class="descriptionAreaLabel"
+              >
+                Aim for 1-2 sentences that describe the subject, setting, or
+                actions.
+              </span>
+            </div>
+          </div>
+          <div class="descriptionArea">
+            <textarea
+              id="descriptionTextarea"
+              placeholder="For example, “A young man sits down at a table to eat a meal”"
+              aria-labelledby="descriptionAreaLabel"
+              data-l10n-id="editor_alt_text_textarea"
+              tabindex="0"
+            ></textarea>
+          </div>
+        </div>
+        <div data-dom-id="markAsDecorative" class="markAsDecorative">
+          <div class="radio">
+            <div class="radioButton">
+              <label
+                ><input
+                  type="radio"
+                  name="altTextOption"
+                  aria-describedby="decorativeLabel"
+                  data-dom-id="decorativeButton"
+                  class="decorativeButton"
+                /><span
+                  class="toolbarLabel"
+                  data-l10n-id="editor_alt_text_mark_decorative_label"
+                  >Mark as decorative</span
+                ></label
+              ><!--Removed!-->
+            </div>
+            <div class="radioLabel">
+              <span
+                data-l10n-id="editor_alt_text_mark_decorative_description"
+                data-dom-id="decorativeLabel"
+                class="decorativeLabel"
+              >
+                This is used for ornamental images, like borders or watermarks.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div data-dom-id="buttons" class="buttons">
+          <button
+            tabindex="0"
+            data-dom-id="altTextCancel"
+            class="altTextCancel"
+          >
+            <span data-l10n-id="editor_alt_text_cancel_button"
+              >Cancel</span
+            ></button
+          ><button tabindex="0" data-dom-id="altTextSave" class="altTextSave">
+            <span data-l10n-id="editor_alt_text_save_button">Save</span>
+          </button>
+        </div>
+      </div>
+    </dialog>
     <!--#if !MOZCENTRAL-->
     <dialog
       style="min-width: 200px"

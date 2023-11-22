@@ -40,6 +40,7 @@ import {
 import { AppOptions, OptionKind } from "../pdf.js/web/app_options.js";
 import { AutomationEventBus, EventBus } from "../pdf.js/web/event_utils.js";
 import { LinkTarget, PDFLinkService } from "../pdf.js/web/pdf_link_service.js";
+import { AltTextManager } from "web-alt_text_manager";
 import { AnnotationEditorParams } from "web-annotation_editor_params";
 import { OverlayManager } from "../pdf.js/web/overlay_manager.js";
 import { PasswordPrompt } from "../pdf.js/web/password_prompt.js";
@@ -400,6 +401,9 @@ class ViewerApplication {
             foreground: AppOptions.get("pageColorsForeground"),
           }
         : null;
+    const altTextManager = appConfig.altTextDialog
+      ? new AltTextManager(appConfig.altTextDialog, container, this.overlayManager, eventBus)
+      : null;
     const pdfViewer = new PDFViewer({
       container,
       viewer,
@@ -407,6 +411,7 @@ class ViewerApplication {
       renderingQueue: pdfRenderingQueue,
       linkService: pdfLinkService,
       downloadManager,
+      altTextManager,
       findController,
       scriptingManager: AppOptions.get("enableScripting") && pdfScriptingManager,
       l10n,
@@ -488,19 +493,14 @@ class ViewerApplication {
           appConfig.toolbar,
           eventBus,
           l10n,
-          await this._nimbusDataPromise,
-          externalServices
+          await this._nimbusDataPromise
         );
       } else {
         this.toolbar = new Toolbar(appConfig.toolbar, eventBus, l10n);
       }
     }
     if (appConfig.secondaryToolbar) {
-      this.secondaryToolbar = new SecondaryToolbar(
-        appConfig.secondaryToolbar,
-        eventBus,
-        externalServices
-      );
+      this.secondaryToolbar = new SecondaryToolbar(appConfig.secondaryToolbar, eventBus);
     }
     if (this.supportsFullscreen && appConfig.secondaryToolbar?.presentationModeButton) {
       this.pdfPresentationMode = new PDFPresentationMode({
@@ -1739,7 +1739,10 @@ class ViewerApplication {
       eventBus._on("openfile", webViewerOpenFile);
     }
     if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) {
+      // The `unbindEvents` method is unused in MOZCENTRAL builds,
+      // hence we don't need to unregister these event listeners.
       eventBus._on("annotationeditorstateschanged", webViewerAnnotationEditorStatesChanged);
+      eventBus._on("reporttelemetry", webViewerReportTelemetry);
     }
   }
   bindWindowEvents() {

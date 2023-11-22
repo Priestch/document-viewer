@@ -120,6 +120,14 @@ function getViewerConfiguration(el) {
         linearized: el.querySelector("[data-dom-id='linearizedField']"),
       },
     },
+    altTextDialog: {
+      dialog: el.querySelector("[data-dom-id='altTextDialog']"),
+      optionDescription: el.querySelector("[data-dom-id='descriptionButton']"),
+      optionDecorative: el.querySelector("[data-dom-id='decorativeButton']"),
+      textarea: el.querySelector("[data-dom-id='descriptionTextarea']"),
+      cancelButton: el.querySelector("[data-dom-id='altTextCancel']"),
+      saveButton: el.querySelector("[data-dom-id='altTextSave']"),
+    },
     annotationEditorParams: {
       editorFreeTextFontSize: el.querySelector("[data-dom-id='editorFreeTextFontSize']"),
       editorFreeTextColor: el.querySelector("[data-dom-id='editorFreeTextColor']"),

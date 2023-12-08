@@ -52,8 +52,8 @@ importers:
   demos:
     dependencies:
       '@document-kits/viewer':
-        specifier: 0.9.2
-        version: 0.9.2
+        specifier: 0.9.3
+        version: 0.9.3
       vue:
         specifier: ^3.3.4
         version: 3.3.4
@@ -530,8 +530,8 @@ packages:
       - '@algolia/client-search'
     dev: true
 
-  /@document-kits/viewer@0.9.2:
-    resolution: {integrity: sha512-d8VpQ8/GddtRIlsL5/lLud+5yrLIg4j0HZwJfhnHrFhL+W3OdBEih0yaCaq4uidFjFXWxAai7dzfTcyFs5OBfA==}
+  /@document-kits/viewer@0.9.3:
+    resolution: {integrity: sha512-CgXL9wmdDlFAVNi9dKy3zITS0XZvFsN/oPpXIJY1AEKdkwNf3zqxtai6AP2Q2U40CaB9wgDdq1V3Cn2ncyy99A==}
     dev: false
 
   /@esbuild/android-arm64@0.17.15:

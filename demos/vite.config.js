@@ -19,6 +19,10 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
         ],
       }),
     ],
+    // Used in dev mode
+    // optimizeDeps: {
+    //   include: ["@document-kits/viewer"],
+    // },
     resolve: {
       alias: [
         {

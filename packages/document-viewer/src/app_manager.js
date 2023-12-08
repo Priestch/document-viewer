@@ -32,6 +32,7 @@ function getViewerConfiguration(el) {
       editorInkButton: el.querySelector("[data-dom-id='editorInk']"),
       editorInkParamsToolbar: el.querySelector("[data-dom-id='editorInkParamsToolbar']"),
       editorStampButton: el.querySelector("[data-dom-id='editorStamp']"),
+      editorStampParamsToolbar: el.querySelector("[data-dom-id='editorStampParamsToolbar']"),
       download: el.querySelector("[data-dom-id='download']"),
     },
     secondaryToolbar: {

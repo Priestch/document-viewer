@@ -75,6 +75,7 @@ fs.readFile(viewerHtml, "utf-8", (err, data) => {
       a: replaceIdAttr,
       span: replaceIdAttr,
       p: replaceIdAttr,
+      textarea: replaceIdAttr,
     },
   });
 

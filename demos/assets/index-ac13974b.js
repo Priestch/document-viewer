@@ -1139,11 +1139,12 @@ ${M.join(`
           </div>
           <div class="descriptionArea">
             <textarea
-              id="descriptionTextarea"
               placeholder="For example, “A young man sits down at a table to eat a meal”"
               aria-labelledby="descriptionAreaLabel"
               data-l10n-id="editor_alt_text_textarea"
               tabindex="0"
+              data-dom-id="descriptionTextarea"
+              class="descriptionTextarea"
             ></textarea>
           </div>
         </div>

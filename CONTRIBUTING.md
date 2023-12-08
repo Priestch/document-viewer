@@ -27,3 +27,5 @@ to build based on submodule `pdf.js` in `packages/document-viewer/pdf.js`. The s
    - `@document-kits/viewer/src/chromecom.js`
    - `@document-kits/viewer/src/genericcom.js`
    - `@document-kits/viewer/src/pdf_print_service.js`
+5. Update viewer style
+   - Sync `@document-kits/viewer/src/assets/viewer.css` with latest `viewer.css` of PDF.js

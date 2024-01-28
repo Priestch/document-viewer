@@ -1,4 +1,4 @@
-There are dozens of times options in PDF.js, and they all belong to four kinds for now. You may wonder why there are so many options, and what they mean at the first time. This document will help you to understand them.
+There are dozens of options in PDF.js, and they all belong to four kinds for now. You may wonder why there are so many options, and what they mean at the first time. This document will help you to understand them.
 
 Let's crack on them one by one!
 

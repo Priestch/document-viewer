@@ -16,7 +16,7 @@ A typical web application has only one bundle result, but PDF.js has two bundles
 The versions of the two bundles must match to work properly. If the versions mismatch, it may work sometimes, but
 when it not, I think it's hard to figure such issues.
 
-Although the explicit error may annoys developer at first, it do save your time from debugging such issues.
+Although the explicit error may annoy developer at first, it does save your time from debugging such issues.
 
 </blockquote>
 </details>

@@ -1,3 +1,7 @@
+---
+title: Common Pitfalls of PDF.js
+---
+
 # Common Pitfalls When Integrate PDF.js
 
 ### API version mismatch the Worker version

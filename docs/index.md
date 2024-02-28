@@ -1,4 +1,6 @@
 ---
+title: Home Page of @document-kits/viewer package
+
 layout: home
 
 hero:

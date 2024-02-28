@@ -10,10 +10,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
  * @type {import('vitepress').UserConfig}
  */
 const config = {
-  title: "PDF Viewer",
-  titleTemplate: "Free PDF Viewer build on PDF.js",
+  title: "Free PDF Viewer build on PDF.js",
   description:
-    "The open source out-of-the-box PDF reader & viewer build on PDF.js. Integrate the PDF Viewer to your project at ease!",
+    "The open source out-of-the-box PDF reader & viewer build on PDF.js. " +
+    "It's built using vanilla Javascript and framework agnostic. " +
+    "No matter what frontend framework your project are using, React.js, Vue.js, Solid.js, Lit, Angular, Svelte, etc." +
+    "It should be easy to integrate!",
   base: "/document-viewer/docs",
   lastUpdated: true,
   markdown: {

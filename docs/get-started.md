@@ -1,3 +1,7 @@
+---
+title: Get Started with @document-kits/viewer
+---
+
 # PDF Viewer
 
 An out-of-the-box PDF viewer builds on PDF.js.

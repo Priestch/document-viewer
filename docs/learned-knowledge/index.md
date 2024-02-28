@@ -1,3 +1,7 @@
+---
+title: The Knowledge I Learned from PDF.js
+---
+
 # Acknowledge
 
 > There are critical comments about the PDF.js project, they say it should be easier to integrate the default

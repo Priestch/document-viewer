@@ -1,3 +1,7 @@
+---
+title: PDF Viewer API
+---
+
 # API
 
 ## createViewerApp

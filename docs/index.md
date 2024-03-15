@@ -1,11 +1,9 @@
 ---
-title: Home Page of @document-kits/viewer package
-
 layout: home
 
 hero:
-  name: DocumentViewer
-  text: An out-of-the-box PDF viewer.
+  name: Document Viewer
+  text: An out-of-the-box Open Source PDF Viewer.
   tagline: Easy, performant and framework-agnostic way to embed a PDF in any website.
   actions:
     - theme: brand

@@ -17,7 +17,7 @@ You can use the starter to initialize a demo app to explore how to use this pack
 npm create @document-kits/viewer@latest my-app
 
 # There will be prompt to let you choose a template to start,
-# currently only one `vite-vue-template` supported.
+# currently support Vue3, Lit and Solid.js.
 
 cd my-app
 
@@ -33,7 +33,7 @@ npm run dev --open
 pnpm create @document-kits/viewer@latest my-app
 
 # There will be prompt to let you choose a template to start,
-# currently only one `vite-vue-template` supported.
+# currently support Vue3, Lit and Solid.js.
 
 cd my-app
 

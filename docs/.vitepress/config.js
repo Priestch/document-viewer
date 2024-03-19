@@ -19,6 +19,9 @@ const config = {
   markdown: {
     lineNumbers: false,
   },
+  sitemap: {
+    hostname: "https://priestch.github.io/document-viewer/docs/",
+  },
   head: [["script", {}, scriptContent]],
   themeConfig: {
     search: {

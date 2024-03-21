@@ -1,5 +1,9 @@
 ---
 title: Common Pitfalls of PDF.js
+head:
+  - - link
+    - rel: canonical
+      href: https://priestch.github.io/document-viewer/docs/pitfalls.html
 ---
 
 # Common Pitfalls When Integrate PDF.js

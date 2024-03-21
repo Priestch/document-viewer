@@ -1,5 +1,9 @@
 ---
 title: PDF Viewer API
+head:
+  - - link
+    - rel: canonical
+      href: https://priestch.github.io/document-viewer/docs/api.html
 ---
 
 # API

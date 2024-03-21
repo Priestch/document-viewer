@@ -1,5 +1,9 @@
 ---
 title: Useful Learning Resources of PDF and PDF.js
+head:
+  - - link
+    - rel: canonical
+      href: https://priestch.github.io/document-viewer/docs/resources.html
 ---
 
 # PDF Specifications

@@ -1,5 +1,9 @@
 ---
 layout: home
+head:
+  - - link
+    - rel: canonical
+      href: https://priestch.github.io/document-viewer/docs/
 
 hero:
   name: Document Viewer

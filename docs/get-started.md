@@ -1,5 +1,9 @@
 ---
 title: Get Started with @document-kits/viewer
+head:
+  - - link
+    - rel: canonical
+      href: https://priestch.github.io/document-viewer/docs/get-started.html
 ---
 
 # PDF Viewer

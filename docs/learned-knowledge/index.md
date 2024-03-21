@@ -1,5 +1,9 @@
 ---
 title: The Knowledge I Learned from PDF.js
+head:
+  - - link
+    - rel: canonical
+      href: https://priestch.github.io/document-viewer/docs/learned-knowledge/
 ---
 
 # Acknowledge

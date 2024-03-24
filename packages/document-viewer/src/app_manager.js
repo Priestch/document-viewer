@@ -1,7 +1,7 @@
 import { PDFViewerApplication } from "./app.js";
-import { AppOptions } from "../pdf.js/web/app_options";
 import { injectLocaleResource } from "./utils";
 import getViewerTemplate from "./viewer_template";
+import { ApplicationOptions } from "./application_options";
 
 let activeApp;
 let manager = null;
@@ -151,7 +151,7 @@ function getViewerConfiguration(el) {
  * @ignore
  *
  * @see https://github.com/mozilla/pdf.js/blob/master/web/app_options.js
- * @typedef {object} AppOptions
+ * @typedef {object} ApplicationOptions
  */
 
 /**
@@ -163,7 +163,7 @@ function getViewerConfiguration(el) {
  * @property {string} resourcePath - The resource path of pdf.js.
  * @property {boolean} [disableCORSCheck=false] - Disable CORS check of pdf.js.
  * @property {boolean} [disableAutoSetTitle=false] - Disable auto-set title of document caused by pdf.js.
- * @property {AppOptions} [appOptions={}] - Default app options of pdf.js.
+ * @property {ApplicationOptions} [appOptions={}] - Default app options of pdf.js.
  */
 
 /**
@@ -184,7 +184,7 @@ function createViewerApp(options) {
   } = options;
   const workerSrc = `${resourcePath}/build/pdf.worker.js`;
 
-  const viewerOptions = AppOptions;
+  const viewerOptions = new ApplicationOptions();
   Object.keys(appOptions).forEach(function (key) {
     viewerOptions.set(key, appOptions[key]);
   });

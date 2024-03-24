@@ -196,6 +196,7 @@ function createViewerApp(options) {
 
   // set disablePreferences to enable custom appOptions work
   viewerOptions.set("disablePreferences", true);
+  console["log"]("createViewerApp", viewerOptions.get("defaultUrl"));
 
   const localeUrl = `${resourcePath}/web/locale/locale.properties`;
   injectLocaleResource(localeUrl);

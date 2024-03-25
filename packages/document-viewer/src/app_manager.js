@@ -1,5 +1,5 @@
 import { PDFViewerApplication } from "./app.js";
-import { AppOptions } from "../pdf.js/web/app_options";
+import { AppOptions } from "./application_options.js";
 import { injectLocaleResource } from "./utils";
 import getViewerTemplate from "./viewer_template";
 
@@ -184,7 +184,7 @@ function createViewerApp(options) {
   } = options;
   const workerSrc = `${resourcePath}/build/pdf.worker.js`;
 
-  const viewerOptions = AppOptions;
+  const viewerOptions = new AppOptions();
   Object.keys(appOptions).forEach(function (key) {
     viewerOptions.set(key, appOptions[key]);
   });

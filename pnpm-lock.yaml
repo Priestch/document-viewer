@@ -52,8 +52,8 @@ importers:
   demos:
     dependencies:
       '@document-kits/viewer':
-        specifier: workspace:*
-        version: link:../packages/document-viewer
+        specifier: 0.9.6
+        version: 0.9.6
       vue:
         specifier: ^3.3.4
         version: 3.3.4
@@ -537,6 +537,10 @@ packages:
     transitivePeerDependencies:
       - '@algolia/client-search'
     dev: true
+
+  /@document-kits/viewer@0.9.6:
+    resolution: {integrity: sha512-csWHU8FFlwgpVoqgpCkrQHL6v/SHsV3QkVOixf04UiFRia+Xu+tgj3WWEsLHKCOqenj8U2fXv4MfiVUzNZMAOQ==}
+    dev: false
 
   /@esbuild/aix-ppc64@0.19.12:
     resolution: {integrity: sha512-bmoCYyWdEL3wDQIVbcyzRyeKLgk2WtWLTWz1ZIAZF/EGbNOwSA6ew3PftJ1PqMiOOGu0OyFMzG53L0zqIpPeNA==}

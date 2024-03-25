@@ -6,7 +6,6 @@ import vue from "@vitejs/plugin-vue";
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode, ssrBuild }) => {
   const base = command === "build" ? "/document-viewer/demos/" : "/";
-  console.log("base", base);
   return {
     base,
     plugins: [

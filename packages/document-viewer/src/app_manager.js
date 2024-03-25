@@ -1,7 +1,7 @@
 import { PDFViewerApplication } from "./app.js";
+import { AppOptions } from "../pdf.js/web/app_options";
 import { injectLocaleResource } from "./utils";
 import getViewerTemplate from "./viewer_template";
-import { ApplicationOptions } from "./application_options";
 
 let activeApp;
 let manager = null;
@@ -151,7 +151,7 @@ function getViewerConfiguration(el) {
  * @ignore
  *
  * @see https://github.com/mozilla/pdf.js/blob/master/web/app_options.js
- * @typedef {object} ApplicationOptions
+ * @typedef {object} AppOptions
  */
 
 /**
@@ -163,7 +163,7 @@ function getViewerConfiguration(el) {
  * @property {string} resourcePath - The resource path of pdf.js.
  * @property {boolean} [disableCORSCheck=false] - Disable CORS check of pdf.js.
  * @property {boolean} [disableAutoSetTitle=false] - Disable auto-set title of document caused by pdf.js.
- * @property {ApplicationOptions} [appOptions={}] - Default app options of pdf.js.
+ * @property {AppOptions} [appOptions={}] - Default app options of pdf.js.
  */
 
 /**
@@ -184,7 +184,7 @@ function createViewerApp(options) {
   } = options;
   const workerSrc = `${resourcePath}/build/pdf.worker.js`;
 
-  const viewerOptions = new ApplicationOptions();
+  const viewerOptions = AppOptions;
   Object.keys(appOptions).forEach(function (key) {
     viewerOptions.set(key, appOptions[key]);
   });
@@ -196,7 +196,6 @@ function createViewerApp(options) {
 
   // set disablePreferences to enable custom appOptions work
   viewerOptions.set("disablePreferences", true);
-  console["log"]("createViewerApp", viewerOptions.get("defaultUrl"));
 
   const localeUrl = `${resourcePath}/web/locale/locale.properties`;
   injectLocaleResource(localeUrl);

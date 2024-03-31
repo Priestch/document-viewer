@@ -14,7 +14,6 @@ Let's crack on them one by one!
 - `defaultUrl`
 - `locale`
 - `workerSrc`
-- `sandboxBundleSrc`
 
 #### defaultUrl
 
@@ -28,3 +27,11 @@ The url of the PDF file. If you got [CORS](https://developer.mozilla.org/en-US/d
 - Default `en-US`
 
 The locale of the viewer, it easy to switch a different locale by setting this option. See all supported locales in folder [l10n](https://github.com/mozilla/pdf.js/tree/master/l10n).
+
+#### workerSrc
+
+The url of the PDF.js web worker bundle.
+
+The PDF.js project use web worker to speed up the rendering process, it means there must be some code creating and initializing the web worker using the `workerSrc`. It configured with default value, but it always depends on how you deploy it. Make sure you can download the worker bundle from the `workerSrc` url.
+
+![Worker Request](/assets/worker-request.png)

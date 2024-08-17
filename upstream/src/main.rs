@@ -1,7 +1,8 @@
 #![feature(allocator_api)]
 
 use std::{env, fs};
-use std::cell::RefCell;
+use std::borrow::Cow;
+use std::cell::{Cell, RefCell};
 use std::hash::Hash;
 
 use oxc::allocator::{Allocator, Vec};
@@ -28,7 +29,7 @@ impl ObjProperty {
 
 struct AppExtractor<'a> {
     in_app_variable_context: bool,
-    app_codegen: RefCell<Codegen<false>>,
+    app_codegen: RefCell<Codegen<'a, false>>,
     app_builder: AstBuilder<'a>,
     app_body: Vec<'a, ClassElement<'a>>,
     visiting_prop: Option<ObjProperty>,
@@ -42,18 +43,11 @@ impl<'a> AppExtractor<'a> {
 
     fn new(allocator: &'a Allocator, source_text: &str) -> Self {
         let builder = AstBuilder::new(allocator);
-        let app_body = builder.new_vec();
-        let options = CodegenOptions {
-            enable_typescript: false,
-            enable_source_map: false,
-        };
+        let app_body = Vec::new_in(allocator);
+        let codegen = Codegen::new();
         Self {
             in_app_variable_context: false,
-            app_codegen: RefCell::new(Codegen::new(
-                "",
-                "",
-                options,
-            )),
+            app_codegen: RefCell::new(codegen),
             app_builder: builder,
             app_body,
             visiting_prop: None,
@@ -65,39 +59,39 @@ impl<'a> AppExtractor<'a> {
 
     fn print_class_start(&mut self, name: &str) {
         let codegen = self.app_codegen.get_mut();
-        codegen.print_str(format!("class {name} {{\n").as_bytes());
+        codegen.print_str(format!("class {name} {{\n").as_str());
     }
 
     fn print_class_end(&mut self) {
         let codegen = self.app_codegen.get_mut();
-        codegen.print_str(format!("}}\n").as_bytes());
+        codegen.print_str(format!("}}\n").as_str());
     }
 
     fn print_method(&mut self, name: &str) {
         let codegen = self.app_codegen.get_mut();
-        codegen.print_str(format!("{name}() {{\n").as_bytes());
+        codegen.print_str(format!("{name}() {{\n").as_str());
     }
 
     fn print_method_end(&mut self) {
         let codegen = self.app_codegen.get_mut();
-        codegen.print_str(format!("}}\n").as_bytes());
+        codegen.print_str(format!("}}\n").as_str());
     }
 
     fn print_class_prop(&mut self, prop: &ObjectProperty) {
         let codegen = self.app_codegen.get_mut();
-        codegen.print_str(b"  ");
+        codegen.print_str("  ");
         let ctx = Context::default();
         prop.key.gen(codegen, ctx);
-        codegen.print_str(b" = ");
+        codegen.print_str(" = ");
         prop.value.gen_expr(codegen, Precedence::Assign, ctx);
-        codegen.print_str(b";\n");
+        codegen.print_str(";\n");
 
     }
 
     fn print_class_method(&mut self, body: &FunctionBody) {
         if let Some(ref prop) = self.visiting_prop {
             let codegen = self.app_codegen.get_mut();
-            codegen.print_str(b"  ");
+            codegen.print_str("  ");
             let ctx = Context::default();
             if (prop.kind == PropertyKind::Get || prop.kind == PropertyKind::Set) && prop.computed {
 
@@ -105,59 +99,87 @@ impl<'a> AppExtractor<'a> {
             match prop.kind {
                 PropertyKind::Init => {}
                 PropertyKind::Get => {
-                    codegen.print_str(b"get ")
+                    codegen.print_str("get ")
                 }
                 PropertyKind::Set => {
-                    codegen.print_str(b"set ")
+                    codegen.print_str("set ")
                 }
             }
-            codegen.print_str(prop.name().as_bytes());
-            codegen.print_str(b"() ");
+            codegen.print_str(prop.name());
+            codegen.print_str("() ");
             body.gen(codegen, ctx);
-            codegen.print_str(b"\n");
+            codegen.print_str("\n");
         }
     }
 
     fn print_class_method1(&mut self, func: &Function) {
         if let Some(ref prop) = self.visiting_prop {
             let codegen = self.app_codegen.get_mut();
-            codegen.print_str(b"  ");
+            codegen.print_str("  ");
             let ctx = Context::default();
             match prop.kind {
                 PropertyKind::Init => {}
                 PropertyKind::Get => {
-                    codegen.print_str(b"get ")
+                    codegen.print_str("get ")
                 }
                 PropertyKind::Set => {
-                    codegen.print_str(b"set ")
+                    codegen.print_str("set ")
                 }
             }
             if func.r#async {
-                codegen.print_str(b"async ");
+                codegen.print_str("async ");
             }
-            codegen.print_str(prop.name().as_bytes());
-            codegen.print_str(b"(");
+            codegen.print_str(prop.name());
+            codegen.print_str("(");
             func.params.gen(codegen, ctx);
-            codegen.print_str(b") ");
+            codegen.print_str(") ");
             if let Some(ref body) = func.body {
                 body.gen(codegen, ctx);
             }
-            codegen.print_str(b"\n");
+            codegen.print_str("\n");
         }
     }
 }
 
 
 impl Visit<'_> for AppExtractor<'_> {
-    fn visit_function(&mut self, func: &Function<'_>, flags: Option<ScopeFlags>) {
+    fn visit_expression(&mut self, expr: &Expression<'_>) {
+        self.object_property_depth += 1;
+        if !self.visiting_prop.is_none() && self.object_property_depth == 1 {
+            let codegen = self.app_codegen.get_mut();
+            expr.gen_expr(codegen, Precedence::Assign, Context::default());
+            codegen.print_str(";\n");
+        }
+        walk::walk_expression(self, expr);
+    }
+
+    fn visit_binding_pattern(&mut self, pat: &BindingPattern<'_>) {
+        match &pat.kind {
+            BindingPatternKind::BindingIdentifier(ident) => {
+                if ident.name == AppExtractor::VAR_NAME {
+                    self.in_app_variable_context = true;
+                    self.print_class_start("PDFViewerApplication")
+                }
+                self.visit_binding_identifier(ident);
+            }
+            BindingPatternKind::ObjectPattern(pat) => self.visit_object_pattern(pat),
+            BindingPatternKind::ArrayPattern(pat) => self.visit_array_pattern(pat),
+            BindingPatternKind::AssignmentPattern(pat) => self.visit_assignment_pattern(pat),
+        }
+        if let Some(type_annotation) = &pat.type_annotation {
+            self.visit_ts_type_annotation(type_annotation);
+        }
+    }
+
+    fn visit_function(&mut self, func: &Function<'_>, flags: ScopeFlags) {
         let kind = AstKind::Function(self.alloc(func));
         self.enter_scope({
-            let mut flags = flags.unwrap_or(ScopeFlags::empty()) | ScopeFlags::Function;
-            if func.is_strict() {
-                flags |= ScopeFlags::StrictMode;
-            }
-            flags
-        });
+                             let mut flags = flags;
+                             if func.is_strict() {
+                                 flags |= ScopeFlags::StrictMode;
+                             }
+                             flags
+                         }, &Cell::new(None));
         self.enter_node(kind);
         if self.object_expression_depth == 1 && self.in_app_variable_context {
             self.print_class_method1(func);
@@ -177,16 +199,6 @@ impl Visit<'_> for AppExtractor<'_> {
         }
         self.leave_node(kind);
         self.leave_scope();
-    }
-
-    fn visit_expression(&mut self, expr: &Expression<'_>) {
-        self.object_property_depth += 1;
-        if !self.visiting_prop.is_none() && self.object_property_depth == 1 {
-            let codegen = self.app_codegen.get_mut();
-            expr.gen_expr(codegen, Precedence::Assign, Context::default());
-            codegen.print_str(b";\n");
-        }
-        walk::walk_expression(self, expr);
     }
 
     fn visit_object_expression(&mut self, expr: &ObjectExpression<'_>) {
@@ -210,8 +222,9 @@ impl Visit<'_> for AppExtractor<'_> {
         self.enter_node(kind);
         if self.object_expression_depth == 1 && self.in_app_variable_context {
             // self.visiting_prop = prop.key.name().unwrap_or(CompactStr::from(""));
+            let name = CompactStr::from(prop.key.name().unwrap_or(Cow::from(CompactStr::from(""))));
             self.visiting_prop = Some(ObjProperty {
-                name: prop.key.name().unwrap_or(CompactStr::from("")),
+                name,
                 computed: prop.computed,
                 kind: prop.kind,
             });
@@ -230,24 +243,6 @@ impl Visit<'_> for AppExtractor<'_> {
         self.leave_node(kind);
         self.visiting_prop = None;
     }
-
-    fn visit_binding_pattern(&mut self, pat: &BindingPattern<'_>) {
-        match &pat.kind {
-            BindingPatternKind::BindingIdentifier(ident) => {
-                if ident.name == AppExtractor::VAR_NAME {
-                    self.in_app_variable_context = true;
-                    self.print_class_start("PDFViewerApplication")
-                }
-                self.visit_binding_identifier(ident);
-            }
-            BindingPatternKind::ObjectPattern(pat) => self.visit_object_pattern(pat),
-            BindingPatternKind::ArrayPattern(pat) => self.visit_array_pattern(pat),
-            BindingPatternKind::AssignmentPattern(pat) => self.visit_assignment_pattern(pat),
-        }
-        if let Some(type_annotation) = &pat.type_annotation {
-            self.visit_ts_type_annotation(type_annotation);
-        }
-    }
 }
 
 fn main() {
@@ -258,7 +253,7 @@ fn main() {
     let parser_allocator = Allocator::default();
     let source_type = SourceType::from_path(app_file.clone()).unwrap();
     let text = fs::read_to_string(app_file).unwrap();
-    let mut ret = Parser::new(&parser_allocator, &text, source_type).parse();
+    let ret = Parser::new(&parser_allocator, &text, source_type).parse();
 
     let app_allocator = Allocator::default();
     let mut app = AppExtractor::new(&app_allocator, &text);

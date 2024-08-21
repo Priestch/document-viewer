@@ -1,19 +1,23 @@
 #![feature(allocator_api)]
 
-use std::{env, fs};
-use std::borrow::Cow;
-use std::cell::{Cell, RefCell};
-use std::hash::Hash;
-
-use oxc::allocator::{Allocator, Vec};
-use oxc::ast::{AstBuilder, AstKind, Visit};
-use oxc::ast::ast::{BindingPattern, BindingPatternKind, ClassElement, Expression, Function, FunctionBody, ObjectExpression, ObjectProperty, PropertyKind};
+use oxc::allocator::{Allocator, Vec as OxcVec};
+use oxc::ast::ast::{
+    BindingPattern, BindingPatternKind, ClassElement, Expression, Function, FunctionBody,
+    IfStatement, ObjectExpression, ObjectProperty, PropertyKind, Statement,
+};
 use oxc::ast::visit::walk;
-use oxc::codegen::{Codegen, CodegenOptions, Context, Gen, GenExpr};
+use oxc::ast::visit::walk::walk_if_statement;
+use oxc::ast::{match_expression, AstBuilder, AstKind, Visit};
+use oxc::codegen::{Codegen, Context, Gen, GenExpr};
 use oxc::parser::Parser;
-use oxc::span::{CompactStr, GetSpan, SourceType};
+use oxc::span::{CompactStr, GetSpan, SourceType, Span};
 use oxc::syntax::precedence::Precedence;
 use oxc::syntax::scope::ScopeFlags;
+use std::borrow::Cow;
+use std::cell::RefCell;
+use std::cmp::min;
+use std::hash::Hash;
+use std::{env, fs, vec};
 
 struct ObjProperty {
     name: CompactStr,
@@ -27,15 +31,28 @@ impl ObjProperty {
     }
 }
 
+fn get_span_text(source_text: &str, span: &Span, size: usize) -> String {
+    let start: usize = span.start as usize;
+    let end: usize = min(span.end as usize, start + size);
+
+    source_text.clone()[start..end].to_string()
+}
+
 struct AppExtractor<'a> {
     in_app_variable_context: bool,
+    app_visited: bool,
     app_codegen: RefCell<Codegen<'a, false>>,
+    helper_codegen: RefCell<Codegen<'a, false>>,
     app_builder: AstBuilder<'a>,
-    app_body: Vec<'a, ClassElement<'a>>,
+    app_body: OxcVec<'a, ClassElement<'a>>,
     visiting_prop: Option<ObjProperty>,
     source_text: String,
     object_property_depth: u32,
+    func_declare_depth: u32,
     object_expression_depth: u32,
+    helpers: OxcVec<'a, Statement<'a>>,
+    in_target_if_block: bool,
+    func_names_in_helper: Vec<String>,
 }
 
 impl<'a> AppExtractor<'a> {
@@ -43,23 +60,53 @@ impl<'a> AppExtractor<'a> {
 
     fn new(allocator: &'a Allocator, source_text: &str) -> Self {
         let builder = AstBuilder::new(allocator);
-        let app_body = Vec::new_in(allocator);
+        let app_body = OxcVec::new_in(allocator);
         let codegen = Codegen::new();
         Self {
             in_app_variable_context: false,
+            app_visited: false,
             app_codegen: RefCell::new(codegen),
+            helper_codegen: RefCell::new(Codegen::new()),
             app_builder: builder,
             app_body,
             visiting_prop: None,
             source_text: source_text.to_string(),
             object_property_depth: 0,
+            func_declare_depth: 0,
             object_expression_depth: 0,
+            helpers: OxcVec::new_in(allocator),
+            in_target_if_block: false,
+            func_names_in_helper: vec![
+                "validateFileURL".to_string(),
+                "webViewerFileInputChange".to_string(),
+            ],
         }
+    }
+
+    fn gen_helper_func(&mut self) {
+        let codegen = self.helper_codegen.get_mut();
+        codegen.print_str("function createHelper(PDFViewerApplication) {\n");
+    }
+
+    fn get_helper_func_text(&mut self) -> String {
+        let codegen = self.helper_codegen.get_mut();
+        codegen.print_str(format!("return {{{}}}", self.func_names_in_helper.join(",")).as_str());
+        codegen.print_str("}\n");
+
+        codegen.into_source_text()
     }
 
     fn print_class_start(&mut self, name: &str) {
         let codegen = self.app_codegen.get_mut();
         codegen.print_str(format!("class {name} {{\n").as_str());
+    }
+
+    fn get_span_text(&self, span: Span, size: usize) -> &str {
+        let start: usize = span.start as usize;
+        let end: usize = min(span.end as usize, start + size);
+        let text = &self.source_text.as_str()[start..end];
+
+        text
     }
 
     fn print_class_end(&mut self) {
@@ -85,7 +132,6 @@ impl<'a> AppExtractor<'a> {
         codegen.print_str(" = ");
         prop.value.gen_expr(codegen, Precedence::Assign, ctx);
         codegen.print_str(";\n");
-
     }
 
     fn print_class_method(&mut self, body: &FunctionBody) {
@@ -94,16 +140,11 @@ impl<'a> AppExtractor<'a> {
             codegen.print_str("  ");
             let ctx = Context::default();
             if (prop.kind == PropertyKind::Get || prop.kind == PropertyKind::Set) && prop.computed {
-
             }
             match prop.kind {
                 PropertyKind::Init => {}
-                PropertyKind::Get => {
-                    codegen.print_str("get ")
-                }
-                PropertyKind::Set => {
-                    codegen.print_str("set ")
-                }
+                PropertyKind::Get => codegen.print_str("get "),
+                PropertyKind::Set => codegen.print_str("set "),
             }
             codegen.print_str(prop.name());
             codegen.print_str("() ");
@@ -119,12 +160,8 @@ impl<'a> AppExtractor<'a> {
             let ctx = Context::default();
             match prop.kind {
                 PropertyKind::Init => {}
-                PropertyKind::Get => {
-                    codegen.print_str("get ")
-                }
-                PropertyKind::Set => {
-                    codegen.print_str("set ")
-                }
+                PropertyKind::Get => codegen.print_str("get "),
+                PropertyKind::Set => codegen.print_str("set "),
             }
             if func.r#async {
                 codegen.print_str("async ");
@@ -139,8 +176,12 @@ impl<'a> AppExtractor<'a> {
             codegen.print_str("\n");
         }
     }
-}
 
+    fn print_helper_statement(&mut self, statement: &str) {
+        let codegen = self.helper_codegen.get_mut();
+        codegen.print_str(statement)
+    }
+}
 
 impl Visit<'_> for AppExtractor<'_> {
     fn visit_expression(&mut self, expr: &Expression<'_>) {
@@ -171,34 +212,76 @@ impl Visit<'_> for AppExtractor<'_> {
         }
     }
 
+    fn visit_if_statement(&mut self, it: &IfStatement<'_>) {
+        let if_text = "typeof PDFJSDev === \"undefined\" || PDFJSDev.test(\"GENERIC\")";
+        match it.test {
+            match_expression!(Expression) => {
+                let test_span = it.test.span();
+                let text = get_span_text(&self.source_text, &test_span, test_span.end as usize);
+                if self.app_visited && text == if_text && self.func_declare_depth == 0 {
+                    self.in_target_if_block = true;
+                    let span = it.span();
+                    let text = get_span_text(&self.source_text, &span, span.end as usize);
+                    self.print_helper_statement(text.as_str());
+                }
+            }
+        }
+        walk_if_statement(self, it);
+        self.in_target_if_block = false;
+    }
+
     fn visit_function(&mut self, func: &Function<'_>, flags: ScopeFlags) {
+        if self.app_visited
+            && self.func_declare_depth == 0
+            && !self.in_target_if_block
+            && self.object_expression_depth == 0
+        {
+            let mut identifier = "";
+            if let Some(id) = &func.id {
+                identifier = id.name.as_str();
+                self.func_names_in_helper.push(identifier.to_string());
+                let statement = get_span_text(&self.source_text, &func.span, func.span.end as usize);
+                self.print_helper_statement(statement.as_str());
+            }
+        }
+
+        self.func_declare_depth += 1;
+
         let kind = AstKind::Function(self.alloc(func));
-        self.enter_scope({
-                             let mut flags = flags;
-                             if func.is_strict() {
-                                 flags |= ScopeFlags::StrictMode;
-                             }
-                             flags
-                         }, &Cell::new(None));
         self.enter_node(kind);
+        self.enter_scope(
+            {
+                let mut flags = flags;
+                if func.is_strict() {
+                    flags |= ScopeFlags::StrictMode;
+                }
+                flags
+            },
+            &func.scope_id,
+        );
         if self.object_expression_depth == 1 && self.in_app_variable_context {
             self.print_class_method1(func);
         }
-        if let Some(ident) = &func.id {
-            self.visit_binding_identifier(ident);
+
+        if let Some(id) = &func.id {
+            self.visit_binding_identifier(id);
+        }
+        if let Some(type_parameters) = &func.type_parameters {
+            self.visit_ts_type_parameter_declaration(type_parameters);
+        }
+        if let Some(this_param) = &func.this_param {
+            self.visit_ts_this_parameter(this_param);
         }
         self.visit_formal_parameters(&func.params);
+        if let Some(return_type) = &func.return_type {
+            self.visit_ts_type_annotation(return_type);
+        }
         if let Some(body) = &func.body {
             self.visit_function_body(body);
         }
-        if let Some(parameters) = &func.type_parameters {
-            self.visit_ts_type_parameter_declaration(parameters);
-        }
-        if let Some(annotation) = &func.return_type {
-            self.visit_ts_type_annotation(annotation);
-        }
-        self.leave_node(kind);
         self.leave_scope();
+        self.leave_node(kind);
+        self.func_declare_depth -= 1;
     }
 
     fn visit_object_expression(&mut self, expr: &ObjectExpression<'_>) {
@@ -212,6 +295,7 @@ impl Visit<'_> for AppExtractor<'_> {
         if self.object_expression_depth == 0 {
             if self.in_app_variable_context {
                 self.in_app_variable_context = false;
+                self.app_visited = true;
             }
         }
         self.leave_node(kind);
@@ -257,6 +341,9 @@ fn main() {
 
     let app_allocator = Allocator::default();
     let mut app = AppExtractor::new(&app_allocator, &text);
+
+    app.gen_helper_func();
+
     app.visit_program(&ret.program);
 
     app.print_class_end();
@@ -264,6 +351,10 @@ fn main() {
     let generated = codegen.into_source_text();
     let output = cwd.join("upstream/output.js");
     fs::write(&output, generated);
+
+    let helper = cwd.join("upstream/helper.js");
+    let helper_source = app.get_helper_func_text();
+    fs::write(&helper, helper_source);
 
     // let allocator = Allocator::default();
     // let source_type = SourceType::default().with_module(true);

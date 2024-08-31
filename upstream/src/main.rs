@@ -1,11 +1,11 @@
 #![feature(allocator_api)]
 
-use oxc::allocator::{Allocator, CloneIn, Vec as OxcVec, Box as OxcBox};
-use oxc::ast::ast::{BindingIdentifier, BindingPattern, BindingPatternKind, BindingRestElement, ClassElement, Declaration, Expression, Function, FunctionBody, FunctionType, IfStatement, ModuleDeclaration, ObjectExpression, ObjectProperty, ObjectPropertyKind, PropertyKind, Statement, TSTypeAnnotation, TSTypeParameterDeclaration, VariableDeclarationKind};
+use oxc::allocator::{Allocator, CloneIn, Vec as OxcVec};
+use oxc::ast::ast::{BindingPattern, BindingPatternKind, BindingRestElement, ClassElement, Declaration, Expression, Function, FunctionBody, FunctionType, IfStatement, ImportOrExportKind, ModuleDeclaration, ModuleExportName, ObjectExpression, ObjectProperty, PropertyKind, Statement, TSTypeAnnotation, TSTypeParameterDeclaration, VariableDeclarationKind};
 use oxc::ast::visit::walk;
-use oxc::ast::visit::walk::{walk_declaration, walk_if_statement, walk_module_declaration, walk_statement};
-use oxc::ast::{ast, match_declaration, match_expression, match_module_declaration, AstBuilder, AstKind, Trivias, Visit};
-use oxc::codegen::{Codegen, CodegenOptions, CommentOptions, Context, Gen, GenExpr};
+use oxc::ast::visit::walk::{walk_if_statement, walk_module_declaration, walk_statement};
+use oxc::ast::{ast, match_declaration, match_expression, AstBuilder, AstKind, Visit};
+use oxc::codegen::{Codegen, Context, Gen, GenExpr};
 use oxc::parser::Parser;
 use oxc::span::{Atom, CompactStr, GetSpan, SourceType, Span, SPAN};
 use oxc::syntax::precedence::Precedence;
@@ -47,7 +47,6 @@ struct AppExtractor<'a> {
     object_property_depth: u32,
     func_declare_depth: u32,
     object_expression_depth: u32,
-    helpers: OxcVec<'a, Statement<'a>>,
     helper_body: FunctionBody<'a>,
     in_target_if_block: bool,
     func_names_in_helper: OxcVec<'a, Atom<'a>>,
@@ -124,18 +123,12 @@ impl<'a> AppExtractor<'a> {
             object_property_depth: 0,
             func_declare_depth: 0,
             object_expression_depth: 0,
-            helpers: OxcVec::new_in(allocator),
             in_target_if_block: false,
             func_names_in_helper: OxcVec::from_iter_in(vec![
                 Atom::from("validateFileURL"),
                 Atom::from("webViewerFileInputChange"),
             ], builder.allocator),
         }
-    }
-
-    fn gen_helper_func(&mut self) {
-        let codegen = self.helper_codegen.get_mut();
-        codegen.print_str("function createHelper(PDFViewerApplication) {\n");
     }
 
     fn get_helper_func_text(&mut self) -> String {
@@ -212,6 +205,24 @@ impl<'a> AppExtractor<'a> {
         let codegen = self.helper_codegen.get_mut();
         let context = Context::default();
         function.gen(codegen, context);
+
+        let export_stmt = self.app_builder.module_declaration_export_named_declaration(
+            SPAN,
+            None,
+            self.app_builder.vec1(
+                self.app_builder.export_specifier(
+                    SPAN,
+                    ModuleExportName::IdentifierName(self.app_builder.identifier_name(SPAN, Atom::from("createHelper"))),
+                    ModuleExportName::IdentifierName(self.app_builder.identifier_name(SPAN, Atom::from("createHelper"))),
+                    ImportOrExportKind::Value,
+                )
+            ),
+            None,
+            ImportOrExportKind::Value,
+            None
+        );
+
+        Statement::from(export_stmt).gen(codegen, context);
 
         codegen.into_source_text()
     }
@@ -294,11 +305,6 @@ impl<'a> AppExtractor<'a> {
             codegen.print_str("\n");
         }
     }
-
-    fn print_helper_statement(&mut self, statement: &str) {
-        let codegen = self.helper_codegen.get_mut();
-        codegen.print_str(statement)
-    }
 }
 
 impl Visit<'_> for AppExtractor<'_> {
@@ -323,7 +329,6 @@ impl Visit<'_> for AppExtractor<'_> {
                 let span = ifs.test.span();
                 let test_text = self.get_span_text(span, span.end as usize);
                 if self.app_visited && if_text == test_text && self.func_declare_depth == 0{
-                    // self.helpers.push(it.clone_in(self.app_builder.allocator));
                     self.helper_body.statements.push(it.clone_in(self.app_builder.allocator));
                 }
             },
@@ -345,7 +350,6 @@ impl Visit<'_> for AppExtractor<'_> {
                             && !self.in_target_if_block
                             && self.object_expression_depth == 0 {
                             if let Some(id) = &func.id {
-                                // self.helpers.push(it.clone_in(self.app_builder.allocator));
                                 let identifier = id.name.as_str();
                                 self.func_names_in_helper.push(self.app_builder.atom(identifier));
                                 self.helper_body.statements.push(it.clone_in(self.app_builder.allocator));
@@ -402,61 +406,6 @@ impl Visit<'_> for AppExtractor<'_> {
         }
     }
 
-    fn visit_function(&mut self, func: &Function<'_>, flags: ScopeFlags) {
-        if self.app_visited
-            && self.func_declare_depth == 0
-            && !self.in_target_if_block
-            && self.object_expression_depth == 0
-        {
-            let mut identifier = "";
-            if let Some(id) = &func.id {
-                // identifier = id.name.as_str();
-                // self.func_names_in_helper.push(identifier.to_string());
-                // let statement = get_span_text(&self.source_text, &func.span, func.span.end as usize);
-                // self.print_helper_statement(statement.as_str());
-                // func.gen(self.helper_codegen.get_mut(), Context::default());
-            }
-        }
-
-        self.func_declare_depth += 1;
-
-        let kind = AstKind::Function(self.alloc(func));
-        self.enter_node(kind);
-        self.enter_scope(
-            {
-                let mut flags = flags;
-                if func.is_strict() {
-                    flags |= ScopeFlags::StrictMode;
-                }
-                flags
-            },
-            &func.scope_id,
-        );
-        if self.object_expression_depth == 1 && self.in_app_variable_context {
-            self.print_class_method1(func);
-        }
-
-        if let Some(id) = &func.id {
-            self.visit_binding_identifier(id);
-        }
-        if let Some(type_parameters) = &func.type_parameters {
-            self.visit_ts_type_parameter_declaration(type_parameters);
-        }
-        if let Some(this_param) = &func.this_param {
-            self.visit_ts_this_parameter(this_param);
-        }
-        self.visit_formal_parameters(&func.params);
-        if let Some(return_type) = &func.return_type {
-            self.visit_ts_type_annotation(return_type);
-        }
-        if let Some(body) = &func.body {
-            self.visit_function_body(body);
-        }
-        self.leave_scope();
-        self.leave_node(kind);
-        self.func_declare_depth -= 1;
-    }
-
     fn visit_object_expression(&mut self, expr: &ObjectExpression<'_>) {
         let kind = AstKind::ObjectExpression(self.alloc(expr));
         self.object_expression_depth += 1;
@@ -478,7 +427,6 @@ impl Visit<'_> for AppExtractor<'_> {
         let kind = AstKind::ObjectProperty(self.alloc(prop));
         self.enter_node(kind);
         if self.object_expression_depth == 1 && self.in_app_variable_context {
-            // self.visiting_prop = prop.key.name().unwrap_or(CompactStr::from(""));
             let name = CompactStr::from(prop.key.name().unwrap_or(Cow::from(CompactStr::from(""))));
             self.visiting_prop = Some(ObjProperty {
                 name,
@@ -499,26 +447,6 @@ impl Visit<'_> for AppExtractor<'_> {
         self.visit_expression(&prop.value);
         self.leave_node(kind);
         self.visiting_prop = None;
-    }
-
-    fn visit_if_statement(&mut self, it: &IfStatement<'_>) {
-        let if_text = "typeof PDFJSDev === \"undefined\" || PDFJSDev.test(\"GENERIC\")";
-        match it.test {
-            match_expression!(Expression) => {
-                let test_span = it.test.span();
-                let text = get_span_text(&self.source_text, &test_span, test_span.end as usize);
-                if self.app_visited && text == if_text && self.func_declare_depth == 0 {
-                    self.in_target_if_block = true;
-                    // let span = it.span();
-                    // let text = get_span_text(&self.source_text, &span, span.end as usize);
-                    // self.print_helper_statement(text.as_str());
-                    // self.helper_codegen.get_mut().print_str(text.as_str());
-                    // it.gen(self.helper_codegen.get_mut(), Context::default());
-                }
-            }
-        }
-        walk_if_statement(self, it);
-        self.in_target_if_block = false;
     }
 
     fn visit_module_declaration(&mut self, it: &ModuleDeclaration<'_>) {
@@ -544,8 +472,6 @@ fn main() {
 
     let app_allocator = Allocator::default();
     let mut app = AppExtractor::new(&app_allocator, &text);
-
-    // app.gen_helper_func();
 
     app.visit_program(&ret.program);
 

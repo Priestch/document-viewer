@@ -953,3 +953,5 @@ function createHelper(PDFViewerApplication) {
     webViewerReportTelemetry,
   };
 }
+
+export { createHelper };

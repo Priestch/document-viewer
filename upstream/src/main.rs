@@ -13,7 +13,7 @@ use oxc::ast::visit::walk::{walk_module_declaration, walk_statement};
 use oxc::ast::{match_declaration, AstBuilder, AstKind, Visit};
 use oxc::codegen::{Codegen, Context, Gen, GenExpr};
 use oxc::parser::Parser;
-use oxc::span::{CompactStr, GetSpan, SourceType, Span};
+use oxc::span::{CompactStr, GetSpan, Language, SourceType, Span, SPAN};
 use oxc::syntax::precedence::Precedence;
 use std::borrow::Cow;
 use std::cell::RefCell;
@@ -163,6 +163,10 @@ impl<'a> AppExtractor<'a> {
             codegen.print_str("\n");
         }
     }
+
+    fn get_default_external_services_text(&mut self) -> String {
+        self.utils_gen.get_default_external_service_text()
+    }
 }
 
 impl Visit<'_> for AppExtractor<'_> {
@@ -222,7 +226,16 @@ impl Visit<'_> for AppExtractor<'_> {
                         }
                         self.func_declare_depth += 1;
                     }
-                    // Declaration::ClassDeclaration(it) => visitor.visit_class(it),
+                    Declaration::ClassDeclaration(itc) => {
+                        match &itc.id {
+                            Some(id) => {
+                                if id.name == "DefaultExternalServices" {
+                                    self.utils_gen.add_external_service_statement(it.clone_in(self.app_builder.allocator));
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
                     _ => {}
                 }
             }
@@ -334,17 +347,33 @@ fn main() {
     let ret = Parser::new(&parser_allocator, &text, source_type).parse();
 
     let app_allocator = Allocator::default();
-    let mut app = AppExtractor::new(&app_allocator, &text);
+    let mut extractor = AppExtractor::new(&app_allocator, &text);
 
-    app.visit_program(&ret.program);
+    extractor.visit_program(&ret.program);
 
-    let generated = app.get_app_module_text();
+    let generated = extractor.get_app_module_text();
     let output = cwd.join("upstream/output.js");
     fs::write(&output, generated);
 
     let helper = cwd.join("upstream/helper.js");
-    let helper_source = app.utils_gen.get_module_text();
+    let helper_source = extractor.utils_gen.get_module_text();
     fs::write(&helper, helper_source);
+
+    // let p = extractor.app_builder.program(
+    //     SPAN,
+    //     SourceType::default().with_module(true),
+    //     None,
+    //     OxcVec::new_in(&app_allocator),
+    //     extractor.default_service_statements,
+    // );
+    //
+    // let mut codegen = Codegen::new();
+    // p.gen(&mut codegen, Context::default());
+
+    let default_external_services = cwd.join("upstream/default_external_services.js");
+
+    fs::write(&default_external_services, extractor.get_default_external_services_text());
+
 
     // let allocator = Allocator::default();
     // let source_type = SourceType::default().with_module(true);

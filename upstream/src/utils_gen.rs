@@ -29,7 +29,7 @@ impl<'a> UtilsGen<'a> {
         let mut statements = builder.vec();
         let property = builder.binding_property(
             SPAN,
-            builder.property_key_identifier_name(SPAN, Atom::from("AppOptions")),
+            builder.property_key_identifier_name(SPAN, Atom::from("appOptions")),
             builder.binding_pattern(
                 builder.binding_pattern_kind_binding_identifier(SPAN, Atom::from("AppOptions")),
                 None::<TSTypeAnnotation>,

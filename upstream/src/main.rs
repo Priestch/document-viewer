@@ -4,36 +4,21 @@ mod utils_gen;
 
 use crate::utils_gen::UtilsGen;
 use oxc::allocator::{Allocator, CloneIn, Vec as OxcVec};
-use oxc::ast::ast::{
-    BindingPattern, BindingPatternKind, ClassElement, Declaration, Expression, Function,
-    FunctionBody, ModuleDeclaration, ObjectExpression, ObjectProperty, PropertyKind, Statement,
+use oxc::ast::ast::{BindingPatternKind, BindingRestElement, ClassElement, ClassType, Declaration, Expression, FunctionType, MethodDefinitionKind, MethodDefinitionType, ModuleDeclaration, ObjectExpression, ObjectProperty, PropertyDefinitionType, PropertyKey, PropertyKind, Statement, TSTypeAnnotation, TSTypeParameterDeclaration, TSTypeParameterInstantiation, VariableDeclarationKind};
+use oxc::ast::visit::walk::{
+    walk_module_declaration, walk_object_expression, walk_object_property,
+    walk_statement,
 };
-use oxc::ast::visit::walk;
-use oxc::ast::visit::walk::{walk_module_declaration, walk_statement};
 use oxc::ast::{match_declaration, AstBuilder, AstKind, Visit};
 use oxc::codegen::{Codegen, Context, Gen, GenExpr};
 use oxc::parser::Parser;
-use oxc::span::{CompactStr, GetSpan, Language, SourceType, Span, SPAN};
-use oxc::syntax::precedence::Precedence;
-use std::borrow::Cow;
+use oxc::span::{Atom, GetSpan, SourceType, Span, SPAN};
 use std::cell::RefCell;
 use std::cmp::min;
 use std::hash::Hash;
 use std::{env, fs};
 
-struct ObjProperty {
-    name: CompactStr,
-    computed: bool,
-    kind: PropertyKind,
-}
-
-impl ObjProperty {
-    fn name(&self) -> &str {
-        &self.name
-    }
-}
-
-fn get_span_text(source_text: &str, span: &Span, size: usize) -> String {
+fn get_span_text(source_text: &str, span: Span, size: usize) -> String {
     let start: usize = span.start as usize;
     let end: usize = min(span.end as usize, start + size);
 
@@ -46,12 +31,12 @@ struct AppExtractor<'a> {
     app_codegen: RefCell<Codegen<'a>>,
     app_builder: AstBuilder<'a>,
     app_body: OxcVec<'a, ClassElement<'a>>,
-    visiting_prop: Option<ObjProperty>,
     source_text: String,
     object_property_depth: u32,
     func_declare_depth: u32,
     object_expression_depth: u32,
     in_target_if_block: bool,
+    viewer_app: Declaration<'a>,
     pub utils_gen: UtilsGen<'a>,
 }
 
@@ -68,26 +53,183 @@ impl<'a> AppExtractor<'a> {
             app_codegen: RefCell::new(codegen),
             app_builder: builder,
             app_body,
-            visiting_prop: None,
             source_text: source_text.to_string(),
             object_property_depth: 0,
             func_declare_depth: 0,
             object_expression_depth: 0,
             in_target_if_block: false,
+            viewer_app: builder.declaration_class(
+                ClassType::ClassDeclaration,
+                SPAN,
+                OxcVec::new_in(allocator),
+                Some(builder.binding_identifier(SPAN, Atom::from("ViewerApplication"))),
+                None::<TSTypeParameterDeclaration>,
+                None,
+                None::<TSTypeParameterInstantiation>,
+                None,
+                builder.class_body(SPAN, OxcVec::new_in(allocator)),
+                false,
+                false,
+            ),
             utils_gen: UtilsGen::new(builder.allocator),
         }
     }
 
+    fn add_class_method(&mut self, it: &ObjectProperty<'_>) {
+        let mut is_method = false;
+        match it.kind {
+            PropertyKind::Get | PropertyKind::Init => match self.viewer_app {
+                Declaration::ClassDeclaration(ref mut class) => {
+                    if it.kind == PropertyKind::Init && it.method {
+                        is_method = true;
+                    } else {
+                        is_method = true;
+                    }
+                    if is_method {
+                        let mut name = "";
+                        match &it.key {
+                            PropertyKey::StaticIdentifier(ident) => {
+                                name = ident.name.as_str();
+                            }
+                            _ => {}
+                        }
+
+                        match &it.value {
+                            Expression::FunctionExpression(func) => {
+                                let identifier = self
+                                    .app_builder
+                                    .binding_identifier(SPAN, self.app_builder.atom(name));
+                                let span = func.span();
+                                let text = get_span_text(&self.source_text, span, span.end as usize);
+                                let mut access_options_obj = false;
+                                if text.contains("AppOptions.") {
+                                    access_options_obj = true;
+                                }
+                                let mut func_body = func.body.clone_in(self.app_builder.allocator);
+                                if access_options_obj {
+                                    let property = self.app_builder.binding_property(
+                                        SPAN,
+                                        self.app_builder.property_key_identifier_name(SPAN, Atom::from("appOptions")),
+                                        self.app_builder.binding_pattern(
+                                            self.app_builder.binding_pattern_kind_binding_identifier(SPAN, Atom::from("AppOptions")),
+                                            None::<TSTypeAnnotation>,
+                                            false,
+                                        ),
+                                        true,
+                                        false,
+                                    );
+                                    let init =
+                                        self.app_builder.expression_identifier_reference(SPAN, Atom::from("this"));
+                                    let declaration = self.app_builder.declaration_from_variable(self.app_builder.variable_declaration(
+                                        SPAN,
+                                        VariableDeclarationKind::Const,
+                                        self.app_builder.vec1(self.app_builder.variable_declarator(
+                                            SPAN,
+                                            VariableDeclarationKind::Const,
+                                            self.app_builder.binding_pattern(
+                                                self.app_builder.binding_pattern_kind_object_pattern(
+                                                    SPAN,
+                                                    self.app_builder.vec1(property),
+                                                    None::<BindingRestElement>,
+                                                ),
+                                                None::<TSTypeAnnotation>,
+                                                false,
+                                            ),
+                                            Some(init),
+                                            false,
+                                        )),
+                                        false,
+                                    ));
+                                    match func_body {
+                                        None => {}
+                                        Some(ref mut body) => {
+                                            body.statements.insert(0,
+                                                Statement::from(declaration)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                class.body.body.push(
+                                    self.app_builder.class_element_from_method_definition(
+                                        self.app_builder.method_definition(
+                                            MethodDefinitionType::MethodDefinition,
+                                            SPAN,
+                                            OxcVec::new_in(self.app_builder.allocator),
+                                            it.key.clone_in(self.app_builder.allocator),
+                                            self.app_builder.function(
+                                                FunctionType::FunctionExpression,
+                                                SPAN,
+                                                Some(identifier),
+                                                func.generator,
+                                                func.r#async,
+                                                func.declare,
+                                                None::<TSTypeParameterDeclaration>,
+                                                None,
+                                                func.params.clone_in(self.app_builder.allocator),
+                                                func.return_type
+                                                    .clone_in(self.app_builder.allocator),
+                                                func_body,
+                                            ),
+                                            MethodDefinitionKind::Method,
+                                            false,
+                                            false,
+                                            false,
+                                            false,
+                                            None,
+                                        ),
+                                    ),
+                                );
+                            }
+                            _ => {}
+                        };
+                    }
+                }
+                _ => {}
+            },
+            PropertyKind::Set => {}
+        }
+    }
+
+    fn add_app_property(&mut self, it: &ObjectProperty<'_>) {
+        match it.kind {
+            PropertyKind::Init => match self.viewer_app {
+                Declaration::ClassDeclaration(ref mut class) => {
+                    if !it.method {
+                        class
+                            .body
+                            .body
+                            .push(self.app_builder.class_element_property_definition(
+                                PropertyDefinitionType::PropertyDefinition,
+                                SPAN,
+                                OxcVec::new_in(self.app_builder.allocator),
+                                it.key.clone_in(self.app_builder.allocator),
+                                Some(it.value.clone_in(self.app_builder.allocator)),
+                                it.computed,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                None::<TSTypeAnnotation>,
+                                None,
+                            ));
+                    } else {
+                        self.add_class_method(it);
+                    }
+                }
+                _ => {}
+            },
+            PropertyKind::Get => self.add_class_method(it),
+            PropertyKind::Set => {}
+        }
+    }
+
     fn get_app_module_text(&mut self) -> String {
-        self.print_class_end();
         let codegen = self.app_codegen.get_mut();
 
         codegen.into_source_text()
-    }
-
-    fn print_class_start(&mut self, name: &str) {
-        let codegen = self.app_codegen.get_mut();
-        codegen.print_str(format!("class {name} {{\n").as_str());
     }
 
     fn get_span_text(&self, span: Span, size: usize) -> &str {
@@ -98,78 +240,25 @@ impl<'a> AppExtractor<'a> {
         text
     }
 
-    fn print_class_end(&mut self) {
-        let codegen = self.app_codegen.get_mut();
-        codegen.print_str(format!("}}\n").as_str());
-    }
-
-    fn print_method(&mut self, name: &str) {
-        let codegen = self.app_codegen.get_mut();
-        codegen.print_str(format!("{name}() {{\n").as_str());
-    }
-
-    fn print_method_end(&mut self) {
-        let codegen = self.app_codegen.get_mut();
-        codegen.print_str(format!("}}\n").as_str());
-    }
-
-    fn print_class_prop(&mut self, prop: &ObjectProperty) {
-        let codegen = self.app_codegen.get_mut();
-        codegen.print_str("  ");
-        let ctx = Context::default();
-        prop.key.gen(codegen, ctx);
-        codegen.print_str(" = ");
-        prop.value.gen_expr(codegen, Precedence::Assign, ctx);
-        codegen.print_str(";\n");
-    }
-
-    fn print_class_method(&mut self, body: &FunctionBody) {
-        if let Some(ref prop) = self.visiting_prop {
-            let codegen = self.app_codegen.get_mut();
-            codegen.print_str("  ");
-            let ctx = Context::default();
-            match prop.kind {
-                PropertyKind::Init => {}
-                PropertyKind::Get => codegen.print_str("get "),
-                PropertyKind::Set => codegen.print_str("set "),
-            }
-            codegen.print_str(prop.name());
-            codegen.print_str("() ");
-            body.gen(codegen, ctx);
-            codegen.print_str("\n");
-        }
-    }
-
-    fn print_class_method1(&mut self, func: &Function) {
-        if let Some(ref prop) = self.visiting_prop {
-            let codegen = self.app_codegen.get_mut();
-            codegen.print_str("  ");
-            let ctx = Context::default();
-            match prop.kind {
-                PropertyKind::Init => {}
-                PropertyKind::Get => codegen.print_str("get "),
-                PropertyKind::Set => codegen.print_str("set "),
-            }
-            if func.r#async {
-                codegen.print_str("async ");
-            }
-            codegen.print_str(prop.name());
-            codegen.print_str("(");
-            func.params.gen(codegen, ctx);
-            codegen.print_str(") ");
-            if let Some(ref body) = func.body {
-                body.gen(codegen, ctx);
-            }
-            codegen.print_str("\n");
-        }
-    }
-
     fn get_default_external_services_text(&mut self) -> String {
         self.utils_gen.get_default_external_service_text()
     }
 }
 
 impl Visit<'_> for AppExtractor<'_> {
+    fn leave_node(&mut self, kind: AstKind<'_>) {
+        match kind {
+            AstKind::VariableDeclaration(it) => {
+                let text = get_span_text(&self.source_text, it.span(), 30);
+                if text == "const PDFViewerApplication = {" {
+                    self.in_app_variable_context = false;
+                    self.app_visited = true;
+                }
+            }
+            _ => {}
+        }
+    }
+
     fn visit_statement(&mut self, it: &Statement<'_>) {
         let if_text = "typeof PDFJSDev === \"undefined\" || PDFJSDev.test(\"GENERIC\")";
         let mut is_if_stmt = false;
@@ -206,7 +295,19 @@ impl Visit<'_> for AppExtractor<'_> {
             match_declaration!(Statement) => {
                 let declaration = it.to_declaration();
                 match declaration {
-                    // Declaration::VariableDeclaration(it) => visitor.visit_variable_declaration(it),
+                    Declaration::VariableDeclaration(it) => {
+                        if it.kind == VariableDeclarationKind::Const && it.declarations.len() == 1 {
+                            let declaration = &it.declarations[0];
+                            match &declaration.id.kind {
+                                BindingPatternKind::BindingIdentifier(ident) => {
+                                    if ident.name == AppExtractor::VAR_NAME {
+                                        self.in_app_variable_context = true;
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
                     Declaration::FunctionDeclaration(func) => {
                         is_func_stmt = true;
                         if self.app_visited
@@ -216,26 +317,24 @@ impl Visit<'_> for AppExtractor<'_> {
                         {
                             if let Some(id) = &func.id {
                                 let identifier = id.name.as_str();
-                                // self.func_names_in_helper.push(self.app_builder.atom(identifier));
                                 self.utils_gen
                                     .add_func_name(self.app_builder.atom(identifier));
-                                // self.helper_body.statements.push(it.clone_in(self.app_builder.allocator));
                                 self.utils_gen
                                     .add_func_statement(it.clone_in(self.app_builder.allocator));
                             }
                         }
                         self.func_declare_depth += 1;
                     }
-                    Declaration::ClassDeclaration(itc) => {
-                        match &itc.id {
-                            Some(id) => {
-                                if id.name == "DefaultExternalServices" {
-                                    self.utils_gen.add_external_service_statement(it.clone_in(self.app_builder.allocator));
-                                }
+                    Declaration::ClassDeclaration(itc) => match &itc.id {
+                        Some(id) => {
+                            if id.name == "DefaultExternalServices" {
+                                self.utils_gen.add_external_service_statement(
+                                    it.clone_in(self.app_builder.allocator),
+                                );
                             }
-                            _ => {}
                         }
-                    }
+                        _ => {}
+                    },
                     _ => {}
                 }
             }
@@ -245,6 +344,7 @@ impl Visit<'_> for AppExtractor<'_> {
         }
 
         walk_statement(self, it);
+
         if is_if_stmt {
             self.in_target_if_block = false
         }
@@ -254,75 +354,19 @@ impl Visit<'_> for AppExtractor<'_> {
         }
     }
 
-    fn visit_expression(&mut self, expr: &Expression<'_>) {
-        self.object_property_depth += 1;
-        if !self.visiting_prop.is_none() && self.object_property_depth == 1 {
-            let codegen = self.app_codegen.get_mut();
-            expr.gen_expr(codegen, Precedence::Assign, Context::default());
-            codegen.print_str(";\n");
-        }
-        walk::walk_expression(self, expr);
-    }
-
-    fn visit_binding_pattern(&mut self, pat: &BindingPattern<'_>) {
-        match &pat.kind {
-            BindingPatternKind::BindingIdentifier(ident) => {
-                if ident.name == AppExtractor::VAR_NAME {
-                    self.in_app_variable_context = true;
-                    self.print_class_start("PDFViewerApplication")
-                }
-                self.visit_binding_identifier(ident);
-            }
-            BindingPatternKind::ObjectPattern(pat) => self.visit_object_pattern(pat),
-            BindingPatternKind::ArrayPattern(pat) => self.visit_array_pattern(pat),
-            BindingPatternKind::AssignmentPattern(pat) => self.visit_assignment_pattern(pat),
-        }
-        if let Some(type_annotation) = &pat.type_annotation {
-            self.visit_ts_type_annotation(type_annotation);
-        }
-    }
-
-    fn visit_object_expression(&mut self, expr: &ObjectExpression<'_>) {
-        let kind = AstKind::ObjectExpression(self.alloc(expr));
+    fn visit_object_expression(&mut self, it: &ObjectExpression<'_>) {
         self.object_expression_depth += 1;
-        self.enter_node(kind);
-        for prop in &expr.properties {
-            self.visit_object_property_kind(prop);
-        }
+        walk_object_expression(self, it);
         self.object_expression_depth -= 1;
-        if self.object_expression_depth == 0 {
-            if self.in_app_variable_context {
-                self.in_app_variable_context = false;
-                self.app_visited = true;
-            }
-        }
-        self.leave_node(kind);
     }
 
-    fn visit_object_property(&mut self, prop: &ObjectProperty<'_>) {
-        let kind = AstKind::ObjectProperty(self.alloc(prop));
-        self.enter_node(kind);
-        if self.object_expression_depth == 1 && self.in_app_variable_context {
-            let name = CompactStr::from(prop.key.name().unwrap_or(Cow::from(CompactStr::from(""))));
-            self.visiting_prop = Some(ObjProperty {
-                name,
-                computed: prop.computed,
-                kind: prop.kind,
-            });
-            match prop.kind {
-                PropertyKind::Init => {
-                    if !prop.method {
-                        self.print_class_prop(prop);
-                    }
-                }
-                PropertyKind::Get => {}
-                PropertyKind::Set => {}
-            }
+    fn visit_object_property(&mut self, it: &ObjectProperty<'_>) {
+        let in_context = self.object_expression_depth == 1 && self.in_app_variable_context;
+        if in_context {
+            self.add_app_property(it);
         }
-        self.visit_property_key(&prop.key);
-        self.visit_expression(&prop.value);
-        self.leave_node(kind);
-        self.visiting_prop = None;
+
+        walk_object_property(self, it);
     }
 
     fn visit_module_declaration(&mut self, it: &ModuleDeclaration<'_>) {
@@ -351,38 +395,16 @@ fn main() {
 
     extractor.visit_program(&ret.program);
 
-    let generated = extractor.get_app_module_text();
-    let output = cwd.join("upstream/output.js");
-    fs::write(&output, generated);
+    let default_external_services = cwd.join("packages/document-viewer/src/default_external_services.js");
 
-    let helper = cwd.join("upstream/helper.js");
-    let helper_source = extractor.utils_gen.get_module_text();
-    fs::write(&helper, helper_source);
-
-    // let p = extractor.app_builder.program(
-    //     SPAN,
-    //     SourceType::default().with_module(true),
-    //     None,
-    //     OxcVec::new_in(&app_allocator),
-    //     extractor.default_service_statements,
-    // );
-    //
-    // let mut codegen = Codegen::new();
-    // p.gen(&mut codegen, Context::default());
-
-    let default_external_services = cwd.join("upstream/default_external_services.js");
-
-    fs::write(&default_external_services, extractor.get_default_external_services_text());
+    fs::write(
+        &default_external_services,
+        extractor.get_default_external_services_text(),
+    );
 
 
-    // let allocator = Allocator::default();
-    // let source_type = SourceType::default().with_module(true);
-    // let ret = Parser::new(&allocator, &generated, source_type).preserve_parens(true).parse();
-
-    // let output = Prettier::new(
-    //     &allocator,
-    //     &generated,
-    //     &ret.trivias,
-    //     PrettierOptions { semi, trailing_comma: TrailingComma::All, ..PrettierOptions::default() },
-    // );
+    let mut codegen = Codegen::new();
+    Statement::from(extractor.viewer_app).gen(&mut codegen, Context::default());
+    let output = cwd.join("packages/document-viewer/src/default_app.js");
+    fs::write(&output, codegen.into_source_text());
 }

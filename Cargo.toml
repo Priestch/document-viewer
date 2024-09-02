@@ -1,0 +1,9 @@
+[workspace]
+members = ["upstream"]
+resolver = "2"
+
+[workspace.package]
+authors = ["Priestch <priestch@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

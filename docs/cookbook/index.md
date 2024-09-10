@@ -30,8 +30,6 @@ For those who already use the default viewer and still suffer this issue, go thr
   - The `Accept-Ranges` should be `bytes` and the server must really support it
   - The `Content-Encoding` should be `identity` if present
 
-If you ensure all these were configured correctly, then you can debug the code block step by step to find out what's the real issue.
-
-https://github.com/mozilla/pdf.js/blob/f6b356eff753358bf3263d174dc0cf4852800edd/src/display/fetch_stream.js#L130-L168
+If you ensure all these were configured correctly, then you can debug the [code block](https://github.com/mozilla/pdf.js/blob/f6b356eff753358bf3263d174dc0cf4852800edd/src/display/fetch_stream.js#L130-L168) step by step to find out what's the real issue.
 
 I posted a similar comment in [discussion](https://github.com/mozilla/pdf.js/discussions/18524#discussioncomment-10202877).

@@ -45,6 +45,10 @@ const config = {
         items: [
           { text: "Npm Package", link: "https://www.npmjs.com/package/@document-kits/viewer" },
           { text: "Releases", link: "https://github.com/Priestch/document-viewer/tags" },
+          {
+            text: "Official FAQ",
+            link: "https://github.com/mozilla/pdf.js/wiki/Frequently-Asked-Questions",
+          },
         ],
       },
       { text: "Demos", link: "https://priestch.github.io/document-viewer/demos/" },

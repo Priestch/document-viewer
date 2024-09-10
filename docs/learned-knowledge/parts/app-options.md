@@ -15,7 +15,7 @@ Let's crack on them one by one!
 - `locale`
 - `workerSrc`
 
-#### defaultUrl
+#### [defaultUrl](https://github.com/mozilla/pdf.js/blob/66ed4b9e255168f230dae394a202168b47da681f/web/app_options.js#L453-L460)
 
 - Type `URL | string | Uint8Array`
 
@@ -28,10 +28,21 @@ The url of the PDF file. If you got [CORS](https://developer.mozilla.org/en-US/d
 
 The locale of the viewer, it easy to switch a different locale by setting this option. See all supported locales in folder [l10n](https://github.com/mozilla/pdf.js/tree/master/l10n).
 
-#### workerSrc
+#### [workerSrc](https://github.com/mozilla/pdf.js/blob/66ed4b9e255168f230dae394a202168b47da681f/web/app_options.js#L440-L450)
 
 The url of the PDF.js web worker bundle.
 
 The PDF.js project use web worker to speed up the rendering process, it means there must be some code creating and initializing the web worker using the `workerSrc`. It configured with default value, but it always depends on how you deploy it. Make sure you can download the worker bundle from the `workerSrc` url.
 
 ![Worker Request](/assets/worker-request.png)
+
+### Other options
+
+#### [textLayerMode](https://github.com/mozilla/pdf.js/blob/66ed4b9e255168f230dae394a202168b47da681f/web/app_options.js#L317-L321)
+
+- Type `integer`
+- Default `1`
+- Values `0`, `1`, `2`
+- Source [`web/ui_utils/TextLayerMode`](https://github.com/mozilla/pdf.js/blob/66ed4b9e255168f230dae394a202168b47da681f/web/ui_utils.js#L49-L53)
+
+The `textLayerMode` of text layer.

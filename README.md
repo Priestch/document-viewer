@@ -27,6 +27,10 @@ component, and it suffers some other issues.
 I learn a lot from the pdf.js project. This project is somehow giving back to the community. I will try to
 make it easier to integrate PDF viewer to your project.
 
+# Online Demos
+
+See https://priestch.github.io/document-viewer/demos/#/custom-toolbar
+
 # Docs
 
 See https://priestch.github.io/document-viewer/

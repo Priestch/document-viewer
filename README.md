@@ -29,7 +29,7 @@ make it easier to integrate PDF viewer to your project.
 
 # Online Demos
 
-See https://priestch.github.io/document-viewer/demos/#/custom-toolbar
+See https://priestch.github.io/document-viewer/demos/
 
 # Docs
 

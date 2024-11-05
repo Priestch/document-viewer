@@ -4,7 +4,7 @@ description: Learn how to display PDF files in your HTML app with three ways, in
 head:
   - - link
     - rel: canonical
-      href: https://priestch.github.io/document-viewer/docs/learned-knowledge/
+      href: https://priestch.github.io/document-viewer/docs/blog/3-ways-to-display-pdf-in-html.html
 ---
 
 # Three Ways to display PDF file in HTML

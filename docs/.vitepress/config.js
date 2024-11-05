@@ -38,16 +38,15 @@ const config = {
           { text: "Releases", link: "https://github.com/Priestch/document-viewer/tags" },
           { text: "Useful Resources", link: "/resources" },
           {
-            text: "Official FAQ",
-            link: "https://github.com/mozilla/pdf.js/wiki/Frequently-Asked-Questions",
-          },
-          {
             text: "About PDF.js",
             items: [
               { text: "Learned Knowledge", link: "/learned-knowledge/" },
               { text: "Architecture", link: "/architecture" },
               { text: "Common Pitfalls", link: "/pitfalls" },
-              { text: "Threads Communication", link: "/communication" },
+              {
+                text: "Official FAQ",
+                link: "https://github.com/mozilla/pdf.js/wiki/Frequently-Asked-Questions",
+              },
             ],
           },
         ],

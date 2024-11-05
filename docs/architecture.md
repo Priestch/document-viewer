@@ -8,7 +8,7 @@ head:
 
 # PDF.js Architecture
 
-![Overview of the PDF.js Architecture](https://hacks.mozilla.org/files/2021/09/pdfjs_architecture.png)
+![Overview of the PDF.js Architecture](./assets/pdfjs_architecture.png)
 
 [Read more](https://hacks.mozilla.org/2021/10/implementing-form-filling-and-accessibility-in-the-firefox-pdf-viewer/)
 

@@ -665,7 +665,9 @@ var _pdfjsLib = __webpack_require__(5);
 var _pdf_cursor_tools = __webpack_require__(6);
 const WHEEL_ZOOM_DISABLED_TIMEOUT = 1000;
 function createHelper(PDFViewerApplication) {
-  const AppOptions = PDFViewerApplication.appOptions;
+  const {
+    appOptions: AppOptions
+  } = PDFViewerApplication;
   const HOSTED_VIEWER_ORIGINS = ["null", "http://mozilla.github.io", "https://mozilla.github.io"];
   var validateFileURL = function (file) {
     if (!file) {
@@ -674,9 +676,6 @@ function createHelper(PDFViewerApplication) {
     try {
       const viewerOrigin = new URL(window.location.href).origin || "null";
       if (HOSTED_VIEWER_ORIGINS.includes(viewerOrigin)) {
-        return;
-      }
-      if (AppOptions.get('disableCORSCheck')) {
         return;
       }
       const fileOrigin = new URL(file, window.location.href).origin;
@@ -763,7 +762,7 @@ function createHelper(PDFViewerApplication) {
         view = _ui_utils.SidebarView.NONE;
         break;
       default:
-        console.error('Invalid "pagemode" hash parameter: ' + mode);
+        console.error("Invalid \"pagemode\" hash parameter: " + mode);
         return;
     }
     PDFViewerApplication.pdfSidebar?.switchView(view, true);
@@ -1463,63 +1462,62 @@ function createHelper(PDFViewerApplication) {
     PDFViewerApplication.externalServices.reportTelemetry(details);
   }
   return {
-    validateFileURL: validateFileURL,
-    loadFakeWorker: loadFakeWorker,
-    loadPDFBug: loadPDFBug,
-    reportPageStatsPDFBug: reportPageStatsPDFBug,
-    webViewerPageRender: webViewerPageRender,
-    webViewerPageRendered: webViewerPageRendered,
-    webViewerPageMode: webViewerPageMode,
-    webViewerNamedAction: webViewerNamedAction,
-    webViewerPresentationModeChanged: webViewerPresentationModeChanged,
-    webViewerSidebarViewChanged: webViewerSidebarViewChanged,
-    webViewerUpdateViewarea: webViewerUpdateViewarea,
-    webViewerScrollModeChanged: webViewerScrollModeChanged,
-    webViewerSpreadModeChanged: webViewerSpreadModeChanged,
-    webViewerResize: webViewerResize,
-    webViewerHashchange: webViewerHashchange,
-    webViewerFileInputChange: webViewerFileInputChange,
-    webViewerOpenFile: webViewerOpenFile,
-    webViewerPresentationMode: webViewerPresentationMode,
-    webViewerSwitchAnnotationEditorMode: webViewerSwitchAnnotationEditorMode,
-    webViewerSwitchAnnotationEditorParams: webViewerSwitchAnnotationEditorParams,
-    webViewerPrint: webViewerPrint,
-    webViewerDownload: webViewerDownload,
-    webViewerOpenInExternalApp: webViewerOpenInExternalApp,
-    webViewerFirstPage: webViewerFirstPage,
-    webViewerLastPage: webViewerLastPage,
-    webViewerNextPage: webViewerNextPage,
-    webViewerPreviousPage: webViewerPreviousPage,
-    webViewerZoomIn: webViewerZoomIn,
-    webViewerZoomOut: webViewerZoomOut,
-    webViewerZoomReset: webViewerZoomReset,
-    webViewerPageNumberChanged: webViewerPageNumberChanged,
-    webViewerScaleChanged: webViewerScaleChanged,
-    webViewerRotateCw: webViewerRotateCw,
-    webViewerRotateCcw: webViewerRotateCcw,
-    webViewerOptionalContentConfig: webViewerOptionalContentConfig,
-    webViewerSwitchScrollMode: webViewerSwitchScrollMode,
-    webViewerSwitchSpreadMode: webViewerSwitchSpreadMode,
-    webViewerDocumentProperties: webViewerDocumentProperties,
-    webViewerFindFromUrlHash: webViewerFindFromUrlHash,
-    webViewerUpdateFindMatchesCount: webViewerUpdateFindMatchesCount,
-    webViewerUpdateFindControlState: webViewerUpdateFindControlState,
-    webViewerScaleChanging: webViewerScaleChanging,
-    webViewerRotationChanging: webViewerRotationChanging,
-    webViewerPageChanging: webViewerPageChanging,
-    webViewerResolutionChange: webViewerResolutionChange,
-    webViewerVisibilityChange: webViewerVisibilityChange,
-    setZoomDisabledTimeout: setZoomDisabledTimeout,
-    webViewerWheel: webViewerWheel,
-    webViewerTouchStart: webViewerTouchStart,
-    webViewerTouchMove: webViewerTouchMove,
-    webViewerTouchEnd: webViewerTouchEnd,
-    webViewerClick: webViewerClick,
-    webViewerKeyUp: webViewerKeyUp,
-    webViewerKeyDown: webViewerKeyDown,
-    beforeUnload: beforeUnload,
-    webViewerAnnotationEditorStatesChanged: webViewerAnnotationEditorStatesChanged,
-    webViewerReportTelemetry: webViewerReportTelemetry
+    validateFileURL,
+    webViewerFileInputChange,
+    loadFakeWorker,
+    loadPDFBug,
+    reportPageStatsPDFBug,
+    webViewerPageRender,
+    webViewerPageRendered,
+    webViewerPageMode,
+    webViewerNamedAction,
+    webViewerPresentationModeChanged,
+    webViewerSidebarViewChanged,
+    webViewerUpdateViewarea,
+    webViewerScrollModeChanged,
+    webViewerSpreadModeChanged,
+    webViewerResize,
+    webViewerHashchange,
+    webViewerPresentationMode,
+    webViewerSwitchAnnotationEditorMode,
+    webViewerSwitchAnnotationEditorParams,
+    webViewerPrint,
+    webViewerDownload,
+    webViewerOpenInExternalApp,
+    webViewerFirstPage,
+    webViewerLastPage,
+    webViewerNextPage,
+    webViewerPreviousPage,
+    webViewerZoomIn,
+    webViewerZoomOut,
+    webViewerZoomReset,
+    webViewerPageNumberChanged,
+    webViewerScaleChanged,
+    webViewerRotateCw,
+    webViewerRotateCcw,
+    webViewerOptionalContentConfig,
+    webViewerSwitchScrollMode,
+    webViewerSwitchSpreadMode,
+    webViewerDocumentProperties,
+    webViewerFindFromUrlHash,
+    webViewerUpdateFindMatchesCount,
+    webViewerUpdateFindControlState,
+    webViewerScaleChanging,
+    webViewerRotationChanging,
+    webViewerPageChanging,
+    webViewerResolutionChange,
+    webViewerVisibilityChange,
+    setZoomDisabledTimeout,
+    webViewerWheel,
+    webViewerTouchStart,
+    webViewerTouchMove,
+    webViewerTouchEnd,
+    webViewerClick,
+    webViewerKeyUp,
+    webViewerKeyDown,
+    beforeUnload,
+    webViewerAnnotationEditorStatesChanged,
+    webViewerReportTelemetry
   };
 }
 
@@ -2400,7 +2398,6 @@ class ViewerApplication {
   _touchInfo = null;
   _isCtrlKeyDown = false;
   _nimbusDataPromise = null;
-  constructor() {}
   async initialize(appConfig) {
     const {
       appOptions: AppOptions
@@ -2846,9 +2843,6 @@ class ViewerApplication {
   get page() {
     return this.pdfViewer.currentPageNumber;
   }
-  set page(val) {
-    this.pdfViewer.currentPageNumber = val;
-  }
   get supportsPrinting() {
     return PDFPrintServiceFactory.instance.supportsPrinting;
   }
@@ -2965,21 +2959,6 @@ class ViewerApplication {
     const {
       appOptions: AppOptions
     } = this;
-    let deprecatedArgs = false;
-    if (typeof args === "string") {
-      args = {
-        url: args
-      };
-      deprecatedArgs = true;
-    } else if (args?.byteLength) {
-      args = {
-        data: args
-      };
-      deprecatedArgs = true;
-    }
-    if (deprecatedArgs) {
-      console.error("The `PDFViewerApplication.open` signature was updated, please use an object instead.");
-    }
     if (this.pdfLoadingTask) {
       await this.close();
     }
@@ -4933,6 +4912,7 @@ class AltTextManager {
     this.#removeOnClickListeners();
     this.#uiManager?.addEditListeners();
     this.#eventBus._off("resize", this.#boundSetPosition);
+    this.#currentEditor.altTextFinish();
     this.#currentEditor = null;
     this.#uiManager = null;
   }
@@ -6053,12 +6033,6 @@ class PDFFindController {
   #onFind(state) {
     if (!state) {
       return;
-    }
-    if (state.phraseSearch === false) {
-      console.error("The `phraseSearch`-parameter was removed, please provide " + "an Array of strings in the `query`-parameter instead.");
-      if (typeof state.query === "string") {
-        state.query = state.query.match(/\S+/g);
-      }
     }
     const pdfDocument = this._pdfDocument;
     const {
@@ -9291,7 +9265,7 @@ class PDFViewer {
   #scaleTimeoutId = null;
   #textLayerMode = _ui_utils.TextLayerMode.ENABLE;
   constructor(options) {
-    const viewerVersion = '3.11.176';
+    const viewerVersion = '4.0.8';
     if (_pdfjsLib.version !== viewerVersion) {
       throw new Error(`The API version "${_pdfjsLib.version}" does not match the Viewer version "${viewerVersion}".`);
     }
@@ -9319,10 +9293,6 @@ class PDFViewer {
     this.imageResourcesPath = options.imageResourcesPath || "";
     this.enablePrintAutoRotate = options.enablePrintAutoRotate || false;
     this.removePageBorders = options.removePageBorders || false;
-    if (options.useOnlyCssZoom) {
-      console.error("useOnlyCssZoom was removed, please use `maxCanvasPixels = 0` instead.");
-      options.maxCanvasPixels = 0;
-    }
     this.isOffscreenCanvasSupported = options.isOffscreenCanvasSupported ?? true;
     this.maxCanvasPixels = options.maxCanvasPixels;
     this.l10n = options.l10n || _l10n_utils.NullL10n;
@@ -9496,9 +9466,9 @@ class PDFViewer {
   get pagesPromise() {
     return this.pdfDocument ? this._pagesCapability.promise : null;
   }
-  #layerProperties() {
+  get _layerProperties() {
     const self = this;
-    return {
+    return (0, _pdfjsLib.shadow)(this, "_layerProperties", {
       get annotationEditorUIManager() {
         return self.#annotationEditorUIManager;
       },
@@ -9523,7 +9493,7 @@ class PDFViewer {
       get linkService() {
         return self.linkService;
       }
-    };
+    });
   }
   #initializePermissions(permissions) {
     const params = {
@@ -9707,7 +9677,6 @@ class PDFViewer {
           console.error(`Invalid AnnotationEditor mode: ${mode}`);
         }
       }
-      const layerProperties = this.#layerProperties.bind(this);
       const viewerElement = this._scrollMode === _ui_utils.ScrollMode.PAGE ? null : this.viewer;
       const scale = this.currentScale;
       const viewport = firstPdfPage.getViewport({
@@ -9733,7 +9702,7 @@ class PDFViewer {
           maxCanvasPixels: this.maxCanvasPixels,
           pageColors: this.pageColors,
           l10n: this.l10n,
-          layerProperties
+          layerProperties: this._layerProperties
         });
         this._pages.push(pageView);
       }
@@ -10842,9 +10811,7 @@ var _text_highlighter = __webpack_require__(38);
 var _text_layer_builder = __webpack_require__(39);
 var _xfa_layer_builder = __webpack_require__(40);
 const MAX_CANVAS_PIXELS = _app_options.compatibilityParams.maxCanvasPixels || 16777216;
-const DEFAULT_LAYER_PROPERTIES = () => {
-  return null;
-};
+const DEFAULT_LAYER_PROPERTIES = null;
 class PDFPageView {
   #annotationMode = _pdfjsLib.AnnotationMode.ENABLE_FORMS;
   #hasRestrictedScaling = false;
@@ -10886,10 +10853,6 @@ class PDFPageView {
     this.resume = null;
     this._isStandalone = !this.renderingQueue?.hasViewer();
     this._container = container;
-    if (options.useOnlyCssZoom) {
-      console.error("useOnlyCssZoom was removed, please use `maxCanvasPixels = 0` instead.");
-      this.maxCanvasPixels = 0;
-    }
     this._annotationCanvasMap = null;
     this.annotationLayer = null;
     this.annotationEditorLayer = null;
@@ -10987,7 +10950,7 @@ class PDFPageView {
     return (0, _pdfjsLib.shadow)(this, "_textHighlighter", new _text_highlighter.TextHighlighter({
       pageIndex: this.id - 1,
       eventBus: this.eventBus,
-      findController: this.#layerProperties().findController
+      findController: this.#layerProperties.findController
     }));
   }
   async #renderAnnotationLayer() {
@@ -11414,7 +11377,7 @@ class PDFPageView {
         fieldObjectsPromise,
         hasJSActionsPromise,
         linkService
-      } = this.#layerProperties();
+      } = this.#layerProperties;
       this._annotationCanvasMap ||= new Map();
       this.annotationLayer = new _annotation_layer_builder.AnnotationLayerBuilder({
         pageDiv: div,
@@ -11512,7 +11475,7 @@ class PDFPageView {
       if (!this.annotationEditorLayer) {
         const {
           annotationEditorUIManager
-        } = this.#layerProperties();
+        } = this.#layerProperties;
         if (!annotationEditorUIManager) {
           return;
         }
@@ -11537,7 +11500,7 @@ class PDFPageView {
         const {
           annotationStorage,
           linkService
-        } = this.#layerProperties();
+        } = this.#layerProperties;
         this.xfaLayer = new _xfa_layer_builder.XfaLayerBuilder({
           pageDiv: div,
           pdfPage,
@@ -16324,8 +16287,8 @@ Object.defineProperty(exports, "getViewerConfiguration", ({
   }
 }));
 var _app_manager = __webpack_require__(1);
-const pdfjsVersion = '3.11.176';
-const pdfjsBuild = '57d196e34';
+const pdfjsVersion = '4.0.8';
+const pdfjsBuild = 'da4fdc76a';
 document.blockUnblockOnload?.(true);
 })();
 

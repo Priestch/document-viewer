@@ -4,10 +4,14 @@ mod utils_gen;
 
 use crate::utils_gen::UtilsGen;
 use oxc::allocator::{Allocator, CloneIn, Vec as OxcVec};
-use oxc::ast::ast::{BindingPatternKind, BindingRestElement, ClassElement, ClassType, Declaration, Expression, FunctionType, MethodDefinitionKind, MethodDefinitionType, ModuleDeclaration, ObjectExpression, ObjectProperty, PropertyDefinitionType, PropertyKey, PropertyKind, Statement, TSTypeAnnotation, TSTypeParameterDeclaration, TSTypeParameterInstantiation, VariableDeclarationKind};
+use oxc::ast::ast::{
+    BindingPatternKind, BindingRestElement, ClassElement, ClassType, Declaration, Expression,
+    FunctionType, MethodDefinitionKind, MethodDefinitionType, ModuleDeclaration, ObjectExpression,
+    ObjectProperty, PropertyDefinitionType, PropertyKey, PropertyKind, Statement, TSTypeAnnotation,
+    TSTypeParameterDeclaration, TSTypeParameterInstantiation, VariableDeclarationKind,
+};
 use oxc::ast::visit::walk::{
-    walk_module_declaration, walk_object_expression, walk_object_property,
-    walk_statement,
+    walk_module_declaration, walk_object_expression, walk_object_property, walk_statement,
 };
 use oxc::ast::{match_declaration, AstBuilder, AstKind, Visit};
 use oxc::codegen::{Codegen, Context, Gen, GenExpr};
@@ -76,114 +80,119 @@ impl<'a> AppExtractor<'a> {
     }
 
     fn add_class_method(&mut self, it: &ObjectProperty<'_>) {
-        let mut is_method = false;
         match it.kind {
             PropertyKind::Get | PropertyKind::Init => match self.viewer_app {
                 Declaration::ClassDeclaration(ref mut class) => {
-                    if it.kind == PropertyKind::Init && it.method {
-                        is_method = true;
-                    } else {
-                        is_method = true;
-                    }
-                    if is_method {
-                        let mut name = "";
-                        match &it.key {
-                            PropertyKey::StaticIdentifier(ident) => {
-                                name = ident.name.as_str();
-                            }
-                            _ => {}
+                    let mut name = "";
+                    match &it.key {
+                        PropertyKey::StaticIdentifier(ident) => {
+                            name = ident.name.as_str();
                         }
+                        _ => {}
+                    }
 
-                        match &it.value {
-                            Expression::FunctionExpression(func) => {
-                                let identifier = self
-                                    .app_builder
-                                    .binding_identifier(SPAN, self.app_builder.atom(name));
-                                let span = func.span();
-                                let text = get_span_text(&self.source_text, span, span.end as usize);
-                                let mut access_options_obj = false;
-                                if text.contains("AppOptions.") {
-                                    access_options_obj = true;
-                                }
-                                let mut func_body = func.body.clone_in(self.app_builder.allocator);
-                                if access_options_obj {
-                                    let property = self.app_builder.binding_property(
+                    match &it.value {
+                        Expression::FunctionExpression(func) => {
+                            let identifier = self
+                                .app_builder
+                                .binding_identifier(SPAN, self.app_builder.atom(name));
+                            let span = func.span();
+                            let text = get_span_text(&self.source_text, span, span.end as usize);
+                            let mut access_options_obj = false;
+                            if text.contains("AppOptions.") {
+                                access_options_obj = true;
+                            }
+                            let mut func_body = func.body.clone_in(self.app_builder.allocator);
+                            if access_options_obj {
+                                let property = self.app_builder.binding_property(
+                                    SPAN,
+                                    self.app_builder.property_key_identifier_name(
                                         SPAN,
-                                        self.app_builder.property_key_identifier_name(SPAN, Atom::from("appOptions")),
-                                        self.app_builder.binding_pattern(
-                                            self.app_builder.binding_pattern_kind_binding_identifier(SPAN, Atom::from("AppOptions")),
-                                            None::<TSTypeAnnotation>,
-                                            false,
+                                        Atom::from("appOptions"),
+                                    ),
+                                    self.app_builder.binding_pattern(
+                                        self.app_builder.binding_pattern_kind_binding_identifier(
+                                            SPAN,
+                                            Atom::from("AppOptions"),
                                         ),
-                                        true,
+                                        None::<TSTypeAnnotation>,
                                         false,
-                                    );
-                                    let init =
-                                        self.app_builder.expression_identifier_reference(SPAN, Atom::from("this"));
-                                    let declaration = self.app_builder.declaration_from_variable(self.app_builder.variable_declaration(
+                                    ),
+                                    true,
+                                    false,
+                                );
+                                let init = self
+                                    .app_builder
+                                    .expression_identifier_reference(SPAN, Atom::from("this"));
+                                let declaration = self.app_builder.declaration_from_variable(
+                                    self.app_builder.variable_declaration(
                                         SPAN,
                                         VariableDeclarationKind::Const,
-                                        self.app_builder.vec1(self.app_builder.variable_declarator(
-                                            SPAN,
-                                            VariableDeclarationKind::Const,
-                                            self.app_builder.binding_pattern(
-                                                self.app_builder.binding_pattern_kind_object_pattern(
-                                                    SPAN,
-                                                    self.app_builder.vec1(property),
-                                                    None::<BindingRestElement>,
+                                        self.app_builder.vec1(
+                                            self.app_builder.variable_declarator(
+                                                SPAN,
+                                                VariableDeclarationKind::Const,
+                                                self.app_builder.binding_pattern(
+                                                    self.app_builder
+                                                        .binding_pattern_kind_object_pattern(
+                                                            SPAN,
+                                                            self.app_builder.vec1(property),
+                                                            None::<BindingRestElement>,
+                                                        ),
+                                                    None::<TSTypeAnnotation>,
+                                                    false,
                                                 ),
-                                                None::<TSTypeAnnotation>,
+                                                Some(init),
                                                 false,
                                             ),
-                                            Some(init),
-                                            false,
-                                        )),
-                                        false,
-                                    ));
-                                    match func_body {
-                                        None => {}
-                                        Some(ref mut body) => {
-                                            body.statements.insert(0,
-                                                Statement::from(declaration)
-                                            )
-                                        }
-                                    }
-                                }
-
-                                class.body.body.push(
-                                    self.app_builder.class_element_from_method_definition(
-                                        self.app_builder.method_definition(
-                                            MethodDefinitionType::MethodDefinition,
-                                            SPAN,
-                                            OxcVec::new_in(self.app_builder.allocator),
-                                            it.key.clone_in(self.app_builder.allocator),
-                                            self.app_builder.function(
-                                                FunctionType::FunctionExpression,
-                                                SPAN,
-                                                Some(identifier),
-                                                func.generator,
-                                                func.r#async,
-                                                func.declare,
-                                                None::<TSTypeParameterDeclaration>,
-                                                None,
-                                                func.params.clone_in(self.app_builder.allocator),
-                                                func.return_type
-                                                    .clone_in(self.app_builder.allocator),
-                                                func_body,
-                                            ),
-                                            MethodDefinitionKind::Method,
-                                            false,
-                                            false,
-                                            false,
-                                            false,
-                                            None,
                                         ),
+                                        false,
                                     ),
                                 );
+                                match func_body {
+                                    None => {}
+                                    Some(ref mut body) => {
+                                        body.statements.insert(0, Statement::from(declaration))
+                                    }
+                                }
                             }
-                            _ => {}
-                        };
-                    }
+
+                            let mut method_kind = MethodDefinitionKind::Method;
+                            if it.kind == PropertyKind::Get {
+                                method_kind = MethodDefinitionKind::Get
+                            }
+                            class.body.body.push(
+                                self.app_builder.class_element_from_method_definition(
+                                    self.app_builder.method_definition(
+                                        MethodDefinitionType::MethodDefinition,
+                                        SPAN,
+                                        OxcVec::new_in(self.app_builder.allocator),
+                                        it.key.clone_in(self.app_builder.allocator),
+                                        self.app_builder.function(
+                                            FunctionType::FunctionExpression,
+                                            SPAN,
+                                            Some(identifier),
+                                            func.generator,
+                                            func.r#async,
+                                            func.declare,
+                                            None::<TSTypeParameterDeclaration>,
+                                            None,
+                                            func.params.clone_in(self.app_builder.allocator),
+                                            func.return_type.clone_in(self.app_builder.allocator),
+                                            func_body,
+                                        ),
+                                        method_kind,
+                                        false,
+                                        false,
+                                        false,
+                                        false,
+                                        None,
+                                    ),
+                                ),
+                            );
+                        }
+                        _ => {}
+                    };
                 }
                 _ => {}
             },
@@ -395,13 +404,13 @@ fn main() {
 
     extractor.visit_program(&ret.program);
 
-    let default_external_services = cwd.join("packages/document-viewer/src/default_external_services.js");
+    let default_external_services =
+        cwd.join("packages/document-viewer/src/default_external_services.js");
 
     fs::write(
         &default_external_services,
         extractor.get_default_external_services_text(),
     );
-
 
     let mut codegen = Codegen::new();
     Statement::from(extractor.viewer_app).gen(&mut codegen, Context::default());

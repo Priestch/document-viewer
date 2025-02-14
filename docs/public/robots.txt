@@ -1,0 +1,23 @@
+User-agent: Googlebot
+Disallow:
+
+User-agent: MSNBot
+Disallow:
+
+User-agent: Slurp
+Disallow:
+
+User-agent: baiduspider
+Disallow:
+
+User-agent: yahoo-mmcrawler
+Disallow:
+
+User-agent: yahoo-blogs/v3.9
+Disallow:
+
+User-agent: *
+Disallow:
+
+Crawl-delay: 60
+Sitemap: https://priestch.github.io/document-viewer/docs/sitemap.xml

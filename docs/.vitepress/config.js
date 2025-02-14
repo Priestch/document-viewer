@@ -22,7 +22,10 @@ const config = {
   sitemap: {
     hostname: "https://priestch.github.io/document-viewer/docs/",
   },
-  head: [["script", {}, scriptContent]],
+  head: [
+    ["script", {}, scriptContent],
+    ["meta", { name: "msvalidate.01", content: "EF5BE1CFB010126F7E1CBCD05E624E67" }],
+  ],
   themeConfig: {
     search: {
       provider: "local",

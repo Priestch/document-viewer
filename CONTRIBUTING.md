@@ -15,6 +15,7 @@ to build based on submodule `pdf.js` in `packages/document-viewer/pdf.js`. The s
 1. Update the pdf.js submodule to a specific release version.
    - Run `git submodule update --remote` to update PDF.js
    - Checkout to the release version want to sync
+   - Make sure to run `npm ci` to update the dependencies
 2. Run `pnpm syncWithUpstream`
 3. Review auto-generated files
    - `@document-kits/viewer/src/app_helper.js`

@@ -21,6 +21,11 @@ class PDFViewerApplication extends ViewerApplication {
     return super.run(config, validateFileURL);
   }
 
+  _parseHashParams() {
+    const { loadFakeWorker } = this.helper;
+    return super._parseHashParams(loadFakeWorker);
+  }
+
   bindEvents() {
     const AppOptions = this.appOptions;
     const { eventBus, _boundEvents } = this;

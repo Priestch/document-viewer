@@ -9,6 +9,7 @@ const options1 = {
   resourcePath: "document-viewer",
   disableCORSCheck: true,
   disableAutoSetTitle: true,
+  appOptions: {},
 };
 
 const options2 = {

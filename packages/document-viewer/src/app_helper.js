@@ -1,4 +1,5 @@
 import {
+  CursorTool,
   getActiveOrFocusedElement,
   normalizeWheelEventDirection,
   parseQueryString,
@@ -7,10 +8,9 @@ import {
 } from "../pdf.js/web/ui_utils";
 import {
   GlobalWorkerOptions,
-  loadScript,
+  // loadScript,
   PDFWorker,
 } from "pdfjs-lib";
-import {CursorTool} from "../pdf.js/web/pdf_cursor_tools";
 
 const WHEEL_ZOOM_DISABLED_TIMEOUT = 1000; // ms
 
@@ -46,7 +46,8 @@ function createHelper(PDFViewerApplication) {
       window.pdfjsWorker = await import("pdfjs/pdf.worker.js");
       return;
     }
-    await loadScript(PDFWorker.workerSrc);
+    // await loadScript(PDFWorker.workerSrc);
+    await __non_webpack_import__(PDFWorker.workerSrc);
   }
 
   async function loadPDFBug(self) {

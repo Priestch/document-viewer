@@ -70,7 +70,7 @@ gulp.task(
     function createGeneric() {
       console.log();
       console.log("### Creating generic document viewer");
-      const defines = builder.merge(DEFINES, { GENERIC: true });
+      const defines = { ...DEFINES, GENERIC: true };
 
       return buildGenericApp(defines);
     },

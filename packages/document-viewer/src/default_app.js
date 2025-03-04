@@ -146,7 +146,7 @@ class ViewerApplication {
     const { appOptions: AppOptions } = this;
     let l10nPromise;
     if (typeof PDFJSDev !== "undefined" && !PDFJSDev.test("GENERIC")) {
-      l10nPromise = this.externalServices.createL10n();
+      l10nPromise = this.externalServices.createL10n(AppOptions.get("locale"));
     }
     this.appConfig = appConfig;
     if (typeof PDFJSDev === "undefined" ? window.isGECKOVIEW : PDFJSDev.test("GECKOVIEW")) {
@@ -175,7 +175,7 @@ class ViewerApplication {
       }
     }
     if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-      l10nPromise = this.externalServices.createL10n();
+      l10nPromise = this.externalServices.createL10n(AppOptions.get("locale"));
     }
     this.l10n = await l10nPromise;
     document.getElementsByTagName("html")[0].dir = this.l10n.getDirection();

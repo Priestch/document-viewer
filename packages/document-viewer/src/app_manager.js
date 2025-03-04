@@ -22,13 +22,14 @@ function getViewerConfiguration(el) {
       zoomIn: el.querySelector("[data-dom-id='zoomIn']"),
       zoomOut: el.querySelector("[data-dom-id='zoomOut']"),
       viewFind: el.querySelector("[data-dom-id='viewFind']"),
-      openFile:
-        typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")
-          ? el.querySelector("[data-dom-id='openFile']")
-          : null,
       print: el.querySelector("[data-dom-id='print']"),
       editorFreeTextButton: el.querySelector("[data-dom-id='editorFreeText']"),
       editorFreeTextParamsToolbar: el.querySelector("[data-dom-id='editorFreeTextParamsToolbar']"),
+      editorHighlightButton: el.querySelector("[data-dom-id='editorHighlight']"),
+      editorHighlightParamsToolbar: el.querySelector(
+        "[data-dom-id='editorHighlightParamsToolbar']"
+      ),
+      editorHighlightColorPicker: el.querySelector("[data-dom-id='editorHighlightColorPicker']"),
       editorInkButton: el.querySelector("[data-dom-id='editorInk']"),
       editorInkParamsToolbar: el.querySelector("[data-dom-id='editorInkParamsToolbar']"),
       editorStampButton: el.querySelector("[data-dom-id='editorStamp']"),
@@ -182,14 +183,14 @@ function createViewerApp(options) {
     disableAutoSetTitle = false,
     appOptions = {},
   } = options;
-  const workerSrc = `${resourcePath}/build/pdf.worker.js`;
+  const workerSrc = `${resourcePath}/build/pdf.worker.mjs`;
 
   const viewerOptions = new AppOptions();
   Object.keys(appOptions).forEach(function (key) {
     viewerOptions.set(key, appOptions[key]);
   });
   viewerOptions.set("workerSrc", workerSrc);
-  viewerOptions.set("sandboxBundleSrc", `${resourcePath}/build/pdf.sandbox.js`);
+  viewerOptions.set("sandboxBundleSrc", `${resourcePath}/build/pdf.sandbox.mjs`);
   viewerOptions.set("defaultUrl", src);
   viewerOptions.set("disableCORSCheck", disableCORSCheck);
   viewerOptions.set("disableAutoSetTitle", disableAutoSetTitle);
@@ -197,7 +198,7 @@ function createViewerApp(options) {
   // set disablePreferences to enable custom appOptions work
   viewerOptions.set("disablePreferences", true);
 
-  const localeUrl = `${resourcePath}/web/locale/locale.properties`;
+  const localeUrl = `${resourcePath}/web/locale/locale.json`;
   injectLocaleResource(localeUrl);
 
   const app = new PDFViewerApplication(viewerOptions);

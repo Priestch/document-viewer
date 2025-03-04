@@ -44,8 +44,8 @@ class GenericExternalServices extends DefaultExternalServices {
     return new GenericPreferences();
   }
 
-  static createL10n({ locale = "en-US" }) {
-    return new GenericL10n(locale);
+  static createL10n(lang) {
+    return new GenericL10n(lang);
   }
 
   static createScripting({ sandboxBundleSrc }) {

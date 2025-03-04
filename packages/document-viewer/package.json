@@ -12,7 +12,7 @@
     "api": "node jsdoc/extract-doc.js"
   },
   "exports": {
-    ".": "./dist/generic/web/app.js",
+    ".": "./dist/generic/build/app.js",
     "./viewer.css": "./dist/generic/web/viewer.css",
     "./*": "./dist/generic/web/*"
   },

@@ -27,17 +27,31 @@ component, and it suffers some other issues.
 I learn a lot from the pdf.js project. This project is somehow giving back to the community. I will try to
 make it easier to integrate PDF viewer to your project.
 
-# Online Demos
+# Demos
 
-See https://priestch.github.io/document-viewer/demos/
+<details>
+  <summary>Default PDF.js Viewer</summary>
+
+![Default PDF.js Viewer](/screenshots/default_pdfjs_viewer.png)
+
+</details>
+
+<details>
+  <summary>Custom Toolbar</summary>
+
+![Custom Toolbar](/screenshots/custom_toolbar.png)
+
+</details>
+
+<details>
+  <summary>Multiple PDF Files</summary>
+
+![Multiple PDF Files](/screenshots/multiple_pdfs.png)
+
+</details>
+
+The online demos https://priestch.github.io/document-viewer/demos/
 
 # Docs
 
 See https://priestch.github.io/document-viewer/
-
-# Planed Todos
-
-- [x] Display single PDF document
-- [x] Cli starter
-- [x] Docs
-- [x] Display multiple documents

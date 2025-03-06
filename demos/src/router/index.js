@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import CustomToolbar from "../views/CustomToolbar.vue";
 import MultipleFiles from "../views/MultipleFiles.vue";
+import HomeView from "../views/HomeView.vue";
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -8,7 +9,7 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      redirect: "/custom-toolbar",
+      component: HomeView,
     },
     {
       path: "/custom-toolbar",

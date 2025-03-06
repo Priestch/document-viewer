@@ -9,6 +9,9 @@ console.log("route", route);
 <template>
   <aside>
     <nav>
+      <RouterLink class="nav-link" :class="{ active: route.path === '/' }" to="/"
+        >PDF.js Viewer</RouterLink
+      >
       <RouterLink
         class="nav-link"
         :class="{ active: route.path === '/custom-toolbar' }"

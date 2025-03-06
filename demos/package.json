@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@document-kits/viewer": "workspace:*",
+    "@document-kits/viewer": "0.11.0-beta.3",
     "vue": "^3.3.4",
     "vue-router": "^4.2.4"
   },

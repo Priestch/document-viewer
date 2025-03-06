@@ -1,8 +1,10 @@
 #![feature(allocator_api)]
 
 mod utils_gen;
+mod style;
 
 use crate::utils_gen::UtilsGen;
+use crate::style::{extract_css};
 use oxc::allocator::{Allocator, CloneIn, Vec as OxcVec};
 use oxc::ast::ast::{
     BindingPatternKind, BindingRestElement, ClassElement, ClassType, Declaration, Expression,
@@ -21,6 +23,7 @@ use std::cell::RefCell;
 use std::cmp::min;
 use std::hash::Hash;
 use std::{env, fs};
+
 
 fn get_span_text(source_text: &str, span: Span, size: usize) -> String {
     let start: usize = span.start as usize;
@@ -416,4 +419,7 @@ fn main() {
     Statement::from(extractor.viewer_app).gen(&mut codegen, Context::default());
     let output = cwd.join("packages/document-viewer/src/default_app.js");
     fs::write(&output, codegen.into_source_text());
+
+    let stylesheet_path = cwd.join("packages/document-viewer/pdf.js/web/viewer.css");
+    extract_css(&stylesheet_path);
 }

@@ -7,4 +7,5 @@ edition.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+lightningcss = { version = "1.0.0-alpha.63", features = ["serde", "visitor"] }
 oxc = { version = "0.25.0", features = ["codegen"] }

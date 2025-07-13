@@ -32,6 +32,7 @@ const config = {
     },
     nav: [
       { text: "Home", link: "/" },
+      { text: "Cookbook", link: "/cookbook" },
       { text: "Blog", link: "/blog" },
       { text: "API", link: "/api" },
       {

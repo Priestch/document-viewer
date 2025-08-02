@@ -15,7 +15,9 @@ head:
 
 You can set [`textLayerMode`](/learned-knowledge/#textlayermode) option to 0 to disable text layer totally.
 
-## How to setup `Range Request` only download necessary data?
+## How to Lazy Load PDF File?
+
+You can use the technique `Range Request` to lazy load the PDF and only download necessary data.
 
 The `Range Request` only works if you use the default pdf.js viewer. if not, you have to implement all by yourself to
 support `Range Request`. Even if you use the default viewer, the server must also be configured to

@@ -1,5 +1,10 @@
 ---
 layout: home
+description:
+  An out-of-the-box Open Source PDF Viewer based on PDF.js. Easy, performant and framework-agnostic way to embed a PDF in any website.
+  You can use it like a charm in Vue, Lit, Solid.js or any other frontend framework. It's open source and free to use.
+  You can customize the toolbar, support multiple documents, and easily sync with upstream code. If you want more than it offers,
+  go to the github repository and contribute to the project.
 head:
   - - link
     - rel: canonical

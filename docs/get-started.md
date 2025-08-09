@@ -1,5 +1,6 @@
 ---
 title: Get Started with @document-kits/viewer
+description: A quick start guide to using node package manager like npm/pnpm to initialize a starter project with @document-kits/viewer.
 head:
   - - link
     - rel: canonical

@@ -1,5 +1,6 @@
 ---
 title: PDF Viewer API
+description: The API reference for the @document-kits/viewer component.
 head:
   - - link
     - rel: canonical

@@ -29,21 +29,21 @@ make it easier to integrate PDF viewer to your project.
 
 # Demos
 
-<details>
+<details open>
   <summary>Default PDF.js Viewer</summary>
 
 ![Default PDF.js Viewer](/screenshots/default_pdfjs_viewer.png)
 
 </details>
 
-<details>
+<details open>
   <summary>Custom Toolbar</summary>
 
 ![Custom Toolbar](/screenshots/custom_toolbar.png)
 
 </details>
 
-<details>
+<details open>
   <summary>Multiple PDF Files</summary>
 
 ![Multiple PDF Files](/screenshots/multiple_pdfs.png)

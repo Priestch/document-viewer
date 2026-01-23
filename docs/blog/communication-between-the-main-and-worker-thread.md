@@ -1,5 +1,6 @@
 ---
 title: Communication between Main and Worker Threads
+description: An overview of how to facilitate communication between the main thread and worker threads in a web application.
 head:
   - - link
     - rel: canonical

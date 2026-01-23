@@ -1,5 +1,6 @@
 ---
 title: The Architecture of PDF.js Project
+description: An overview of the architecture of the PDF.js project.
 head:
   - - link
     - rel: canonical

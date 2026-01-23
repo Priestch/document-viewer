@@ -1,5 +1,6 @@
 ---
 title: Common Pitfalls of PDF.js
+description: Common pitfalls when integrating PDF.js and how to avoid them.
 head:
   - - link
     - rel: canonical

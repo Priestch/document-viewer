@@ -1,5 +1,6 @@
 ---
 title: Useful Learning Resources of PDF and PDF.js
+description: A collection of useful resources for learning about PDF specifications and PDF.js.
 head:
   - - link
     - rel: canonical

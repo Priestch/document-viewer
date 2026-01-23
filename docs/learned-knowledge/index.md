@@ -1,5 +1,6 @@
 ---
 title: The Knowledge I Learned from PDF.js
+description: An overview of the critical knowledge learned from the PDF.js project to help understand its design and integration challenges.
 head:
   - - link
     - rel: canonical

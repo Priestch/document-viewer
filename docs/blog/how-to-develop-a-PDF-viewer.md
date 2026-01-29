@@ -15,7 +15,7 @@ This article is the overview for a series: each major approach below will have i
 
 ## Four Major Ways to Develop a PDF Viewer
 
-### Based on images
+### Based on image
 
 Convert each page of the PDF into an image (e.g., PNG or JPEG) on the server side. Then, display these images in a web application using HTML `<img>` tags or a JavaScript image viewer library. This approach is relatively simple but may not provide the best user experience, especially for large documents. It's not extensible and all other features like text selection, search, annotations, etc. will be limited to what you can do with images.
 
@@ -58,3 +58,7 @@ An Open Source PDF viewer also built using PDFium Wasm. It provides a polished, 
 ### Buying a commercial solution
 
 There are several commercial PDF viewer solutions available. You can see [commercial pdf viewers](/blog/3-ways-to-display-pdf-in-html#commercial-pdf-viewer).
+
+### Blog Series
+
+- [How to Build a PDF Viewer Based on Image](/blog/build-pdf-viewer-based-on-image.html)

@@ -12,13 +12,13 @@ const posts = [
     date: '2026-01-29',
     tag: 'Tutorial'
   },
-{
+    {
     title: 'How to Develop a PDF Viewer',
     description: 'A comprehensive guide on developing your own PDF viewer from scratch.',
     link: './how-to-develop-a-pdf-viewer',
     date: '2026-01-20',
     tag: 'Guide'
-  }
+  },
   {
     title: 'Three Ways to Display a PDF in HTML',
     description: 'Learn how to display PDF files in your HTML app with three ways, including using native elements, open source library like PDF.js, and commercial PDF viewers.',

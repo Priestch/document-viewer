@@ -1,5 +1,5 @@
 ---
-title: How to Develop a PDF Viewer as Frontend Engineer
+title: How to Develop a PDF Viewer as a Frontend Engineer
 description: Developing a PDF viewer from scratch is a complex task that requires more than just frontend skills. Learn about the major approaches to building a PDF viewer.
 head:
   - - link
@@ -7,9 +7,11 @@ head:
       href: https://priestch.github.io/document-viewer/docs/blog/how-to-develop-a-PDF-viewer.html
 ---
 
-# How to Develop a PDF Viewer as Frontend Engineer
+# How to Develop a PDF Viewer as a Frontend Engineer
 
 Developing a PDF viewer from scratch is a complex and very challenging task, your frontend skills alone will not be enough. You will need a good understanding of the PDF file format, rendering techniques, and performance optimization.
+
+This article is the overview for a series: each major approach below will have its own independent, deep-dive post. Links will be added as the series is published.
 
 ## Four Major Ways to Develop a PDF Viewer
 
@@ -19,7 +21,7 @@ Convert each page of the PDF into an image (e.g., PNG or JPEG) on the server sid
 
 ### Using PDF.js
 
-[PDF.js](https://mozilla.github.io/pdf.js/) is an open-source project developed by Mozilla built using HTML5 technologies. It allows you to render PDF documents directly in the browser. The limitation of this approach is that PDF.js is not developer friendly, the official default viewer is not easy to integrate into existing applications, and customizing it can be challenging. The official package provided is `pdfjs-dist/`, which only includes the core PDF rendering library without the viewer UI. The default viewer is built on the top of this core library and the whole UI code is not published as a separate package. It's the source of chaos in the ecosystem, but the bad news is that it's on purpose. They try to avoid people customizing the viewer too much to reduce maintenance burden.
+[PDF.js](https://mozilla.github.io/pdf.js/) is an open-source project developed by Mozilla built using HTML5 technologies. It allows you to render PDF documents directly in the browser. The limitation of this approach is that PDF.js is not developer-friendly, the official default viewer is not easy to integrate into existing applications, and customizing it can be challenging. The official package provided is `pdfjs-dist/`, which only includes the core PDF rendering library without the viewer UI. The default viewer is built on top of this core library and lives in the PDF.js repository, but the UI code isn't published as a separate package. This setup causes confusion in the ecosystem, and the bad news is that it's on purpose: they try to avoid people customizing the viewer too much to reduce maintenance burden.
 
 ### Three ways to integrate PDF.js
 
@@ -39,7 +41,7 @@ If you want full control over the viewer UI and functionality, you can build you
 
 > “Foxit is honored to be chosen as the PDF provider for the open-source PDFium project,” says Eugene Xiong – Founder and Chairman of the Board at Foxit. “Our high performance, highly accurate, and platform independent software technology will help developers everywhere to incorporate powerful PDF technology when creating innovative applications.”
 
-[PDFium](https://pdfium.googlesource.com/pdfium/) is an open-source PDF rendering engine first developed by [Foxit](https://www.foxit.com/nl/company/press/5606.html), then acquired by Google. It is used in the Chrome browser and other applications. PDFium can be compiled to WebAssembly (Wasm), allowing it to run in web browsers. This approach provides an alternative to PDF.js for rendering PDF documents in the browser. However, integrating PDFium into a web application can be complex and may require significant effort to set up and optimize. The wasm only provides the rendering engine, and you still need to build the viewer UI and other features on top of it.
+[PDFium](https://pdfium.googlesource.com/pdfium/) is an open-source PDF rendering engine first developed by [Foxit](https://www.foxit.com/nl/company/press/5606.html), then acquired by Google. It is used in the Chrome browser and other applications. PDFium can be compiled to WebAssembly (Wasm), allowing it to run in web browsers. This approach provides an alternative to PDF.js for rendering PDF documents in the browser. However, integrating PDFium into a web application can be complex and may require significant effort to set up and optimize. The Wasm only provides the rendering engine, and you still need to build the viewer UI and other features on top of it.
 
 ### Related Projects
 

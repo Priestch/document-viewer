@@ -1,3 +1,12 @@
+---
+title: Build PDF Viewer Based on Image
+description: Learn how to build a PDF viewer based on images - an effective approach for simple use cases when you have limited time and resources.
+head:
+  - - link
+    - rel: canonical
+      href: https://priestch.github.io/document-viewer/docs/blog/build-pdf-viewer-based-on-image.html
+---
+
 # Build PDF Viewer Based on Image
 
 It's intuitive to build a PDF viewer based on images when you only got limited time and resources. This approach can be effective for simple use cases, such as displaying static documents or creating a lightweight viewer without advanced features.

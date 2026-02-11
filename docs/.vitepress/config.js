@@ -18,6 +18,9 @@ const config = {
   lastUpdated: true,
   markdown: {
     lineNumbers: false,
+    toc: {
+      level: [2, 4],
+    },
   },
   sitemap: {
     hostname: "https://priestch.github.io/document-viewer/docs/",
@@ -27,6 +30,10 @@ const config = {
     ["meta", { name: "msvalidate.01", content: "EF5BE1CFB010126F7E1CBCD05E624E67" }],
   ],
   themeConfig: {
+    outline: {
+      level: [2, 4],
+      label: "On this page",
+    },
     search: {
       provider: "local",
     },

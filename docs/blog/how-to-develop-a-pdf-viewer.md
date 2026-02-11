@@ -25,7 +25,11 @@ Convert each page of the PDF into an image (e.g., PNG or JPEG) on the server sid
 
 ### Embedding with iframe
 
-You can use the default viewer provided by PDF.js by embedding it in an `<iframe>`. This is the easiest way to get started, but it offers limited customization options.
+You can use the default viewer provided by PDF.js by embedding it in an `<iframe>`. This is the easiest way to get started, but it offers limited customization options. Many open-source projects use this approach to develop their PDF viewers, although it can be very difficult to customize the viewer UI and features, but the limitation is your imagination.
+
+- [PdfJsKit](https://github.com/GleamTech/PdfJsKit)
+
+![PdfJsKit Screenshot](/assets/pdfjs-kit.png)
 
 ### Using `@document-kits/viewer`
 

@@ -6,7 +6,18 @@ const generator = require("@babel/generator");
 const prettier = require("prettier");
 
 const configPath = path.resolve(__dirname, "../pdf.js/.prettierrc");
-const prettierConfig = JSON.parse(fs.readFileSync(configPath, { encoding: "utf-8" }));
+function readPrettierConfig(filePath) {
+  const raw = fs.readFileSync(filePath, { encoding: "utf-8" });
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // Upstream sometimes uses JS object syntax in `.prettierrc`.
+    return new Function(`return (${raw});`)();
+  }
+}
+
+const prettierConfig = readPrettierConfig(configPath);
 
 const globalObjName = "PDFViewerApplication";
 const exportedName = "ViewerApplication";
@@ -182,6 +193,29 @@ function writeApp(instance) {
 }
 
 function writeDefaultServices(instance) {
+  const helperImports = [
+    t.importDeclaration(
+      [
+        t.importSpecifier(t.identifier("CursorTool"), t.identifier("CursorTool")),
+        t.importSpecifier(
+          t.identifier("getActiveOrFocusedElement"),
+          t.identifier("getActiveOrFocusedElement")
+        ),
+        t.importSpecifier(
+          t.identifier("normalizeWheelEventDirection"),
+          t.identifier("normalizeWheelEventDirection")
+        ),
+        t.importSpecifier(t.identifier("RenderingStates"), t.identifier("RenderingStates")),
+        t.importSpecifier(t.identifier("SidebarView"), t.identifier("SidebarView")),
+      ],
+      t.stringLiteral("../pdf.js/web/ui_utils")
+    ),
+    t.importDeclaration(
+      [t.importSpecifier(t.identifier("FeatureTest"), t.identifier("FeatureTest"))],
+      t.stringLiteral("pdfjs-lib")
+    ),
+  ];
+
   const params = [t.identifier("PDFViewerApplication")];
   const body = [
     t.variableDeclaration("const", [
@@ -204,6 +238,8 @@ function writeDefaultServices(instance) {
     t.exportSpecifier(t.identifier("createHelper"), t.identifier("createHelper")),
   ];
   const program = t.program([
+    ...helperImports,
+    ...instance.helperConstants,
     t.functionDeclaration(t.identifier("createHelper"), params, t.blockStatement(body)),
     t.exportNamedDeclaration(null, specifiers),
   ]);
@@ -216,6 +252,7 @@ function transformObjToClass() {
     pre() {
       this.helper_funcs = [];
       this.returnValues = [];
+      this.helperConstants = [];
       this.importDeclarations = [];
       this.classDeclaration = null;
       this.otherDeclarations = [];
@@ -230,6 +267,7 @@ function transformObjToClass() {
           globalObjName,
           "PDFPrintServiceFactory",
           "FORCE_PAGES_LOADED_TIMEOUT",
+          "WHEEL_ZOOM_DISABLED_TIMEOUT",
           "ViewOnLoad",
           "ViewerCssTheme",
         ];
@@ -246,6 +284,8 @@ function transformObjToClass() {
           // PDFViewerApplication variable declaration
           if (t.isIdentifier(declarator.id, { name: globalObjName })) {
             this.classDeclaration = traverseObj(declarator.id.name, path);
+          } else if (t.isIdentifier(declarator.id, { name: "WHEEL_ZOOM_DISABLED_TIMEOUT" })) {
+            this.helperConstants.push(path.node);
           } else {
             this.otherDeclarations.push(path.node);
           }
@@ -264,6 +304,29 @@ function transformObjToClass() {
       },
       IfStatement(path) {
         if (t.isProgram(path.parent)) {
+          let containsPrintServiceInit = false;
+
+          path.traverse({
+            CallExpression(innerPath) {
+              const callee = innerPath.node.callee;
+
+              if (
+                t.isMemberExpression(callee) &&
+                t.isIdentifier(callee.object, { name: "PDFPrintServiceFactory" }) &&
+                t.isIdentifier(callee.property, { name: "initGlobals" })
+              ) {
+                containsPrintServiceInit = true;
+                innerPath.stop();
+              }
+            },
+          });
+
+          // In this wrapper project, print-service binding is performed in `src/app.js`
+          // via `bindPrintServiceFactory`, so helper code must not invoke initGlobals.
+          if (containsPrintServiceInit) {
+            return;
+          }
+
           visitConditionalDeclaration(path, this.returnValues);
           this.helper_funcs.push(path.node);
         }

@@ -40,6 +40,7 @@ if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
 }
 
 const OptionKind = {
+  BROWSER: 0x01,
   VIEWER: 0x02,
   API: 0x04,
   WORKER: 0x08,
@@ -52,6 +53,47 @@ const OptionKind = {
  *       primitive types and cannot rely on any imported types.
  */
 const defaultOptions = {
+  canvasMaxAreaInBytes: {
+    /** @type {number} */
+    value: -1,
+    kind: OptionKind.BROWSER + OptionKind.API,
+  },
+  isInAutomation: {
+    /** @type {boolean} */
+    value: false,
+    kind: OptionKind.BROWSER,
+  },
+  supportsCaretBrowsingMode: {
+    /** @type {boolean} */
+    value: false,
+    kind: OptionKind.BROWSER,
+  },
+  supportsDocumentFonts: {
+    /** @type {boolean} */
+    value: true,
+    kind: OptionKind.BROWSER,
+  },
+  supportsIntegratedFind: {
+    /** @type {boolean} */
+    value: false,
+    kind: OptionKind.BROWSER,
+  },
+  supportsMouseWheelZoomCtrlKey: {
+    /** @type {boolean} */
+    value: true,
+    kind: OptionKind.BROWSER,
+  },
+  supportsMouseWheelZoomMetaKey: {
+    /** @type {boolean} */
+    value: true,
+    kind: OptionKind.BROWSER,
+  },
+  supportsPinchToZoom: {
+    /** @type {boolean} */
+    value: true,
+    kind: OptionKind.BROWSER,
+  },
+
   annotationEditorMode: {
     /** @type {number} */
     value: 0,
@@ -66,6 +108,11 @@ const defaultOptions = {
     /** @type {number} */
     value: 0,
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE,
+  },
+  debuggerSrc: {
+    /** @type {string} */
+    value: "./debugger.mjs",
+    kind: OptionKind.VIEWER,
   },
   defaultZoomDelay: {
     /** @type {number} */
@@ -304,8 +351,8 @@ const defaultOptions = {
       typeof PDFJSDev === "undefined"
         ? "../src/pdf.worker.js"
         : PDFJSDev.test("MOZCENTRAL")
-        ? "resource://pdf.js/build/pdf.worker.js"
-        : "../build/pdf.worker.js",
+        ? "resource://pdf.js/build/pdf.worker.mjs"
+        : "../build/pdf.worker.mjs",
     kind: OptionKind.WORKER,
   },
 };
@@ -329,8 +376,8 @@ if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
     /** @type {string} */
     value:
       typeof PDFJSDev === "undefined"
-        ? "../build/dev-sandbox/pdf.sandbox.js"
-        : "../build/pdf.sandbox.js",
+        ? "../build/dev-sandbox/pdf.sandbox.mjs"
+        : "../build/pdf.sandbox.mjs",
     kind: OptionKind.VIEWER,
   };
 } else if (PDFJSDev.test("CHROME")) {
@@ -346,7 +393,7 @@ if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
   };
   defaultOptions.sandboxBundleSrc = {
     /** @type {string} */
-    value: "../build/pdf.sandbox.js",
+    value: "../build/pdf.sandbox.mjs",
     kind: OptionKind.VIEWER,
   };
 }

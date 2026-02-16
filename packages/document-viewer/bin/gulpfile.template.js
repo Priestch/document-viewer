@@ -16,10 +16,11 @@ function createAppBundle(defines, options) {
       defaultPreferencesDir: options.defaultPreferencesDir,
     }
   );
+  viewerFileConfig.resolve.alias["pdfjs-lib"] = path.resolve(ROOT_DIR, "src/pdf_js/index.js");
+
   return gulp
     .src(ROOT_DIR + "/src/index.js")
     .pipe(webpack2Stream(viewerFileConfig))
-    .pipe(replaceNonWebpackImport())
     .pipe(gulp.dest(APP_DIR));
 }
 
@@ -27,15 +28,14 @@ function createLibraryBundle(defines) {
   const viewerOutputName = "app.js";
 
   const viewerFileConfig = createWebpackConfig(defines, {
-    library: "ViewerApp",
     filename: viewerOutputName,
-    libraryTarget: "umd",
-    umdNamedDefine: true,
+    library: {
+      type: "module",
+    },
   });
-  return gulp
-    .src(ROOT_DIR + "/src/viewer.js")
-    .pipe(webpack2Stream(viewerFileConfig))
-    .pipe(tweakWebpackOutput());
+  viewerFileConfig.resolve.alias["pdfjs-lib"] = path.resolve(ROOT_DIR, "src/pdf_js/index.js");
+
+  return gulp.src(ROOT_DIR + "/src/viewer.js").pipe(webpack2Stream(viewerFileConfig));
 }
 
 function copyToDist() {
@@ -44,14 +44,14 @@ function copyToDist() {
 }
 
 function buildGenericApp(defines, dir) {
-  rimraf.sync(dir);
+  fs.rmSync(dir, { recursive: true, force: true });
 
-  return merge([
+  return ordered([
     createLibraryBundle(defines).pipe(gulp.dest(dir + "build")),
     createWorkerBundle(defines).pipe(gulp.dest(dir + "build")),
     createSandboxBundle(defines).pipe(gulp.dest(dir + "build")),
     createWebBundle(defines, {
-      defaultPreferencesDir: defines.SKIP_BABEL ? "generic/" : "generic-legacy/",
+      defaultPreferencesDir: "generic/",
     }).pipe(gulp.dest(dir + "web")),
     gulp.src(COMMON_WEB_FILES, { base: "web/" }).pipe(gulp.dest(dir + "web")),
     gulp.src("LICENSE").pipe(gulp.dest(dir)),
@@ -92,7 +92,7 @@ gulp.task(
     "locale",
     function scriptingGeneric() {
       const defines = { ...DEFINES, GENERIC: true };
-      return merge([
+      return ordered([
         buildDefaultPreferences(defines, "generic/"),
         createTemporaryScriptingBundle(defines),
       ]);

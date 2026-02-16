@@ -44,8 +44,8 @@ class GenericExternalServices extends DefaultExternalServices {
     return new GenericPreferences();
   }
 
-  static createL10n(lang) {
-    return new GenericL10n(lang);
+  static createL10n() {
+    return new GenericL10n(navigator.language);
   }
 
   static createScripting({ sandboxBundleSrc }) {
@@ -53,8 +53,8 @@ class GenericExternalServices extends DefaultExternalServices {
   }
 }
 
-function bindExternalService(app) {
-  app.externalServices = GenericExternalServices;
+function bindExternalService() {
+  return GenericExternalServices;
 }
 
 export { bindExternalService };

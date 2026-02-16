@@ -58,7 +58,6 @@ pub fn extract_css(sheet_path: &Path) {
             }
         }
     }
-~
     stylesheet.visit(&mut MyVisitor).unwrap();
 
     let res = stylesheet

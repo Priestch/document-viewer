@@ -425,7 +425,7 @@ class ChromeExternalServices extends DefaultExternalServices {
     return new ChromePreferences();
   }
 
-  static createL10n(options) {
+  static createL10n() {
     return new GenericL10n(navigator.language);
   }
 
@@ -436,7 +436,7 @@ class ChromeExternalServices extends DefaultExternalServices {
 
 function bindExternalService(app) {
   rewriteUrlClosure(app.appOptions);
-  app.externalServices = ChromeExternalServices;
+  return ChromeExternalServices;
 }
 
 export { bindExternalService };

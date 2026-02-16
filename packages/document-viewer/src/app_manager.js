@@ -137,13 +137,17 @@ function getViewerConfiguration(el) {
       editorInkThickness: el.querySelector("[data-dom-id='editorInkThickness']"),
       editorInkOpacity: el.querySelector("[data-dom-id='editorInkOpacity']"),
       editorStampAddImage: el.querySelector("[data-dom-id='editorStampAddImage']"),
+      editorFreeHighlightThickness: el.querySelector(
+        "[data-dom-id='editorFreeHighlightThickness']"
+      ),
+      editorHighlightShowAll: el.querySelector("[data-dom-id='editorHighlightShowAll']"),
     },
     printContainer: el.querySelector("[data-dom-id='printContainer']"),
     openFileInput:
       typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")
         ? el.querySelector("[data-dom-id='fileInput']")
         : null,
-    debuggerScriptPath: "../pdf.js/web/debugger.js",
+    debuggerScriptPath: "../pdf.js/web/debugger.mjs",
   };
 }
 

@@ -1,0 +1,109 @@
+name: PDF.js Upgrade Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_commit:
+        description: "Target commit SHA in packages/document-viewer/pdf.js"
+        required: true
+        type: string
+      base_commit:
+        description: "Optional base commit for upstream delta report"
+        required: false
+        type: string
+      run_smoke:
+        description: "Run smoke checks after build"
+        required: true
+        default: true
+        type: boolean
+      create_pr:
+        description: "Create a pull request with generated changes"
+        required: true
+        default: true
+        type: boolean
+      base_branch:
+        description: "PR base branch"
+        required: true
+        default: "main"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 7
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run automated PDF.js upgrade
+        env:
+          TARGET_COMMIT: ${{ inputs.target_commit }}
+          BASE_COMMIT: ${{ inputs.base_commit }}
+          RUN_SMOKE: ${{ inputs.run_smoke }}
+        run: |
+          set -euo pipefail
+          EXTRA_ARGS=""
+          if [ -n "$BASE_COMMIT" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --from $BASE_COMMIT"
+          fi
+          if [ "$RUN_SMOKE" != "true" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --skip-smoke"
+          fi
+          pnpm pdfjs:upgrade --to "$TARGET_COMMIT" --ci $EXTRA_ARGS
+
+      - name: Locate generated report
+        if: ${{ always() }}
+        id: report
+        run: |
+          set -euo pipefail
+          REPORT_FILE=$(find docs/plans -maxdepth 1 -type f -name "*pdfjs-upgrade-auto*.md" | sort | tail -n 1 || true)
+          echo "report_file=$REPORT_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload upgrade report
+        if: ${{ always() && steps.report.outputs.report_file != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdfjs-upgrade-report
+          path: ${{ steps.report.outputs.report_file }}
+
+      - name: Create Pull Request
+        if: ${{ success() && inputs.create_pr }}
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/pdfjs-upgrade-${{ inputs.target_commit }}
+          base: ${{ inputs.base_branch }}
+          commit-message: "chore(pdfjs): upgrade submodule to ${{ inputs.target_commit }}"
+          title: "chore(pdfjs): upgrade to ${{ inputs.target_commit }}"
+          body: |
+            Automated PDF.js upgrade run.
+
+            - Target commit: `${{ inputs.target_commit }}`
+            - Base commit: `${{ inputs.base_commit || 'auto-detected' }}`
+            - Smoke checks: `${{ inputs.run_smoke }}`
+            - Report: `${{ steps.report.outputs.report_file }}`
+
+            Please review generated build/runtime diffs and run a manual demo smoke test before merge.
+          labels: |
+            automated
+            pdfjs-upgrade

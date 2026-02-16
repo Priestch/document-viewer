@@ -39,7 +39,6 @@ import {
   OPS,
   PasswordResponses,
   PermissionFlag,
-  PromiseCapability,
   shadow,
   UnexpectedResponseException,
   Util,
@@ -66,7 +65,11 @@ import {
   RenderingCancelledException,
   setLayerDimensions,
 } from "../../pdf.js/src/display/display_utils.js";
-import { renderTextLayer, updateTextLayer } from "../../pdf.js/src/display/text_layer.js";
+import {
+  renderTextLayer,
+  TextLayer,
+  updateTextLayer,
+} from "../../pdf.js/src/display/text_layer.js";
 import { AnnotationEditorLayer } from "../../pdf.js/src/display/editor/annotation_editor_layer.js";
 import { AnnotationEditorUIManager } from "../../pdf.js/src/display/editor/tools.js";
 import { AnnotationLayer } from "../../pdf.js/src/display/annotation_layer.js";
@@ -117,11 +120,11 @@ export {
   PDFWorker,
   PermissionFlag,
   PixelsPerInch,
-  PromiseCapability,
   RenderingCancelledException,
   renderTextLayer,
   setLayerDimensions,
   shadow,
+  TextLayer,
   UnexpectedResponseException,
   updateTextLayer,
   Util,

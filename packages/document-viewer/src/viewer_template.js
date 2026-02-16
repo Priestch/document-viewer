@@ -216,6 +216,40 @@ const template = `
             >Highlight color</span
           >
         </div>
+        <div
+          data-dom-id="editorHighlightThickness"
+          class="editorHighlightThickness"
+        >
+          <!--Removed!-->
+          <div class="thicknessPicker">
+            <input
+              type="range"
+              data-l10n-id="pdfjs-editor-free-highlight-thickness-title"
+              value="12"
+              min="8"
+              max="24"
+              step="1"
+              tabindex="101"
+              data-dom-id="editorFreeHighlightThickness"
+              class="editorParamsSlider editorFreeHighlightThickness"
+            />
+          </div>
+        </div>
+        <div
+          data-dom-id="editorHighlightVisibility"
+          class="editorHighlightVisibility"
+        >
+          <div class="divider"></div>
+          <div class="toggler">
+            <!--Removed!--><button
+              data-l10n-id="pdfjs-editor-highlight-show-all-button"
+              aria-pressed="true"
+              tabindex="102"
+              data-dom-id="editorHighlightShowAll"
+              class="toggle-button editorHighlightShowAll"
+            ></button>
+          </div>
+        </div>
       </div>
     </div>
     <div
@@ -227,7 +261,7 @@ const template = `
           <!--Removed!--><label
             ><input
               type="color"
-              tabindex="102"
+              tabindex="103"
               data-dom-id="editorFreeTextColor"
               class="editorParamsColor editorFreeTextColor"
             /><span
@@ -245,7 +279,7 @@ const template = `
               min="5"
               max="100"
               step="1"
-              tabindex="103"
+              tabindex="104"
               data-dom-id="editorFreeTextFontSize"
               class="editorParamsSlider editorFreeTextFontSize"
             /><span
@@ -266,7 +300,7 @@ const template = `
           <!--Removed!--><label
             ><input
               type="color"
-              tabindex="104"
+              tabindex="105"
               data-dom-id="editorInkColor"
               class="editorParamsColor editorInkColor"
             /><span
@@ -284,7 +318,7 @@ const template = `
               min="1"
               max="20"
               step="1"
-              tabindex="105"
+              tabindex="106"
               data-dom-id="editorInkThickness"
               class="editorParamsSlider editorInkThickness"
             /><span
@@ -302,7 +336,7 @@ const template = `
               min="1"
               max="100"
               step="1"
-              tabindex="106"
+              tabindex="107"
               data-dom-id="editorInkOpacity"
               class="editorParamsSlider editorInkOpacity"
             /><span
@@ -321,7 +355,7 @@ const template = `
       <div class="editorParamsToolbarContainer">
         <button
           title="Add image"
-          tabindex="107"
+          tabindex="108"
           data-l10n-id="pdfjs-editor-stamp-add-image-button"
           data-dom-id="editorStampAddImage"
           class="secondaryToolbarButton editorStampAddImage"
@@ -705,7 +739,7 @@ const template = `
                 tabindex="34"
                 data-l10n-id="pdfjs-editor-stamp-button"
                 data-dom-id="editorStamp"
-                class="toolbarButton editorStamp"
+                class="toolbarButton hidden editorStamp"
               >
                 <span data-l10n-id="pdfjs-editor-stamp-button-label"
                   >Add or edit images</span
@@ -1158,9 +1192,12 @@ const template = `
       aria-labelledby="dialogLabel"
       aria-describedby="dialogDescription"
       data-dom-id="altTextDialog"
-      class="altTextDialog"
+      class="dialog altText altTextDialog"
     >
-      <div data-dom-id="altTextContainer" class="altTextContainer">
+      <div
+        data-dom-id="altTextContainer"
+        class="mainContainer altTextContainer"
+      >
         <div data-dom-id="overallDescription" class="overallDescription">
           <span
             data-l10n-id="pdfjs-editor-alt-text-dialog-label"
@@ -1249,12 +1286,16 @@ const template = `
           <button
             tabindex="0"
             data-dom-id="altTextCancel"
-            class="altTextCancel"
+            class="secondaryButton altTextCancel"
           >
             <span data-l10n-id="pdfjs-editor-alt-text-cancel-button"
               >Cancel</span
             ></button
-          ><button tabindex="0" data-dom-id="altTextSave" class="altTextSave">
+          ><button
+            tabindex="0"
+            data-dom-id="altTextSave"
+            class="primaryButton altTextSave"
+          >
             <span data-l10n-id="pdfjs-editor-alt-text-save-button">Save</span>
           </button>
         </div>
@@ -1292,11 +1333,6 @@ const template = `
 </div>
 <!-- outerContainer -->
 <div data-dom-id="printContainer" class="printContainer"></div>
-<!--#if GENERIC--><input
-  type="file"
-  data-dom-id="fileInput"
-  class="hidden fileInput"
-/><!--#endif-->
 `;
 
 let templateFragment;

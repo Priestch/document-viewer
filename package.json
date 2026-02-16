@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "viewer:build": "pnpm --filter @document-kits/viewer run build",
+    "pdfjs:upgrade": "node scripts/pdfjs-upgrade.mjs",
+    "pdfjs:smoke": "node scripts/pdfjs-smoke.mjs",
     "release": "node scripts/release.mjs",
     "cli:build": "pnpm --filter @document-kits/create-viewer run build",
     "demos:dev": "pnpm --filter demos run dev",

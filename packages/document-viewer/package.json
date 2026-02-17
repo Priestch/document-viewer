@@ -1,7 +1,7 @@
 {
   "name": "@document-kits/viewer",
   "version": "0.12.0-beta.0",
-  "description": "",
+  "description": "A customizable, framework-agnostic PDF viewer based on PDF.js, featuring an out-of-the-box toolbar, sidebar, search, annotations, and all default PDF.js viewer features.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "./bin/gulp.sh",
@@ -16,7 +16,8 @@
     "./viewer.css": "./dist/generic/web/viewer.css",
     "./*": "./dist/generic/web/*"
   },
-  "author": "",
+  "author": "Priestch",
+  "homepage": "https://priestch.github.io/document-viewer/",
   "license": "ISC",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
@@ -32,7 +33,11 @@
     "pdf-viewer",
     "framework-agnostic",
     "document-kits",
-    "viewer"
+    "viewer",
+    "vue",
+    "react",
+    "lit",
+    "solid"
   ],
   "files": [
     "dist",

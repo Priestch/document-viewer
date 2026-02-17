@@ -1,7 +1,10 @@
 {
   "name": "@document-kits/create-viewer",
   "version": "0.0.11",
+  "description": "Scaffold a new PDF viewer project powered by @document-kits/viewer",
   "bin": "./bin",
+  "author": "Priestch",
+  "homepage": "https://priestch.github.io/document-viewer/",
   "scripts": {
     "build": "rollup -c"
   },
@@ -27,7 +30,11 @@
     "pdf",
     "pdf-viewer",
     "document-viewer",
-    "viewer"
+    "viewer",
+    "vue",
+    "react",
+    "lit",
+    "solid"
   ],
   "files": [
     "bin",

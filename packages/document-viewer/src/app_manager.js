@@ -2,6 +2,7 @@ import { PDFViewerApplication } from "./app.js";
 import { AppOptions } from "./application_options.js";
 import { injectLocaleResource } from "./utils";
 import getViewerTemplate from "./viewer_template";
+import { PluginManager, setActivePluginManager } from "./plugin_manager.js";
 
 let activeApp;
 let manager = null;
@@ -169,6 +170,7 @@ function getViewerConfiguration(el) {
  * @property {boolean} [disableCORSCheck=false] - Disable CORS check of pdf.js.
  * @property {boolean} [disableAutoSetTitle=false] - Disable auto-set title of document caused by pdf.js.
  * @property {AppOptions} [appOptions={}] - Default app options of pdf.js.
+ * @property {Array} [plugins=[]] - Plugins to extend viewer behavior.
  */
 
 /**
@@ -186,7 +188,11 @@ function createViewerApp(options) {
     disableCORSCheck = false,
     disableAutoSetTitle = false,
     appOptions = {},
+    plugins = [],
   } = options;
+
+  const pluginManager = new PluginManager(plugins);
+  setActivePluginManager(pluginManager);
   const workerSrc = `${resourcePath}/build/pdf.worker.mjs`;
 
   const viewerOptions = new AppOptions();
@@ -207,6 +213,8 @@ function createViewerApp(options) {
 
   const app = new PDFViewerApplication(viewerOptions);
 
+  app._pluginManager = pluginManager;
+
   activeApp = app;
 
   if (parent) {
@@ -216,6 +224,17 @@ function createViewerApp(options) {
     const config = getViewerConfiguration(parent);
     app.run(config);
   }
+
+  // Wire plugin lifecycle hooks
+  app.initializedPromise
+    .then(() => {
+      pluginManager.initPlugins(app);
+
+      app.eventBus._on("documentloaded", () => {
+        pluginManager.notifyDocumentLoad(app);
+      });
+    })
+    .catch(console.error);
 
   return app;
 }

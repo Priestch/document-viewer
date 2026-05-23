@@ -24,6 +24,12 @@ console.log("route", route);
         to="/multiple-pdf-files"
         >Multiple PDF</RouterLink
       >
+      <RouterLink
+        class="nav-link"
+        :class="{ active: route.path === '/plugin-annotations' }"
+        to="/plugin-annotations"
+        >Plugin Annotations</RouterLink
+      >
     </nav>
   </aside>
 

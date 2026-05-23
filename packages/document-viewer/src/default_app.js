@@ -810,6 +810,9 @@ class ViewerApplication {
       }
     }
     const promises = [];
+    if (this._pluginManager) {
+      this._pluginManager.notifyDestroy(this);
+    }
     promises.push(this.pdfLoadingTask.destroy());
     this.pdfLoadingTask = null;
     if (this.pdfDocument) {

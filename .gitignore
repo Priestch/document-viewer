@@ -120,6 +120,7 @@ dist
 
 
 docs/.vitepress/cache
+website/.vitepress/cache
 
 
 # Added by cargo

@@ -3,7 +3,7 @@ name: Deploy Docs
 on:
   push:
     paths:
-      - docs/**
+      - website/**
       - demos/**
       - .github/**
 
@@ -49,7 +49,7 @@ jobs:
         run: pnpm demos:build
 
       - name: Remix
-        run: rm -rf dist && mkdir dist && cp .github/index.html dist && cp -r docs/.vitepress/dist dist/docs && cp -r demos/dist dist/demos
+        run: rm -rf dist && mkdir dist && cp .github/index.html dist && cp -r website/.vitepress/dist dist/docs && cp -r demos/dist dist/demos
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3

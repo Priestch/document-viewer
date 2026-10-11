@@ -36,9 +36,9 @@ function setComments(newNode, originalNode) {
   newNode.innerComments = originalNode.innerComments;
 }
 
-function createCallExpression(objName, propertyName, arguments) {
+function createCallExpression(objName, propertyName, args) {
   const memberExpression = t.memberExpression(t.identifier(objName), t.identifier(propertyName));
-  return t.callExpression(memberExpression, arguments);
+  return t.callExpression(memberExpression, args);
 }
 
 function convertObjMethod(path) {

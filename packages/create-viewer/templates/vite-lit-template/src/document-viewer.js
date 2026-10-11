@@ -1,4 +1,4 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, html } from "lit";
 import { createViewerApp } from "@document-kits/viewer";
 import "@document-kits/viewer/viewer.css";
 

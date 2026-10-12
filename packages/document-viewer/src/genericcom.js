@@ -50,7 +50,8 @@ class GenericExternalServices extends DefaultExternalServices {
   }
 
   static createScripting() {
-    return new GenericScripting(getActiveApp().appOptions.get("sandboxBundleSrc"));
+    const { appOptions } = getActiveApp();
+    return new GenericScripting(appOptions.get("sandboxBundleSrc"), appOptions.get("wasmUrl"));
   }
 }
 

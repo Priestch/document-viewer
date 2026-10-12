@@ -4,18 +4,12 @@ const cwd = process.cwd();
 const APP_DIR = GENERIC_DIR + "web/component";
 const ROOT_DIR = path.resolve(cwd, "..");
 
-function createAppBundle(defines, options) {
+function createAppBundle(defines) {
   const viewerOutputName = "index.js";
 
-  const viewerFileConfig = createWebpackConfig(
-    defines,
-    {
-      filename: viewerOutputName,
-    },
-    {
-      defaultPreferencesDir: options.defaultPreferencesDir,
-    }
-  );
+  const viewerFileConfig = createWebpackConfig(defines, {
+    filename: viewerOutputName,
+  });
   viewerFileConfig.resolve.alias["pdfjs-lib"] = path.resolve(ROOT_DIR, "src/pdf_js/index.js");
 
   return gulp
@@ -50,18 +44,19 @@ function buildGenericApp(defines, dir) {
     createLibraryBundle(defines).pipe(gulp.dest(dir + "build")),
     createWorkerBundle(defines).pipe(gulp.dest(dir + "build")),
     createSandboxBundle(defines).pipe(gulp.dest(dir + "build")),
-    createWebBundle(defines, {
-      defaultPreferencesDir: "generic/",
-    }).pipe(gulp.dest(dir + "web")),
+    createWebBundle(defines).pipe(gulp.dest(dir + "web")),
     gulp.src(COMMON_WEB_FILES, { base: "web/", encoding: false }).pipe(gulp.dest(dir + "web")),
-    gulp.src("LICENSE").pipe(gulp.dest(dir)),
+    gulp.src("LICENSE", { encoding: false }).pipe(gulp.dest(dir)),
     gulp
       .src(["web/locale/*/viewer.ftl", "web/locale/locale.json"], {
         base: "web/",
+        encoding: false,
       })
       .pipe(gulp.dest(dir + "web")),
     createCMapBundle().pipe(gulp.dest(dir + "web/cmaps")),
+    createICCBundle().pipe(gulp.dest(dir + "web/iccs")),
     createStandardFontBundle().pipe(gulp.dest(dir + "web/standard_fonts")),
+    createWasmBundle().pipe(gulp.dest(dir + "web/wasm")),
 
     preprocessHTML("web/viewer.html", defines).pipe(gulp.dest(dir + "web")),
     preprocessCSS("web/viewer.css", defines)
@@ -70,7 +65,7 @@ function buildGenericApp(defines, dir) {
           postcssDirPseudoClass(),
           discardCommentsCSS(),
           postcssNesting(),
-          postcssDarkThemeClass(),
+          postcssLightDarkFunction({ preserve: true }),
           autoprefixer(AUTOPREFIXER_CONFIG),
         ])
       )
@@ -94,13 +89,7 @@ gulp.task(
     "locale",
     function scriptingGeneric() {
       const defines = { ...DEFINES, GENERIC: true };
-      return ordered([
-        buildDefaultPreferences(defines, "generic/"),
-        createTemporaryScriptingBundle(defines),
-      ]);
-    },
-    async function prefsGeneric() {
-      await parseDefaultPreferences("generic/");
+      return createTemporaryScriptingBundle(defines);
     },
     function createGeneric() {
       console.log();

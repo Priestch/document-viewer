@@ -123,45 +123,91 @@ upgrade does not rediscover them:
    `gulpfile.template.js`. Symptom of getting it wrong: PDFs grow in size and
    fail with `FormatError: Bad encoding in flate stream` at runtime, while
    existence-based smoke checks still pass.
-5. **Sync tool known bugs (as of v4.10.38).** `transform-html` misses
+5. **Sync tool known bugs (as of v5.7.284).** `transform-html` misses
    `customScaleOption`'s `data-dom-id` (worked around with a fallback
    `#customScaleOption` selector in `app_manager.js`); `extract:js` emits
-   unscoped bare `on*` references in `default_app.js` (masked only because
-   `app.js` overrides `bindEvents`).
+   unscoped bare references in `default_app.js` — bit twice: the `on*`
+   handlers (v4.10.38, masked because `app.js` overrides `bindEvents`) and
+   `validateFileURL` at v5.7.284 (upstream declares it as a module-level
+   `var` far below its call site in `run()`; the extraction drops it and
+   every route hard-crashes — fixed by restoring `run(config,
+validateFileURL)` and having `app.js` pass it, same as v4.10). Both
+   recurrences mean: after every upgrade, grep the freshly extracted
+   `default_app.js`/`app_helper.js` for identifiers with no visible
+   declaration.
 6. **Submodule hygiene.** `gulpfile.custom.mjs` (the concatenated build file)
    is locally ignored via `.git/modules/pdf.js/info/exclude`, not a tracked
    `.gitignore` — the submodule's `.git` is a gitdir pointer, the real exclude
    lives in the parent repo's modules directory.
-7. **`src/assets/viewer.css` regeneration (transform:css).** The gulp task
-   `overrideStyle` copies this file over `dist/generic/web/viewer.css`,
-   fully REPLACING upstream's compiled CSS. Upstream CSS is **id-selector
-   based** (`#viewerContainer`, `#sidebarToggleButton::before`), but the
-   embedded DOM from `viewer_template.js` carries **data-dom-id instead of
-   ids** (transform:html strips ids so multiple viewers can coexist on one
-   page). A plain copy of the compiled CSS therefore matches nothing —
-   blank toolbar icons, unpositioned viewer container, no rendering at all.
-   `pnpm --filter @document-kits/viewer run transform:css`
-   (`bin/transform-css.js`) regenerates the file by rewriting `#id`
-   selectors to `:is(#id, [data-dom-id="id"])` for exactly the ids the
-   template
-   emits; it only touches selector segments, never declaration bodies (hex
-   colors, url() fragments). The `:is()` wrapper is load-bearing: it keeps
-   id-level specificity (1,0,0), which a bare `[data-dom-id]` attribute
-   selector (0,1,0) does not — without it, later class rules like
-   `.toolbarHorizontalGroup { height: 100% }` override what upstream intented
-   to stay id-governed, which blew the sidebar toolbar up to container
-   height and parked an invisible 863×863 button (hover/focus ring + blanked
-   page) on top of the document (2026-10-11). The `#id` arm inside `:is()`
-   never matches (embedded DOM has no ids); it exists purely for the
-   specificity. The upgrade script runs it automatically after
-   `viewer:build` (step `sync-override-viewer-css`), and two smoke contracts
-   guard it (icon rules present in rewritten form; no bare `#id` selectors
-   for template ids remain). Caveat: the standalone `dist/generic/web/
-viewer.html` still carries real ids, which this rewritten CSS no longer
-   targets — the supported consumption path is the embedded
-   `createViewerApp`, not the standalone viewer page. Never hand-edit
-   `src/assets/viewer.css`; customizations belong in a separate stylesheet
-   layered on top.
+7. **`src/assets/viewer.css` regeneration (transform:css) — full incident
+   record from the v4.10.38 upgrade (2026-10-11).**
+
+   Mechanism: the gulp task `overrideStyle` copies this file over
+   `dist/generic/web/viewer.css`, fully REPLACING upstream's compiled CSS.
+   Upstream CSS is **id-selector based** (`#viewerContainer`,
+   `#sidebarToggleButton::before`), but the embedded DOM from
+   `viewer_template.js` carries **data-dom-id instead of ids**
+   (transform:html strips ids so multiple viewers can coexist on one page).
+
+   The upgrade went through four CSS failure modes, in this order:
+
+   - **Stale override.** The sync step for this file simply did not exist;
+     the old class-selector-era CSS matched nothing after upstream renamed
+     element ids → blank toolbar icons, clipped pages.
+   - **Naive copy.** First fix copied the compiled CSS verbatim — but
+     id-based rules match an id-less DOM exactly zero times → icons became
+     black squares and the `PDFViewer` constructor threw
+     `The container must be absolutely positioned` (its
+     `#viewerContainer { position: absolute }` rule no longer applied), so
+     no document rendered at all (0 pages).
+   - **Specificity regression.** Second fix rewrote `#id` to a bare
+     `[data-dom-id="id"]` — attribute specificity is (0,1,0), not (1,0,0),
+     so later class rules started winning ties: `.toolbarHorizontalGroup {
+height: 100% }` overrode what upstream intended to stay id-governed,
+     blowing the sidebar toolbar up to container height and parking an
+     invisible 863×863 thumbnail button on top of the pages — hovering a
+     document blanked it (the button's :hover background) and drew a blue
+     focus ring around the page area.
+   - **Incomplete rewrite.** The first transform draft only handled
+     top-level rules; selectors nested inside `@media` blocks stayed
+     unrewritten (fixed by tracking group rules with a block stack).
+
+   Final fix: `pnpm --filter @document-kits/viewer run transform:css`
+   (`bin/transform-css.js`) regenerates the file from
+   `pdf.js/build/generic/web/viewer.css`, rewriting `#id` selectors to
+   `:is(#id, [data-dom-id="id"])` for exactly the ids the template emits.
+   The `:is()` wrapper is load-bearing: it takes the specificity of its
+   most specific argument (1,0,0), exactly replicating the upstream cascade,
+   which a bare attribute selector cannot. The `#id` arm never matches in
+   the embedded DOM (no ids exist there); it exists purely for specificity.
+   The transform only touches selector segments, never declaration bodies
+   (hex colors, url() fragments), and handles `@media`-nested rules.
+
+   Guardrails now in place: the upgrade script runs transform:css
+   automatically after `viewer:build` (step `sync-override-viewer-css`), and
+   two smoke contracts check the result (icon rules present in rewritten
+   form; no bare `#id` selectors for template ids remain).
+
+   Process lesson: automated verification reported green twice while the
+   viewer was visually broken — page counts, console checks, and even
+   screenshot skims cannot see CSS-level breakage. The manual demo check
+   with actual eyes on the rendered page (including a hover interaction) is
+   a mandatory step, not a recommendation.
+
+   Caveats: the standalone `dist/generic/web/viewer.html` still carries real
+   ids, which this rewritten CSS no longer targets — the supported
+   consumption path is the embedded `createViewerApp`, not the standalone
+   viewer page. Never hand-edit `src/assets/viewer.css`; customizations
+   belong in a separate stylesheet layered on top.
+
+8. **Node >= 20.18.1 required from pdf.js v5.7.284.** The submodule build
+   toolchain pulls in cheerio → undici, which uses the `File` global absent
+   from Node 18 — `bin/gulp.sh` dies with `ReferenceError: File is not
+defined` before webpack even starts. Run builds with fnm's Node 22
+   (`~/.fnm/node-versions/v22.14.0/installation/bin` first on PATH). The
+   smoke icon-selector contract also had to learn that upstream keeps dead
+   legacy `#id::before` rules in its CSS (ids removed from viewer.html);
+   only ids present in the template are enforced.
 
 ## Notes
 

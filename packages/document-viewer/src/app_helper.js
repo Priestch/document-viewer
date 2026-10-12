@@ -2,42 +2,40 @@ import {
   CursorTool,
   getActiveOrFocusedElement,
   normalizeWheelEventDirection,
-  RenderingStates,
   SidebarView,
 } from "../pdf.js/web/ui_utils";
+import { RenderingStates } from "../pdf.js/web/renderable_view.js";
 import { FeatureTest } from "pdfjs-lib";
 function createHelper(PDFViewerApplication) {
   const AppOptions = PDFViewerApplication.appOptions;
   if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-    const HOSTED_VIEWER_ORIGINS = [
+    const HOSTED_VIEWER_ORIGINS = new Set([
       "null",
       "http://mozilla.github.io",
       "https://mozilla.github.io",
-    ];
+    ]);
     // eslint-disable-next-line no-var
     var validateFileURL = function (file) {
       if (!file) {
         return;
       }
-      try {
-        const viewerOrigin = new URL(window.location.href).origin || "null";
-        if (HOSTED_VIEWER_ORIGINS.includes(viewerOrigin)) {
-          // Hosted or local viewer, allow for any file locations
-          return;
-        }
-        const fileOrigin = new URL(file, window.location.href).origin;
-        // Removing of the following line will not guarantee that the viewer will
-        // start accepting URLs from foreign origin -- CORS headers on the remote
-        // server must be properly configured.
-        if (fileOrigin !== viewerOrigin) {
-          throw new Error("file origin does not match viewer's");
-        }
-      } catch (ex) {
-        PDFViewerApplication._documentError("pdfjs-loading-error", {
-          message: ex.message,
-        });
-        throw ex;
+      const viewerOrigin = URL.parse(window.location)?.origin || "null";
+      if (HOSTED_VIEWER_ORIGINS.has(viewerOrigin)) {
+        // Hosted or local viewer, allow for any file locations
+        return;
       }
+      const fileOrigin = URL.parse(file, window.location)?.origin;
+      if (fileOrigin === viewerOrigin) {
+        return;
+      }
+      const ex = new Error("file origin does not match viewer's");
+      PDFViewerApplication._documentError("pdfjs-loading-error", {
+        message: ex.message,
+      });
+      // Removing of the following line will not guarantee that the viewer will
+      // start accepting URLs from foreign origin -- CORS headers on the remote
+      // server must be properly configured.
+      throw ex;
     };
 
     // eslint-disable-next-line no-var
@@ -48,7 +46,7 @@ function createHelper(PDFViewerApplication) {
       const file = evt.fileInput.files[0];
       this.open({
         url: URL.createObjectURL(file),
-        originalUrl: file.name,
+        originalUrl: encodeURIComponent(file.name),
       });
     };
 
@@ -64,7 +62,7 @@ function createHelper(PDFViewerApplication) {
       this.toolbar?.updateLoadingIndicatorState(true);
     }
   }
-  function onPageRendered({ pageNumber, error }) {
+  function onPageRendered({ pageNumber, isDetailView, error }) {
     // If the page is still visible when it has finished rendering,
     // ensure that the page number input loading indicator is hidden.
     if (pageNumber === this.page) {
@@ -72,7 +70,10 @@ function createHelper(PDFViewerApplication) {
     }
 
     // Use the rendered page to set the corresponding thumbnail image.
-    if (this.pdfSidebar?.visibleView === SidebarView.THUMBS) {
+    if (
+      !isDetailView &&
+      this.viewsManager?.visibleView === SidebarView.THUMBS
+    ) {
       const pageView = this.pdfViewer.getPageView(/* index = */ pageNumber - 1);
       const thumbnailView = this.pdfThumbnailViewer?.getThumbnail(
         /* index = */ pageNumber - 1
@@ -112,7 +113,7 @@ function createHelper(PDFViewerApplication) {
         console.error('Invalid "pagemode" hash parameter: ' + mode);
         return;
     }
-    this.pdfSidebar?.switchView(view, /* forceOpen = */ true);
+    this.viewsManager?.switchView(view, /* forceOpen = */ true);
   }
   function onNamedAction(evt) {
     // Processing a couple of named actions that might be useful, see also
@@ -283,7 +284,7 @@ function createHelper(PDFViewerApplication) {
   function onPageChanging({ pageNumber, pageLabel }) {
     this.toolbar?.setPageNumber(pageNumber, pageLabel);
     this.secondaryToolbar?.setPageNumber(pageNumber);
-    if (this.pdfSidebar?.visibleView === SidebarView.THUMBS) {
+    if (this.viewsManager?.visibleView === SidebarView.THUMBS) {
       this.pdfThumbnailViewer?.scrollThumbnailIntoView(pageNumber);
     }
 
@@ -386,18 +387,19 @@ function createHelper(PDFViewerApplication) {
       }
     }
   }
-  function closeSecondaryToolbar(evt) {
+  function closeSecondaryToolbar({ target }) {
     if (!this.secondaryToolbar?.isOpen) {
       return;
     }
-    const appConfig = this.appConfig;
+    const { toolbar, secondaryToolbar } = this.appConfig;
     if (
-      this.pdfViewer.containsElement(evt.target) ||
-      (appConfig.toolbar?.container.contains(evt.target) &&
+      this.pdfViewer.containsElement(target) ||
+      (toolbar?.container.contains(target) &&
+        !secondaryToolbar?.toolbar.contains(target) &&
         // TODO: change the `contains` for an equality check when the bug:
         //  https://bugzilla.mozilla.org/show_bug.cgi?id=1921984
         // is fixed.
-        !appConfig.secondaryToolbar?.toggleButton.contains(evt.target))
+        !secondaryToolbar?.toggleButton.contains(target))
     ) {
       this.secondaryToolbar.close();
     }
@@ -409,6 +411,14 @@ function createHelper(PDFViewerApplication) {
     if (this.appConfig.secondaryToolbar?.toolbar.contains(evt.target)) {
       this.editorUndoBar.hide();
     }
+  }
+  function onBeforeUnload(evt) {
+    if (this._hasChanges()) {
+      evt.preventDefault();
+      evt.returnValue = "";
+      return false;
+    }
+    return true;
   }
   function onClick(evt) {
     closeSecondaryToolbar.call(this, evt);
@@ -587,9 +597,7 @@ function createHelper(PDFViewerApplication) {
       curElementTagName === "INPUT" ||
       curElementTagName === "TEXTAREA" ||
       curElementTagName === "SELECT" ||
-      (curElementTagName === "BUTTON" &&
-        (evt.keyCode === /* Enter = */ 13 ||
-          evt.keyCode === /* Space = */ 32)) ||
+      (curElementTagName === "BUTTON" && evt.keyCode === /* Space = */ 32) ||
       curElement?.isContentEditable
     ) {
       // Make sure that the secondary toolbar is closed when Escape is pressed.
@@ -668,7 +676,6 @@ function createHelper(PDFViewerApplication) {
           }
           turnPage = 1;
           break;
-        case 13: // enter key
         case 32:
           // spacebar
           if (!isViewerInPresentationMode) {
@@ -721,7 +728,7 @@ function createHelper(PDFViewerApplication) {
           break;
         case 115:
           // F4
-          this.pdfSidebar?.toggle();
+          this.viewsManager?.toggle();
           break;
       }
       if (
@@ -740,7 +747,6 @@ function createHelper(PDFViewerApplication) {
     // shift-key
     if (cmd === 4) {
       switch (evt.keyCode) {
-        case 13: // enter key
         case 32:
           // spacebar
           if (
@@ -789,11 +795,6 @@ function createHelper(PDFViewerApplication) {
       evt.preventDefault();
     }
   }
-  function beforeUnload(evt) {
-    evt.preventDefault();
-    evt.returnValue = "";
-    return false;
-  }
   return {
     validateFileURL: validateFileURL,
     onFileInputChange: onFileInputChange,
@@ -818,10 +819,10 @@ function createHelper(PDFViewerApplication) {
     onWheel: onWheel,
     closeSecondaryToolbar: closeSecondaryToolbar,
     closeEditorUndoBar: closeEditorUndoBar,
+    onBeforeUnload: onBeforeUnload,
     onClick: onClick,
     onKeyUp: onKeyUp,
     onKeyDown: onKeyDown,
-    beforeUnload: beforeUnload,
   };
 }
 export { createHelper };

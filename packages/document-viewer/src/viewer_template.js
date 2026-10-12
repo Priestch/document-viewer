@@ -1,104 +1,10 @@
 const template = `
 <div data-dom-id="outerContainer" class="outerContainer">
-  <div data-dom-id="sidebarContainer" class="sidebarContainer">
-    <div
-      data-dom-id="toolbarSidebar"
-      class="toolbarHorizontalGroup toolbarSidebar"
-    >
-      <div data-dom-id="toolbarSidebarLeft" class="toolbarSidebarLeft">
-        <div
-          role="radiogroup"
-          data-dom-id="sidebarViewButtons"
-          class="toolbarHorizontalGroup toggled sidebarViewButtons"
-        >
-          <button
-            type="button"
-            title="Show Thumbnails"
-            tabindex="0"
-            data-l10n-id="pdfjs-thumbs-button"
-            role="radio"
-            aria-checked="true"
-            aria-controls="thumbnailView"
-            data-dom-id="viewThumbnail"
-            class="toolbarButton toggled viewThumbnail"
-          >
-            <span data-l10n-id="pdfjs-thumbs-button-label"
-              >Thumbnails</span
-            ></button
-          ><button
-            type="button"
-            title="Show Document Outline (double-click to expand/collapse all items)"
-            tabindex="0"
-            data-l10n-id="pdfjs-document-outline-button"
-            role="radio"
-            aria-checked="false"
-            aria-controls="outlineView"
-            data-dom-id="viewOutline"
-            class="toolbarButton viewOutline"
-          >
-            <span data-l10n-id="pdfjs-document-outline-button-label"
-              >Document Outline</span
-            ></button
-          ><button
-            type="button"
-            title="Show Attachments"
-            tabindex="0"
-            data-l10n-id="pdfjs-attachments-button"
-            role="radio"
-            aria-checked="false"
-            aria-controls="attachmentsView"
-            data-dom-id="viewAttachments"
-            class="toolbarButton viewAttachments"
-          >
-            <span data-l10n-id="pdfjs-attachments-button-label"
-              >Attachments</span
-            ></button
-          ><button
-            type="button"
-            title="Show Layers (double-click to reset all layers to the default state)"
-            tabindex="0"
-            data-l10n-id="pdfjs-layers-button"
-            role="radio"
-            aria-checked="false"
-            aria-controls="layersView"
-            data-dom-id="viewLayers"
-            class="toolbarButton viewLayers"
-          >
-            <span data-l10n-id="pdfjs-layers-button-label">Layers</span>
-          </button>
-        </div>
-      </div>
-      <div data-dom-id="toolbarSidebarRight" class="toolbarSidebarRight">
-        <div
-          data-dom-id="outlineOptionsContainer"
-          class="toolbarHorizontalGroup outlineOptionsContainer"
-        >
-          <div class="verticalToolbarSeparator"></div>
-          <button
-            type="button"
-            disabled="disabled"
-            title="Find Current Outline Item"
-            tabindex="0"
-            data-l10n-id="pdfjs-current-outline-item-button"
-            data-dom-id="currentOutlineItem"
-            class="toolbarButton currentOutlineItem"
-          >
-            <span data-l10n-id="pdfjs-current-outline-item-button-label"
-              >Current Outline Item</span
-            >
-          </button>
-        </div>
-      </div>
-    </div>
-    <div data-dom-id="sidebarContent" class="sidebarContent">
-      <div data-dom-id="thumbnailView" class="thumbnailView"></div>
-      <div data-dom-id="outlineView" class="hidden outlineView"></div>
-      <div data-dom-id="attachmentsView" class="hidden attachmentsView"></div>
-      <div data-dom-id="layersView" class="hidden layersView"></div>
-    </div>
-    <div data-dom-id="sidebarResizer" class="sidebarResizer"></div>
-  </div>
-  <!-- sidebarContainer -->
+  <span
+    role="alert"
+    data-dom-id="viewer-alert"
+    class="visuallyHidden viewer-alert"
+  ></span>
   <div data-dom-id="mainContainer" class="mainContainer">
     <div class="toolbar">
       <div data-dom-id="toolbarContainer" class="toolbarContainer">
@@ -112,24 +18,326 @@ const template = `
           >
             <button
               type="button"
-              title="Toggle Sidebar"
               tabindex="0"
-              data-l10n-id="pdfjs-toggle-sidebar-button"
+              data-l10n-id="pdfjs-toggle-views-manager-button1"
               aria-expanded="false"
               aria-haspopup="true"
-              aria-controls="sidebarContainer"
-              data-dom-id="sidebarToggleButton"
-              class="toolbarButton sidebarToggleButton"
+              aria-controls="viewsManager"
+              data-dom-id="viewsManagerToggleButton"
+              class="toolbarButton viewsManagerToggleButton"
             >
-              <span data-l10n-id="pdfjs-toggle-sidebar-button-label"
-                >Toggle Sidebar</span
-              >
+              <span
+                data-l10n-id="pdfjs-toggle-views-manager-button1-label"
+              ></span>
             </button>
+            <div
+              hidden="true"
+              role="dialog"
+              aria-describedby="viewsManagerHeaderLabel"
+              data-l10n-id="pdfjs-views-manager-sidebar"
+              data-dom-id="viewsManager"
+              class="menuContainer sidebar viewsManager"
+            >
+              <div data-dom-id="viewsManagerHeader" class="viewsManagerHeader">
+                <div data-dom-id="viewsManagerTitle" class="viewsManagerTitle">
+                  <div
+                    data-dom-id="viewsManagerSelector"
+                    class="viewsManagerSelector"
+                  >
+                    <button
+                      type="button"
+                      tabindex="0"
+                      data-l10n-id="pdfjs-views-manager-view-selector-button"
+                      aria-expanded="false"
+                      aria-haspopup="listbox"
+                      aria-controls="viewsManagerSelectorOptions"
+                      data-dom-id="viewsManagerSelectorButton"
+                      class="toolbarButton viewsManagerButton hasPopupMenu viewsManagerSelectorButton"
+                    >
+                      <span
+                        data-l10n-id="pdfjs-views-manager-view-selector-button-label"
+                      ></span></button
+                    ><menu
+                      id="viewsManagerSelectorOptions"
+                      role="listbox"
+                      class="popupMenu withMark"
+                      ><button
+                        role="option"
+                        type="button"
+                        tabindex="-1"
+                        data-dom-id="thumbnailsViewMenu"
+                        class="thumbnailsViewMenu"
+                      >
+                        <span
+                          data-l10n-id="pdfjs-views-manager-pages-option-label"
+                        ></span></button
+                      ><button
+                        role="option"
+                        type="button"
+                        tabindex="-1"
+                        data-dom-id="outlinesViewMenu"
+                        class="outlinesViewMenu"
+                      >
+                        <span
+                          data-l10n-id="pdfjs-views-manager-outlines-option-label"
+                        ></span></button
+                      ><button
+                        role="option"
+                        type="button"
+                        tabindex="-1"
+                        data-dom-id="attachmentsViewMenu"
+                        class="attachmentsViewMenu"
+                      >
+                        <span
+                          data-l10n-id="pdfjs-views-manager-attachments-option-label"
+                        ></span></button
+                      ><button
+                        role="option"
+                        type="button"
+                        tabindex="-1"
+                        data-dom-id="layersViewMenu"
+                        class="layersViewMenu"
+                      >
+                        <span
+                          data-l10n-id="pdfjs-views-manager-layers-option-label"
+                        ></span></button
+                    ></menu>
+                  </div>
+                  <span
+                    role="heading"
+                    aria-level="2"
+                    data-dom-id="viewsManagerHeaderLabel"
+                    class="viewsManagerLabel viewsManagerHeaderLabel"
+                  ></span
+                  ><button
+                    type="button"
+                    tabindex="0"
+                    data-l10n-id="pdfjs-views-manager-add-file-button"
+                    hidden="true"
+                    data-dom-id="viewsManagerAddFileButton"
+                    class="toolbarButton viewsManagerButton viewsManagerAddFileButton"
+                  >
+                    <span
+                      data-l10n-id="pdfjs-views-manager-add-file-button-label"
+                    ></span
+                    ><input
+                      type="file"
+                      accept="application/pdf"
+                      data-dom-id="viewsManagerAddFilePicker"
+                      class="viewsManagerAddFilePicker"
+                    /></button
+                  ><button
+                    type="button"
+                    tabindex="0"
+                    data-l10n-id="pdfjs-current-outline-item-button"
+                    hidden="true"
+                    data-dom-id="viewsManagerCurrentOutlineButton"
+                    class="toolbarButton viewsManagerButton viewsManagerCurrentOutlineButton"
+                  >
+                    <span
+                      data-l10n-id="pdfjs-current-outline-item-button-label"
+                    ></span>
+                  </button>
+                </div>
+                <div
+                  data-dom-id="viewsManagerStatus"
+                  class="viewsManagerStatus"
+                >
+                  <div
+                    data-dom-id="viewsManagerStatusAction"
+                    class="viewsManagerStatusAction"
+                  >
+                    <span
+                      data-dom-id="viewsManagerStatusActionLabelContainer"
+                      class="viewsManagerStatusLabel viewsManagerStatusActionLabelContainer"
+                      ><button
+                        type="button"
+                        tabindex="0"
+                        role="checkbox"
+                        aria-checked="true"
+                        aria-labelledby="viewsManagerStatusActionLabel"
+                        data-dom-id="viewsManagerStatusActionDeselectButton"
+                        class="hidden viewsManagerStatusActionDeselectButton"
+                      ></button
+                      ><span
+                        data-l10n-id="pdfjs-views-manager-pages-status-none-action-label"
+                        data-dom-id="viewsManagerStatusActionLabel"
+                        class="viewsManagerStatusLabel viewsManagerStatusActionLabel"
+                      ></span
+                    ></span>
+                    <div data-dom-id="actionSelector" class="actionSelector">
+                      <button
+                        type="button"
+                        tabindex="0"
+                        aria-haspopup="menu"
+                        aria-controls="viewsManagerStatusActionOptions"
+                        aria-expanded="false"
+                        data-dom-id="viewsManagerStatusActionButton"
+                        class="viewsManagerButton hasPopupMenu viewsManagerStatusActionButton"
+                      >
+                        <span
+                          data-l10n-id="pdfjs-views-manager-pages-status-action-button-label"
+                        ></span></button
+                      ><menu
+                        id="viewsManagerStatusActionOptions"
+                        class="popupMenu"
+                        ><button
+                          role="menuitem"
+                          type="button"
+                          tabindex="-1"
+                          disabled=""
+                          data-dom-id="viewsManagerStatusActionCopy"
+                          class="noIcon viewsManagerStatusActionCopy"
+                        >
+                          <span
+                            data-l10n-id="pdfjs-views-manager-pages-status-copy-button-label"
+                          ></span></button
+                        ><button
+                          role="menuitem"
+                          type="button"
+                          tabindex="-1"
+                          disabled=""
+                          data-dom-id="viewsManagerStatusActionCut"
+                          class="noIcon viewsManagerStatusActionCut"
+                        >
+                          <span
+                            data-l10n-id="pdfjs-views-manager-pages-status-cut-button-label"
+                          ></span></button
+                        ><button
+                          role="menuitem"
+                          type="button"
+                          tabindex="-1"
+                          disabled=""
+                          data-dom-id="viewsManagerStatusActionDelete"
+                          class="noIcon viewsManagerStatusActionDelete"
+                        >
+                          <span
+                            data-l10n-id="pdfjs-views-manager-pages-status-delete-button-label"
+                          ></span></button
+                        ><button
+                          role="menuitem"
+                          type="button"
+                          tabindex="-1"
+                          disabled=""
+                          data-dom-id="viewsManagerStatusActionExport"
+                          class="noIcon viewsManagerStatusActionExport"
+                        >
+                          <span
+                            data-l10n-id="pdfjs-views-manager-pages-status-export-selected-button-label"
+                          ></span></button
+                      ></menu>
+                    </div>
+                  </div>
+                  <div
+                    data-dom-id="viewsManagerStatusUndo"
+                    class="hidden viewsManagerStatusUndo"
+                  >
+                    <span
+                      data-dom-id="viewsManagerStatusUndoLabel"
+                      class="viewsManagerStatusLabel viewsManagerStatusUndoLabel"
+                    ></span>
+                    <div>
+                      <button
+                        type="button"
+                        tabindex="0"
+                        data-dom-id="viewsManagerStatusUndoButton"
+                        class="viewsManagerButton viewsManagerStatusUndoButton"
+                      >
+                        <span
+                          data-l10n-id="pdfjs-views-manager-status-undo-button-label"
+                        ></span></button
+                      ><button
+                        type="button"
+                        tabindex="0"
+                        data-l10n-id="pdfjs-views-manager-status-close-button"
+                        data-dom-id="viewsManagerStatusUndoCloseButton"
+                        class="toolbarButton viewsManagerButton viewsCloseButton viewsManagerStatusUndoCloseButton"
+                      >
+                        <span
+                          data-l10n-id="pdfjs-views-manager-status-close-button-label"
+                        ></span>
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    data-dom-id="viewsManagerStatusWarning"
+                    class="hidden viewsManagerStatusWarning"
+                  >
+                    <span
+                      data-dom-id="viewsManagerStatusWarningLabel"
+                      class="viewsManagerStatusLabel viewsManagerStatusWarningLabel"
+                    ></span
+                    ><button
+                      type="button"
+                      tabindex="0"
+                      data-l10n-id="pdfjs-views-manager-status-close-button"
+                      data-dom-id="viewsManagerStatusWarningCloseButton"
+                      class="toolbarButton viewsManagerButton viewsCloseButton viewsManagerStatusWarningCloseButton"
+                    >
+                      <span
+                        data-l10n-id="pdfjs-views-manager-status-close-button-label"
+                      ></span>
+                    </button>
+                  </div>
+                  <div
+                    data-dom-id="viewsManagerStatusWaiting"
+                    class="hidden viewsManagerStatusWaiting"
+                  >
+                    <span
+                      data-dom-id="viewsManagerStatusWaitingLabel"
+                      class="viewsManagerStatusLabel viewsManagerStatusWaitingLabel"
+                    ></span
+                    ><button
+                      type="button"
+                      tabindex="0"
+                      data-l10n-id="pdfjs-views-manager-status-close-button"
+                      data-dom-id="viewsManagerStatusWaitingCloseButton"
+                      class="toolbarButton viewsManagerButton viewsCloseButton viewsManagerStatusWaitingCloseButton"
+                    >
+                      <span
+                        data-l10n-id="pdfjs-views-manager-status-close-button-label"
+                      ></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div
+                tabindex="-1"
+                data-dom-id="viewsManagerContent"
+                class="viewsManagerContent"
+              >
+                <div
+                  class="thumbnailsView hidden"
+                  tabindex="-1"
+                  data-dom-id="thumbnailsView"
+                ></div>
+                <div
+                  data-dom-id="outlinesView"
+                  class="treeView hidden outlinesView"
+                ></div>
+                <div
+                  data-dom-id="attachmentsView"
+                  class="hidden attachmentsView"
+                ></div>
+                <div
+                  data-dom-id="layersView"
+                  class="treeView hidden layersView"
+                ></div>
+              </div>
+              <div
+                role="separator"
+                aria-controls="viewsManager"
+                tabindex="0"
+                data-l10n-id="pdfjs-views-manager-sidebar-resizer"
+                data-dom-id="viewsManagerResizer"
+                class="sidebarResizer viewsManagerResizer"
+              ></div>
+            </div>
+            <!-- sidebarContainer -->
             <div class="toolbarButtonSpacer"></div>
             <div class="toolbarButtonWithContainer">
               <button
                 type="button"
-                title="Find in Document"
                 tabindex="0"
                 data-l10n-id="pdfjs-findbar-button"
                 aria-expanded="false"
@@ -137,7 +345,7 @@ const template = `
                 data-dom-id="viewFindButton"
                 class="toolbarButton viewFindButton"
               >
-                <span data-l10n-id="pdfjs-findbar-button-label">Find</span>
+                <span data-l10n-id="pdfjs-findbar-button-label"></span>
               </button>
               <div
                 data-dom-id="findbar"
@@ -149,8 +357,6 @@ const template = `
                 >
                   <span class="loadingInput end toolbarHorizontalGroup"
                     ><input
-                      title="Find"
-                      placeholder="Find in document…"
                       tabindex="0"
                       data-l10n-id="pdfjs-find-input"
                       aria-invalid="false"
@@ -160,28 +366,24 @@ const template = `
                   <div class="toolbarHorizontalGroup">
                     <button
                       type="button"
-                      title="Find the previous occurrence of the phrase"
                       tabindex="0"
                       data-l10n-id="pdfjs-find-previous-button"
                       data-dom-id="findPreviousButton"
                       class="toolbarButton findPreviousButton"
                     >
-                      <span data-l10n-id="pdfjs-find-previous-button-label"
-                        >Previous</span
-                      >
+                      <span
+                        data-l10n-id="pdfjs-find-previous-button-label"
+                      ></span>
                     </button>
                     <div class="splitToolbarButtonSeparator"></div>
                     <button
                       type="button"
-                      title="Find the next occurrence of the phrase"
                       tabindex="0"
                       data-l10n-id="pdfjs-find-next-button"
                       data-dom-id="findNextButton"
                       class="toolbarButton findNextButton"
                     >
-                      <span data-l10n-id="pdfjs-find-next-button-label"
-                        >Next</span
-                      >
+                      <span data-l10n-id="pdfjs-find-next-button-label"></span>
                     </button>
                   </div>
                 </div>
@@ -195,12 +397,10 @@ const template = `
                         type="checkbox"
                         tabindex="0"
                         data-dom-id="findHighlightAll"
-                        class="findHighlightAll"
-                      /><span
+                        class="findHighlightAll" /><span
                         class="toolbarLabel"
                         data-l10n-id="pdfjs-find-highlight-checkbox"
-                        >Highlight All</span
-                      ></label
+                      ></span></label
                     ><!--Removed!-->
                   </div>
                   <div class="toggleButton toolbarLabel">
@@ -209,12 +409,10 @@ const template = `
                         type="checkbox"
                         tabindex="0"
                         data-dom-id="findMatchCase"
-                        class="findMatchCase"
-                      /><span
+                        class="findMatchCase" /><span
                         class="toolbarLabel"
                         data-l10n-id="pdfjs-find-match-case-checkbox-label"
-                        >Match Case</span
-                      ></label
+                      ></span></label
                     ><!--Removed!-->
                   </div>
                 </div>
@@ -228,12 +426,10 @@ const template = `
                         type="checkbox"
                         tabindex="0"
                         data-dom-id="findMatchDiacritics"
-                        class="findMatchDiacritics"
-                      /><span
+                        class="findMatchDiacritics" /><span
                         class="toolbarLabel"
                         data-l10n-id="pdfjs-find-match-diacritics-checkbox-label"
-                        >Match Diacritics</span
-                      ></label
+                      ></span></label
                     ><!--Removed!-->
                   </div>
                   <div class="toggleButton toolbarLabel">
@@ -242,12 +438,10 @@ const template = `
                         type="checkbox"
                         tabindex="0"
                         data-dom-id="findEntireWord"
-                        class="findEntireWord"
-                      /><span
+                        class="findEntireWord" /><span
                         class="toolbarLabel"
                         data-l10n-id="pdfjs-find-entire-word-checkbox-label"
-                        >Whole Words</span
-                      ></label
+                      ></span></label
                     ><!--Removed!-->
                   </div>
                 </div>
@@ -270,32 +464,29 @@ const template = `
             </div>
             <div class="toolbarHorizontalGroup hiddenSmallView">
               <button
-                title="Previous Page"
                 type="button"
                 tabindex="0"
                 data-l10n-id="pdfjs-previous-button"
                 data-dom-id="previous"
                 class="toolbarButton previous"
               >
-                <span data-l10n-id="pdfjs-previous-button-label">Previous</span>
+                <span data-l10n-id="pdfjs-previous-button-label"></span>
               </button>
               <div class="splitToolbarButtonSeparator"></div>
               <button
                 type="button"
-                title="Next Page"
                 tabindex="0"
                 data-l10n-id="pdfjs-next-button"
                 data-dom-id="next"
                 class="toolbarButton next"
               >
-                <span data-l10n-id="pdfjs-next-button-label">Next</span>
+                <span data-l10n-id="pdfjs-next-button-label"></span>
               </button>
             </div>
             <div class="toolbarHorizontalGroup">
               <span class="loadingInput start toolbarHorizontalGroup"
                 ><input
                   type="number"
-                  title="Page"
                   value="1"
                   min="1"
                   tabindex="0"
@@ -316,31 +507,28 @@ const template = `
             <div class="toolbarHorizontalGroup">
               <button
                 type="button"
-                title="Zoom Out"
                 tabindex="0"
                 data-l10n-id="pdfjs-zoom-out-button"
                 data-dom-id="zoomOutButton"
                 class="toolbarButton zoomOutButton"
               >
-                <span data-l10n-id="pdfjs-zoom-out-button-label">Zoom Out</span>
+                <span data-l10n-id="pdfjs-zoom-out-button-label"></span>
               </button>
               <div class="splitToolbarButtonSeparator"></div>
               <button
                 type="button"
-                title="Zoom In"
                 tabindex="0"
                 data-l10n-id="pdfjs-zoom-in-button"
                 data-dom-id="zoomInButton"
                 class="toolbarButton zoomInButton"
               >
-                <span data-l10n-id="pdfjs-zoom-in-button-label">Zoom In</span>
+                <span data-l10n-id="pdfjs-zoom-in-button-label"></span>
               </button>
             </div>
             <span
               data-dom-id="scaleSelectContainer"
               class="dropdownToolbarButton scaleSelectContainer"
               ><select
-                title="Zoom"
                 tabindex="0"
                 data-l10n-id="pdfjs-zoom-select"
                 data-dom-id="scaleSelect"
@@ -348,124 +536,202 @@ const template = `
               >
                 <option
                   id="pageAutoOption"
-                  title=""
                   value="auto"
                   selected="selected"
                   data-l10n-id="pdfjs-page-scale-auto"
-                >
-                  Automatic Zoom
-                </option>
+                ></option>
                 <option
                   id="pageActualOption"
-                  title=""
                   value="page-actual"
                   data-l10n-id="pdfjs-page-scale-actual"
-                >
-                  Actual Size
-                </option>
+                ></option>
                 <option
                   id="pageFitOption"
-                  title=""
                   value="page-fit"
                   data-l10n-id="pdfjs-page-scale-fit"
-                >
-                  Page Fit
-                </option>
+                ></option>
                 <option
                   id="pageWidthOption"
-                  title=""
                   value="page-width"
                   data-l10n-id="pdfjs-page-scale-width"
-                >
-                  Page Width
-                </option>
+                ></option>
                 <option
                   id="customScaleOption"
-                  title=""
                   value="custom"
                   disabled="disabled"
                   hidden="true"
                   data-l10n-id="pdfjs-page-scale-percent"
                   data-l10n-args='{ "scale": 0 }'
-                >
-                  0%
-                </option>
+                ></option>
                 <option
-                  title=""
                   value="0.5"
                   data-l10n-id="pdfjs-page-scale-percent"
                   data-l10n-args='{ "scale": 50 }'
-                >
-                  50%
-                </option>
+                ></option>
                 <option
-                  title=""
                   value="0.75"
                   data-l10n-id="pdfjs-page-scale-percent"
                   data-l10n-args='{ "scale": 75 }'
-                >
-                  75%
-                </option>
+                ></option>
                 <option
-                  title=""
                   value="1"
                   data-l10n-id="pdfjs-page-scale-percent"
                   data-l10n-args='{ "scale": 100 }'
-                >
-                  100%
-                </option>
+                ></option>
                 <option
-                  title=""
                   value="1.25"
                   data-l10n-id="pdfjs-page-scale-percent"
                   data-l10n-args='{ "scale": 125 }'
-                >
-                  125%
-                </option>
+                ></option>
                 <option
-                  title=""
                   value="1.5"
                   data-l10n-id="pdfjs-page-scale-percent"
                   data-l10n-args='{ "scale": 150 }'
-                >
-                  150%
-                </option>
+                ></option>
                 <option
-                  title=""
                   value="2"
                   data-l10n-id="pdfjs-page-scale-percent"
                   data-l10n-args='{ "scale": 200 }'
-                >
-                  200%
-                </option>
+                ></option>
                 <option
-                  title=""
                   value="3"
                   data-l10n-id="pdfjs-page-scale-percent"
                   data-l10n-args='{ "scale": 300 }'
-                >
-                  300%
-                </option>
+                ></option>
                 <option
-                  title=""
                   value="4"
                   data-l10n-id="pdfjs-page-scale-percent"
                   data-l10n-args='{ "scale": 400 }'
-                >
-                  400%
-                </option>
-              </select></span
-            >
+                ></option></select
+            ></span>
           </div>
           <div
             data-dom-id="toolbarViewerRight"
             class="toolbarHorizontalGroup toolbarViewerRight"
           >
             <div
-              role="radiogroup"
               data-dom-id="editorModeButtons"
               class="toolbarHorizontalGroup editorModeButtons"
             >
+              <div
+                hidden="true"
+                data-dom-id="editorComment"
+                class="toolbarButtonWithContainer editorComment"
+              >
+                <button
+                  type="button"
+                  tabindex="0"
+                  disabled="disabled"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-controls="editorCommentParamsToolbar"
+                  data-l10n-id="pdfjs-editor-comment-button"
+                  data-dom-id="editorCommentButton"
+                  class="toolbarButton editorCommentButton"
+                >
+                  <span data-l10n-id="pdfjs-editor-comment-button-label"></span>
+                </button>
+                <div
+                  data-dom-id="editorCommentParamsToolbar"
+                  class="editorParamsToolbar hidden menu editorCommentParamsToolbar"
+                >
+                  <div
+                    role="landmark"
+                    aria-labelledby="editorCommentsSidebarHeader"
+                    data-dom-id="editorCommentsSidebar"
+                    class="menuContainer comment sidebar editorCommentsSidebar"
+                  >
+                    <div
+                      role="separator"
+                      aria-controls="editorCommentsSidebar"
+                      tabindex="0"
+                      data-dom-id="editorCommentsSidebarResizer"
+                      class="sidebarResizer editorCommentsSidebarResizer"
+                    ></div>
+                    <div
+                      role="heading"
+                      aria-level="2"
+                      data-dom-id="editorCommentsSidebarHeader"
+                      class="editorCommentsSidebarHeader"
+                    >
+                      <span class="commentCount"
+                        ><span
+                          data-l10n-id="pdfjs-editor-comments-sidebar-title"
+                          data-l10n-args='{ "count": 0 }'
+                          data-dom-id="editorCommentsSidebarTitle"
+                          class="editorCommentsSidebarTitle"
+                        ></span
+                        ><span
+                          data-dom-id="editorCommentsSidebarCount"
+                          class="editorCommentsSidebarCount"
+                        ></span></span
+                      ><button
+                        type="button"
+                        tabindex="0"
+                        data-l10n-id="pdfjs-editor-comments-sidebar-close-button"
+                        data-dom-id="editorCommentsSidebarCloseButton"
+                        class="editorCommentsSidebarCloseButton"
+                      >
+                        <span
+                          data-l10n-id="pdfjs-editor-comments-sidebar-close-button-label"
+                        ></span>
+                      </button>
+                    </div>
+                    <div
+                      tabindex="-1"
+                      data-dom-id="editorCommentsSidebarListContainer"
+                      class="editorCommentsSidebarListContainer"
+                    >
+                      <ul id="editorCommentsSidebarList"></ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                hidden="true"
+                data-dom-id="editorSignature"
+                class="toolbarButtonWithContainer editorSignature"
+              >
+                <button
+                  type="button"
+                  tabindex="0"
+                  disabled="disabled"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-controls="editorSignatureParamsToolbar"
+                  data-l10n-id="pdfjs-editor-signature-button"
+                  data-dom-id="editorSignatureButton"
+                  class="toolbarButton editorSignatureButton"
+                >
+                  <span
+                    data-l10n-id="pdfjs-editor-signature-button-label"
+                  ></span>
+                </button>
+                <div
+                  data-dom-id="editorSignatureParamsToolbar"
+                  class="editorParamsToolbar hidden doorHangerRight menu editorSignatureParamsToolbar"
+                >
+                  <div
+                    role="region"
+                    data-l10n-id="pdfjs-editor-add-signature-container"
+                    data-dom-id="addSignatureDoorHanger"
+                    class="menuContainer addSignatureDoorHanger"
+                  >
+                    <button
+                      type="button"
+                      tabindex="0"
+                      data-l10n-id="pdfjs-editor-signature-add-signature-button"
+                      data-dom-id="editorSignatureAddSignature"
+                      class="toolbarButton labeled editorSignatureAddSignature"
+                    >
+                      <span
+                        data-l10n-id="pdfjs-editor-signature-add-signature-button-label"
+                        class="editorParamsLabel"
+                      ></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
               <div
                 data-dom-id="editorHighlight"
                 class="toolbarButtonWithContainer editorHighlight"
@@ -473,8 +739,6 @@ const template = `
                 <button
                   type="button"
                   disabled="disabled"
-                  title="Highlight"
-                  role="radio"
                   aria-expanded="false"
                   aria-haspopup="true"
                   aria-controls="editorHighlightParamsToolbar"
@@ -483,9 +747,9 @@ const template = `
                   data-dom-id="editorHighlightButton"
                   class="toolbarButton editorHighlightButton"
                 >
-                  <span data-l10n-id="pdfjs-editor-highlight-button-label"
-                    >Highlight</span
-                  >
+                  <span
+                    data-l10n-id="pdfjs-editor-highlight-button-label"
+                  ></span>
                 </button>
                 <div
                   data-dom-id="editorHighlightParamsToolbar"
@@ -503,8 +767,7 @@ const template = `
                         data-l10n-id="pdfjs-editor-highlight-colorpicker-label"
                         data-dom-id="highlightColorPickerLabel"
                         class="editorParamsLabel highlightColorPickerLabel"
-                        >Highlight color</span
-                      >
+                      ></span>
                     </div>
                     <div
                       data-dom-id="editorHighlightThickness"
@@ -551,8 +814,6 @@ const template = `
                 <button
                   type="button"
                   disabled="disabled"
-                  title="Text"
-                  role="radio"
                   aria-expanded="false"
                   aria-haspopup="true"
                   aria-controls="editorFreeTextParamsToolbar"
@@ -561,9 +822,9 @@ const template = `
                   data-dom-id="editorFreeTextButton"
                   class="toolbarButton editorFreeTextButton"
                 >
-                  <span data-l10n-id="pdfjs-editor-free-text-button-label"
-                    >Text</span
-                  >
+                  <span
+                    data-l10n-id="pdfjs-editor-free-text-button-label"
+                  ></span>
                 </button>
                 <div
                   data-dom-id="editorFreeTextParamsToolbar"
@@ -576,13 +837,11 @@ const template = `
                           type="color"
                           tabindex="0"
                           data-dom-id="editorFreeTextColor"
-                          class="editorParamsColor editorFreeTextColor"
-                        /><span
+                          class="editorParamsColor editorFreeTextColor" /><span
                           class="toolbarLabel"
                           data-l10n-id="pdfjs-editor-free-text-color-input"
-                          >Color</span
-                        ></label
-                      >
+                        ></span
+                      ></label>
                     </div>
                     <div class="editorParamsSetter">
                       <!--Removed!--><label
@@ -594,13 +853,11 @@ const template = `
                           step="1"
                           tabindex="0"
                           data-dom-id="editorFreeTextFontSize"
-                          class="editorParamsSlider editorFreeTextFontSize"
-                        /><span
+                          class="editorParamsSlider editorFreeTextFontSize" /><span
                           class="toolbarLabel"
                           data-l10n-id="pdfjs-editor-free-text-size-input"
-                          >Size</span
-                        ></label
-                      >
+                        ></span
+                      ></label>
                     </div>
                   </div>
                 </div>
@@ -612,8 +869,6 @@ const template = `
                 <button
                   type="button"
                   disabled="disabled"
-                  title="Draw"
-                  role="radio"
                   aria-expanded="false"
                   aria-haspopup="true"
                   aria-controls="editorInkParamsToolbar"
@@ -622,7 +877,7 @@ const template = `
                   data-dom-id="editorInkButton"
                   class="toolbarButton editorInkButton"
                 >
-                  <span data-l10n-id="pdfjs-editor-ink-button-label">Draw</span>
+                  <span data-l10n-id="pdfjs-editor-ink-button-label"></span>
                 </button>
                 <div
                   data-dom-id="editorInkParamsToolbar"
@@ -635,13 +890,11 @@ const template = `
                           type="color"
                           tabindex="0"
                           data-dom-id="editorInkColor"
-                          class="editorParamsColor editorInkColor"
-                        /><span
+                          class="editorParamsColor editorInkColor" /><span
                           class="toolbarLabel"
                           data-l10n-id="pdfjs-editor-ink-color-input"
-                          >Color</span
-                        ></label
-                      >
+                        ></span
+                      ></label>
                     </div>
                     <div class="editorParamsSetter">
                       <!--Removed!--><label
@@ -653,13 +906,11 @@ const template = `
                           step="1"
                           tabindex="0"
                           data-dom-id="editorInkThickness"
-                          class="editorParamsSlider editorInkThickness"
-                        /><span
+                          class="editorParamsSlider editorInkThickness" /><span
                           class="toolbarLabel"
                           data-l10n-id="pdfjs-editor-ink-thickness-input"
-                          >Thickness</span
-                        ></label
-                      >
+                        ></span
+                      ></label>
                     </div>
                     <div class="editorParamsSetter">
                       <!--Removed!--><label
@@ -671,13 +922,11 @@ const template = `
                           step="0.05"
                           tabindex="0"
                           data-dom-id="editorInkOpacity"
-                          class="editorParamsSlider editorInkOpacity"
-                        /><span
+                          class="editorParamsSlider editorInkOpacity" /><span
                           class="toolbarLabel"
                           data-l10n-id="pdfjs-editor-ink-opacity-input"
-                          >Opacity</span
-                        ></label
-                      >
+                        ></span
+                      ></label>
                     </div>
                   </div>
                 </div>
@@ -689,8 +938,6 @@ const template = `
                 <button
                   type="button"
                   disabled="disabled"
-                  title="Add or edit images"
-                  role="radio"
                   aria-expanded="false"
                   aria-haspopup="true"
                   aria-controls="editorStampParamsToolbar"
@@ -699,9 +946,7 @@ const template = `
                   data-dom-id="editorStampButton"
                   class="toolbarButton editorStampButton"
                 >
-                  <span data-l10n-id="pdfjs-editor-stamp-button-label"
-                    >Add or edit images</span
-                  >
+                  <span data-l10n-id="pdfjs-editor-stamp-button-label"></span>
                 </button>
                 <div
                   data-dom-id="editorStampParamsToolbar"
@@ -710,7 +955,6 @@ const template = `
                   <div class="menuContainer">
                     <button
                       type="button"
-                      title="Add image"
                       tabindex="0"
                       data-l10n-id="pdfjs-editor-stamp-add-image-button"
                       data-dom-id="editorStampAddImage"
@@ -719,8 +963,7 @@ const template = `
                       <span
                         class="editorParamsLabel"
                         data-l10n-id="pdfjs-editor-stamp-add-image-button-label"
-                        >Add image</span
-                      >
+                      ></span>
                     </button>
                   </div>
                 </div>
@@ -733,24 +976,20 @@ const template = `
             <div class="toolbarHorizontalGroup hiddenMediumView">
               <button
                 type="button"
-                title="Print"
                 tabindex="0"
                 data-l10n-id="pdfjs-print-button"
                 data-dom-id="printButton"
                 class="toolbarButton printButton"
               >
-                <span data-l10n-id="pdfjs-print-button-label"
-                  >Print</span
-                ></button
+                <span data-l10n-id="pdfjs-print-button-label"></span></button
               ><button
                 type="button"
-                title="Save"
                 tabindex="0"
                 data-l10n-id="pdfjs-save-button"
                 data-dom-id="downloadButton"
                 class="toolbarButton downloadButton"
               >
-                <span data-l10n-id="pdfjs-save-button-label">Save</span>
+                <span data-l10n-id="pdfjs-save-button-label"></span>
               </button>
             </div>
             <div class="verticalToolbarSeparator hiddenMediumView"></div>
@@ -760,7 +999,6 @@ const template = `
             >
               <button
                 type="button"
-                title="Tools"
                 tabindex="0"
                 data-l10n-id="pdfjs-tools-button"
                 aria-expanded="false"
@@ -769,7 +1007,7 @@ const template = `
                 data-dom-id="secondaryToolbarToggleButton"
                 class="toolbarButton secondaryToolbarToggleButton"
               >
-                <span data-l10n-id="pdfjs-tools-button-label">Tools</span>
+                <span data-l10n-id="pdfjs-tools-button-label"></span>
               </button>
               <div
                 data-dom-id="secondaryToolbar"
@@ -781,115 +1019,102 @@ const template = `
                 >
                   <!--#if GENERIC--><button
                     type="button"
-                    title="Open File"
                     tabindex="0"
                     data-l10n-id="pdfjs-open-file-button"
                     data-dom-id="secondaryOpenFile"
                     class="toolbarButton labeled secondaryOpenFile"
                   >
-                    <span data-l10n-id="pdfjs-open-file-button-label"
-                      >Open</span
-                    ></button
+                    <span
+                      data-l10n-id="pdfjs-open-file-button-label"
+                    ></span></button
                   ><!--#endif-->
                   <div class="visibleMediumView">
                     <button
                       type="button"
-                      title="Print"
                       tabindex="0"
                       data-l10n-id="pdfjs-print-button"
                       data-dom-id="secondaryPrint"
                       class="toolbarButton labeled secondaryPrint"
                     >
-                      <span data-l10n-id="pdfjs-print-button-label"
-                        >Print</span
-                      ></button
+                      <span
+                        data-l10n-id="pdfjs-print-button-label"
+                      ></span></button
                     ><button
                       type="button"
-                      title="Save"
                       tabindex="0"
                       data-l10n-id="pdfjs-save-button"
                       data-dom-id="secondaryDownload"
                       class="toolbarButton labeled secondaryDownload"
                     >
-                      <span data-l10n-id="pdfjs-save-button-label"
-                        >Save</span
-                      ></button
+                      <span
+                        data-l10n-id="pdfjs-save-button-label"
+                      ></span></button
                     ><!--#if !GENERIC--><!--            <div class="horizontalToolbarSeparator"></div>--><!--#endif-->
                   </div>
                   <!--#if GENERIC-->
                   <div class="horizontalToolbarSeparator"></div>
                   <!--#endif--><button
                     type="button"
-                    title="Switch to Presentation Mode"
                     tabindex="0"
                     data-l10n-id="pdfjs-presentation-mode-button"
                     data-dom-id="presentationMode"
                     class="toolbarButton labeled presentationMode"
                   >
-                    <span data-l10n-id="pdfjs-presentation-mode-button-label"
-                      >Presentation Mode</span
-                    ></button
+                    <span
+                      data-l10n-id="pdfjs-presentation-mode-button-label"
+                    ></span></button
                   ><a
                     href="#"
-                    title="Current Page (View URL from Current Page)"
                     tabindex="0"
                     data-l10n-id="pdfjs-bookmark-button"
                     data-dom-id="viewBookmark"
                     class="toolbarButton labeled viewBookmark"
-                    ><span data-l10n-id="pdfjs-bookmark-button-label"
-                      >Current Page</span
-                    ></a
-                  >
+                    ><span data-l10n-id="pdfjs-bookmark-button-label"></span
+                  ></a>
                   <div
                     data-dom-id="viewBookmarkSeparator"
                     class="horizontalToolbarSeparator viewBookmarkSeparator"
                   ></div>
                   <button
                     type="button"
-                    title="Go to First Page"
                     tabindex="0"
                     data-l10n-id="pdfjs-first-page-button"
                     data-dom-id="firstPage"
                     class="toolbarButton labeled firstPage"
                   >
-                    <span data-l10n-id="pdfjs-first-page-button-label"
-                      >Go to First Page</span
-                    ></button
+                    <span
+                      data-l10n-id="pdfjs-first-page-button-label"
+                    ></span></button
                   ><button
                     type="button"
-                    title="Go to Last Page"
                     tabindex="0"
                     data-l10n-id="pdfjs-last-page-button"
                     data-dom-id="lastPage"
                     class="toolbarButton labeled lastPage"
                   >
-                    <span data-l10n-id="pdfjs-last-page-button-label"
-                      >Go to Last Page</span
-                    >
+                    <span data-l10n-id="pdfjs-last-page-button-label"></span>
                   </button>
                   <div class="horizontalToolbarSeparator"></div>
                   <button
                     type="button"
-                    title="Rotate Clockwise"
                     tabindex="0"
                     data-l10n-id="pdfjs-page-rotate-cw-button"
                     data-dom-id="pageRotateCw"
                     class="toolbarButton labeled pageRotateCw"
                   >
-                    <span data-l10n-id="pdfjs-page-rotate-cw-button-label"
-                      >Rotate Clockwise</span
-                    ></button
+                    <span
+                      data-l10n-id="pdfjs-page-rotate-cw-button-label"
+                    ></span></button
                   ><button
                     type="button"
-                    title="Rotate Counterclockwise"
                     tabindex="0"
                     data-l10n-id="pdfjs-page-rotate-ccw-button"
                     data-dom-id="pageRotateCcw"
                     class="toolbarButton labeled pageRotateCcw"
                   >
-                    <span data-l10n-id="pdfjs-page-rotate-ccw-button-label"
-                      >Rotate Counterclockwise</span
-                    >
+                    <span
+                      data-l10n-id="pdfjs-page-rotate-ccw-button-label"
+                    ></span>
                   </button>
                   <div class="horizontalToolbarSeparator"></div>
                   <div
@@ -899,7 +1124,6 @@ const template = `
                   >
                     <button
                       type="button"
-                      title="Enable Text Selection Tool"
                       tabindex="0"
                       data-l10n-id="pdfjs-cursor-text-select-tool-button"
                       role="radio"
@@ -909,11 +1133,9 @@ const template = `
                     >
                       <span
                         data-l10n-id="pdfjs-cursor-text-select-tool-button-label"
-                        >Text Selection Tool</span
-                      ></button
+                      ></span></button
                     ><button
                       type="button"
-                      title="Enable Hand Tool"
                       tabindex="0"
                       data-l10n-id="pdfjs-cursor-hand-tool-button"
                       role="radio"
@@ -921,9 +1143,9 @@ const template = `
                       data-dom-id="cursorHandTool"
                       class="toolbarButton labeled cursorHandTool"
                     >
-                      <span data-l10n-id="pdfjs-cursor-hand-tool-button-label"
-                        >Hand Tool</span
-                      >
+                      <span
+                        data-l10n-id="pdfjs-cursor-hand-tool-button-label"
+                      ></span>
                     </button>
                   </div>
                   <div class="horizontalToolbarSeparator"></div>
@@ -934,7 +1156,6 @@ const template = `
                   >
                     <button
                       type="button"
-                      title="Use Page Scrolling"
                       tabindex="0"
                       data-l10n-id="pdfjs-scroll-page-button"
                       role="radio"
@@ -942,12 +1163,11 @@ const template = `
                       data-dom-id="scrollPage"
                       class="toolbarButton labeled scrollPage"
                     >
-                      <span data-l10n-id="pdfjs-scroll-page-button-label"
-                        >Page Scrolling</span
-                      ></button
+                      <span
+                        data-l10n-id="pdfjs-scroll-page-button-label"
+                      ></span></button
                     ><button
                       type="button"
-                      title="Use Vertical Scrolling"
                       tabindex="0"
                       data-l10n-id="pdfjs-scroll-vertical-button"
                       role="radio"
@@ -955,12 +1175,11 @@ const template = `
                       data-dom-id="scrollVertical"
                       class="toolbarButton labeled toggled scrollVertical"
                     >
-                      <span data-l10n-id="pdfjs-scroll-vertical-button-label"
-                        >Vertical Scrolling</span
-                      ></button
+                      <span
+                        data-l10n-id="pdfjs-scroll-vertical-button-label"
+                      ></span></button
                     ><button
                       type="button"
-                      title="Use Horizontal Scrolling"
                       tabindex="0"
                       data-l10n-id="pdfjs-scroll-horizontal-button"
                       role="radio"
@@ -968,12 +1187,11 @@ const template = `
                       data-dom-id="scrollHorizontal"
                       class="toolbarButton labeled scrollHorizontal"
                     >
-                      <span data-l10n-id="pdfjs-scroll-horizontal-button-label"
-                        >Horizontal Scrolling</span
-                      ></button
+                      <span
+                        data-l10n-id="pdfjs-scroll-horizontal-button-label"
+                      ></span></button
                     ><button
                       type="button"
-                      title="Use Wrapped Scrolling"
                       tabindex="0"
                       data-l10n-id="pdfjs-scroll-wrapped-button"
                       role="radio"
@@ -981,9 +1199,9 @@ const template = `
                       data-dom-id="scrollWrapped"
                       class="toolbarButton labeled scrollWrapped"
                     >
-                      <span data-l10n-id="pdfjs-scroll-wrapped-button-label"
-                        >Wrapped Scrolling</span
-                      >
+                      <span
+                        data-l10n-id="pdfjs-scroll-wrapped-button-label"
+                      ></span>
                     </button>
                   </div>
                   <div class="horizontalToolbarSeparator"></div>
@@ -994,7 +1212,6 @@ const template = `
                   >
                     <button
                       type="button"
-                      title="Do not join page spreads"
                       tabindex="0"
                       data-l10n-id="pdfjs-spread-none-button"
                       role="radio"
@@ -1002,12 +1219,11 @@ const template = `
                       data-dom-id="spreadNone"
                       class="toolbarButton labeled toggled spreadNone"
                     >
-                      <span data-l10n-id="pdfjs-spread-none-button-label"
-                        >No Spreads</span
-                      ></button
+                      <span
+                        data-l10n-id="pdfjs-spread-none-button-label"
+                      ></span></button
                     ><button
                       type="button"
-                      title="Join page spreads starting with odd-numbered pages"
                       tabindex="0"
                       data-l10n-id="pdfjs-spread-odd-button"
                       role="radio"
@@ -1015,12 +1231,11 @@ const template = `
                       data-dom-id="spreadOdd"
                       class="toolbarButton labeled spreadOdd"
                     >
-                      <span data-l10n-id="pdfjs-spread-odd-button-label"
-                        >Odd Spreads</span
-                      ></button
+                      <span
+                        data-l10n-id="pdfjs-spread-odd-button-label"
+                      ></span></button
                     ><button
                       type="button"
-                      title="Join page spreads starting with even-numbered pages"
                       tabindex="0"
                       data-l10n-id="pdfjs-spread-even-button"
                       role="radio"
@@ -1028,9 +1243,9 @@ const template = `
                       data-dom-id="spreadEven"
                       class="toolbarButton labeled spreadEven"
                     >
-                      <span data-l10n-id="pdfjs-spread-even-button-label"
-                        >Even Spreads</span
-                      >
+                      <span
+                        data-l10n-id="pdfjs-spread-even-button-label"
+                      ></span>
                     </button>
                   </div>
                   <div
@@ -1039,7 +1254,6 @@ const template = `
                   ></div>
                   <button
                     type="button"
-                    title="Image alt text settings"
                     tabindex="0"
                     data-l10n-id="pdfjs-image-alt-text-settings-button"
                     aria-controls="altTextSettingsDialog"
@@ -1048,22 +1262,20 @@ const template = `
                   >
                     <span
                       data-l10n-id="pdfjs-image-alt-text-settings-button-label"
-                      >Image alt text settings</span
-                    >
+                    ></span>
                   </button>
                   <div class="horizontalToolbarSeparator"></div>
                   <button
                     type="button"
-                    title="Document Properties…"
                     tabindex="0"
                     data-l10n-id="pdfjs-document-properties-button"
                     aria-controls="documentPropertiesDialog"
                     data-dom-id="documentProperties"
                     class="toolbarButton labeled documentProperties"
                   >
-                    <span data-l10n-id="pdfjs-document-properties-button-label"
-                      >Document Properties…</span
-                    >
+                    <span
+                      data-l10n-id="pdfjs-document-properties-button-label"
+                    ></span>
                   </button>
                 </div>
               </div>
@@ -1097,15 +1309,13 @@ const template = `
           data-dom-id="passwordCancel"
           class="dialogButton passwordCancel"
         >
-          <span data-l10n-id="pdfjs-password-cancel-button"
-            >Cancel</span
-          ></button
+          <span data-l10n-id="pdfjs-password-cancel-button"></span></button
         ><button
           type="button"
           data-dom-id="passwordSubmit"
           class="dialogButton passwordSubmit"
         >
-          <span data-l10n-id="pdfjs-password-ok-button">OK</span>
+          <span data-l10n-id="pdfjs-password-ok-button"></span>
         </button>
       </div>
     </dialog>
@@ -1118,8 +1328,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-file-name"
           data-dom-id="fileNameLabel"
           class="fileNameLabel"
-          >File name:</span
-        >
+        ></span>
         <p
           aria-labelledby="fileNameLabel"
           data-dom-id="fileNameField"
@@ -1133,8 +1342,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-file-size"
           data-dom-id="fileSizeLabel"
           class="fileSizeLabel"
-          >File size:</span
-        >
+        ></span>
         <p
           aria-labelledby="fileSizeLabel"
           data-dom-id="fileSizeField"
@@ -1149,8 +1357,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-title"
           data-dom-id="titleLabel"
           class="titleLabel"
-          >Title:</span
-        >
+        ></span>
         <p
           aria-labelledby="titleLabel"
           data-dom-id="titleField"
@@ -1164,8 +1371,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-author"
           data-dom-id="authorLabel"
           class="authorLabel"
-          >Author:</span
-        >
+        ></span>
         <p
           aria-labelledby="authorLabel"
           data-dom-id="authorField"
@@ -1179,8 +1385,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-subject"
           data-dom-id="subjectLabel"
           class="subjectLabel"
-          >Subject:</span
-        >
+        ></span>
         <p
           aria-labelledby="subjectLabel"
           data-dom-id="subjectField"
@@ -1194,8 +1399,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-keywords"
           data-dom-id="keywordsLabel"
           class="keywordsLabel"
-          >Keywords:</span
-        >
+        ></span>
         <p
           aria-labelledby="keywordsLabel"
           data-dom-id="keywordsField"
@@ -1209,8 +1413,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-creation-date"
           data-dom-id="creationDateLabel"
           class="creationDateLabel"
-          >Creation Date:</span
-        >
+        ></span>
         <p
           aria-labelledby="creationDateLabel"
           data-dom-id="creationDateField"
@@ -1224,8 +1427,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-modification-date"
           data-dom-id="modificationDateLabel"
           class="modificationDateLabel"
-          >Modification Date:</span
-        >
+        ></span>
         <p
           aria-labelledby="modificationDateLabel"
           data-dom-id="modificationDateField"
@@ -1239,8 +1441,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-creator"
           data-dom-id="creatorLabel"
           class="creatorLabel"
-          >Creator:</span
-        >
+        ></span>
         <p
           aria-labelledby="creatorLabel"
           data-dom-id="creatorField"
@@ -1255,8 +1456,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-producer"
           data-dom-id="producerLabel"
           class="producerLabel"
-          >PDF Producer:</span
-        >
+        ></span>
         <p
           aria-labelledby="producerLabel"
           data-dom-id="producerField"
@@ -1270,8 +1470,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-version"
           data-dom-id="versionLabel"
           class="versionLabel"
-          >PDF Version:</span
-        >
+        ></span>
         <p
           aria-labelledby="versionLabel"
           data-dom-id="versionField"
@@ -1285,8 +1484,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-page-count"
           data-dom-id="pageCountLabel"
           class="pageCountLabel"
-          >Page Count:</span
-        >
+        ></span>
         <p
           aria-labelledby="pageCountLabel"
           data-dom-id="pageCountField"
@@ -1300,8 +1498,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-page-size"
           data-dom-id="pageSizeLabel"
           class="pageSizeLabel"
-          >Page Size:</span
-        >
+        ></span>
         <p
           aria-labelledby="pageSizeLabel"
           data-dom-id="pageSizeField"
@@ -1316,8 +1513,7 @@ const template = `
           data-l10n-id="pdfjs-document-properties-linearized"
           data-dom-id="linearizedLabel"
           class="linearizedLabel"
-          >Fast Web View:</span
-        >
+        ></span>
         <p
           aria-labelledby="linearizedLabel"
           data-dom-id="linearizedField"
@@ -1332,9 +1528,7 @@ const template = `
           data-dom-id="documentPropertiesClose"
           class="dialogButton documentPropertiesClose"
         >
-          <span data-l10n-id="pdfjs-document-properties-close-button"
-            >Close</span
-          >
+          <span data-l10n-id="pdfjs-document-properties-close-button"></span>
         </button>
       </div>
     </dialog>
@@ -1353,15 +1547,12 @@ const template = `
             data-l10n-id="pdfjs-editor-alt-text-dialog-label"
             data-dom-id="dialogLabel"
             class="title dialogLabel"
-            >Choose an option</span
+          ></span
           ><span
             data-l10n-id="pdfjs-editor-alt-text-dialog-description"
             data-dom-id="dialogDescription"
             class="dialogDescription"
-          >
-            Alt text (alternative text) helps when people can’t see the image or
-            when it doesn’t load.
-          </span>
+          ></span>
         </div>
         <div data-dom-id="addDescription" class="addDescription">
           <div class="radio">
@@ -1374,12 +1565,10 @@ const template = `
                   aria-describedby="descriptionAreaLabel"
                   checked=""
                   data-dom-id="descriptionButton"
-                  class="descriptionButton"
-                /><span
+                  class="descriptionButton" /><span
                   class="toolbarLabel"
                   data-l10n-id="pdfjs-editor-alt-text-add-description-label"
-                  >Add a description</span
-                ></label
+                ></span></label
               ><!--Removed!-->
             </div>
             <div class="radioLabel">
@@ -1387,15 +1576,11 @@ const template = `
                 data-l10n-id="pdfjs-editor-alt-text-add-description-description"
                 data-dom-id="descriptionAreaLabel"
                 class="descriptionAreaLabel"
-              >
-                Aim for 1-2 sentences that describe the subject, setting, or
-                actions.
-              </span>
+              ></span>
             </div>
           </div>
           <div class="descriptionArea">
             <textarea
-              placeholder="For example, “A young man sits down at a table to eat a meal”"
               aria-labelledby="descriptionAreaLabel"
               data-l10n-id="pdfjs-editor-alt-text-textarea"
               tabindex="0"
@@ -1413,12 +1598,10 @@ const template = `
                   name="altTextOption"
                   aria-describedby="decorativeLabel"
                   data-dom-id="decorativeButton"
-                  class="decorativeButton"
-                /><span
+                  class="decorativeButton" /><span
                   class="toolbarLabel"
                   data-l10n-id="pdfjs-editor-alt-text-mark-decorative-label"
-                  >Mark as decorative</span
-                ></label
+                ></span></label
               ><!--Removed!-->
             </div>
             <div class="radioLabel">
@@ -1426,9 +1609,7 @@ const template = `
                 data-l10n-id="pdfjs-editor-alt-text-mark-decorative-description"
                 data-dom-id="decorativeLabel"
                 class="decorativeLabel"
-              >
-                This is used for ornamental images, like borders or watermarks.
-              </span>
+              ></span>
             </div>
           </div>
         </div>
@@ -1439,16 +1620,16 @@ const template = `
             data-dom-id="altTextCancel"
             class="secondaryButton altTextCancel"
           >
-            <span data-l10n-id="pdfjs-editor-alt-text-cancel-button"
-              >Cancel</span
-            ></button
+            <span
+              data-l10n-id="pdfjs-editor-alt-text-cancel-button"
+            ></span></button
           ><button
             type="button"
             tabindex="0"
             data-dom-id="altTextSave"
             class="primaryButton altTextSave"
           >
-            <span data-l10n-id="pdfjs-editor-alt-text-save-button">Save</span>
+            <span data-l10n-id="pdfjs-editor-alt-text-save-button"></span>
           </button>
         </div>
       </div>
@@ -1471,8 +1652,7 @@ const template = `
             tabindex="0"
             data-dom-id="newAltTextTitle"
             class="newAltTextTitle"
-            >Edit alt text (image description)</span
-          >
+          ></span>
         </div>
         <div data-dom-id="mainContent" class="mainContent">
           <div
@@ -1493,7 +1673,6 @@ const template = `
                   aria-live="polite"
                 ></div>
                 <textarea
-                  placeholder="Write your description here…"
                   aria-labelledby="descriptionAreaLabel"
                   data-l10n-id="pdfjs-editor-new-alt-text-textarea"
                   tabindex="0"
@@ -1506,18 +1685,16 @@ const template = `
                 data-l10n-id="pdfjs-editor-new-alt-text-description"
                 data-dom-id="newAltTextDescription"
                 class="newAltTextDescription"
-                >Short description for people who can’t see the image or when
-                the image doesn’t load.</span
-              >
+              ></span>
               <div
                 role="note"
                 data-dom-id="newAltTextDisclaimer"
                 class="newAltTextDisclaimer"
               >
                 <div>
-                  <span data-l10n-id="pdfjs-editor-new-alt-text-disclaimer1"
-                    >This alt text was created automatically and may be
-                    inaccurate.</span
+                  <span
+                    data-l10n-id="pdfjs-editor-new-alt-text-disclaimer1"
+                  ></span
                   ><a
                     href="https://support.mozilla.org/en-US/kb/pdf-alt-text"
                     target="_blank"
@@ -1526,8 +1703,7 @@ const template = `
                     tabindex="0"
                     data-dom-id="newAltTextLearnMore"
                     class="newAltTextLearnMore"
-                    >Learn more</a
-                  >
+                  ></a>
                 </div>
               </div>
             </div>
@@ -1554,8 +1730,7 @@ const template = `
                 data-l10n-args='{ "totalSize": 0, "downloadedSize": 0 }'
                 data-dom-id="newAltTextDownloadModelDescription"
                 class="newAltTextDownloadModelDescription"
-                >Downloading alt text AI model (0 of 0 MB)</span
-              >
+              ></span>
             </div>
           </div>
           <div
@@ -1569,23 +1744,21 @@ const template = `
               <span
                 class="title"
                 data-l10n-id="pdfjs-editor-new-alt-text-error-title"
-                >Couldn’t create alt text automatically</span
+              ></span
               ><span
                 class="description"
                 data-l10n-id="pdfjs-editor-new-alt-text-error-description"
-                >Please write your own alt text or try again later.</span
-              >
+              ></span>
             </div>
             <button
               type="button"
               tabindex="0"
-              title="Close"
               data-dom-id="newAltTextCloseButton"
               class="closeButton newAltTextCloseButton"
             >
-              <span data-l10n-id="pdfjs-editor-new-alt-text-error-close-button"
-                >Close</span
-              >
+              <span
+                data-l10n-id="pdfjs-editor-new-alt-text-error-close-button"
+              ></span>
             </button>
           </div>
         </div>
@@ -1599,25 +1772,25 @@ const template = `
             data-dom-id="newAltTextCancel"
             class="secondaryButton hidden newAltTextCancel"
           >
-            <span data-l10n-id="pdfjs-editor-alt-text-cancel-button"
-              >Cancel</span
-            ></button
+            <span
+              data-l10n-id="pdfjs-editor-alt-text-cancel-button"
+            ></span></button
           ><button
             type="button"
             tabindex="0"
             data-dom-id="newAltTextNotNow"
             class="secondaryButton newAltTextNotNow"
           >
-            <span data-l10n-id="pdfjs-editor-new-alt-text-not-now-button"
-              >Not now</span
-            ></button
+            <span
+              data-l10n-id="pdfjs-editor-new-alt-text-not-now-button"
+            ></span></button
           ><button
             type="button"
             tabindex="0"
             data-dom-id="newAltTextSave"
             class="primaryButton newAltTextSave"
           >
-            <span data-l10n-id="pdfjs-editor-alt-text-save-button">Save</span>
+            <span data-l10n-id="pdfjs-editor-alt-text-save-button"></span>
           </button>
         </div>
       </div>
@@ -1638,13 +1811,12 @@ const template = `
             tabindex="0"
             data-dom-id="altTextSettingsTitle"
             class="title altTextSettingsTitle"
-            >Image alt text settings</span
-          >
+          ></span>
         </div>
         <div data-dom-id="automaticAltText" class="automaticAltText">
-          <span data-l10n-id="pdfjs-editor-alt-text-settings-automatic-title"
-            >Automatic alt text</span
-          >
+          <span
+            data-l10n-id="pdfjs-editor-alt-text-settings-automatic-title"
+          ></span>
           <div data-dom-id="automaticSettings" class="automaticSettings">
             <div data-dom-id="createModelSetting" class="createModelSetting">
               <div class="toggler">
@@ -1663,8 +1835,7 @@ const template = `
               >
                 <span
                   data-l10n-id="pdfjs-editor-alt-text-settings-create-model-description"
-                  >Suggests descriptions to help people who can’t see the image
-                  or when the image doesn’t load.</span
+                ></span
                 ><a
                   href="https://support.mozilla.org/en-US/kb/pdf-alt-text"
                   target="_blank"
@@ -1673,57 +1844,16 @@ const template = `
                   tabindex="0"
                   data-dom-id="altTextSettingsLearnMore"
                   class="altTextSettingsLearnMore"
-                  >Learn more</a
-                >
+                ></a>
               </div>
-            </div>
-            <div data-dom-id="aiModelSettings" class="aiModelSettings">
-              <div>
-                <span
-                  data-l10n-id="pdfjs-editor-alt-text-settings-download-model-label"
-                  data-l10n-args='{ "totalSize": 180 }'
-                  >Alt text AI model (180MB)</span
-                >
-                <div
-                  data-dom-id="aiModelDescription"
-                  class="description aiModelDescription"
-                >
-                  <span
-                    data-l10n-id="pdfjs-editor-alt-text-settings-ai-model-description"
-                    >Runs locally on your device so your data stays private.
-                    Required for automatic alt text.</span
-                  >
-                </div>
-              </div>
-              <button
-                type="button"
-                tabindex="0"
-                data-dom-id="deleteModelButton"
-                class="secondaryButton deleteModelButton"
-              >
-                <span
-                  data-l10n-id="pdfjs-editor-alt-text-settings-delete-model-button"
-                  >Delete</span
-                ></button
-              ><button
-                type="button"
-                tabindex="0"
-                data-dom-id="downloadModelButton"
-                class="secondaryButton downloadModelButton"
-              >
-                <span
-                  data-l10n-id="pdfjs-editor-alt-text-settings-download-model-button"
-                  >Download</span
-                >
-              </button>
             </div>
           </div>
         </div>
         <div class="dialogSeparator"></div>
         <div data-dom-id="altTextEditor" class="altTextEditor">
-          <span data-l10n-id="pdfjs-editor-alt-text-settings-editor-title"
-            >Alt text editor</span
-          >
+          <span
+            data-l10n-id="pdfjs-editor-alt-text-settings-editor-title"
+          ></span>
           <div data-dom-id="showAltTextEditor" class="showAltTextEditor">
             <div class="toggler">
               <button
@@ -1741,8 +1871,7 @@ const template = `
             >
               <span
                 data-l10n-id="pdfjs-editor-alt-text-settings-show-dialog-description"
-                >Helps you make sure all your images have alt text.</span
-              >
+              ></span>
             </div>
           </div>
         </div>
@@ -1753,9 +1882,373 @@ const template = `
             data-dom-id="altTextSettingsCloseButton"
             class="primaryButton altTextSettingsCloseButton"
           >
-            <span data-l10n-id="pdfjs-editor-alt-text-settings-close-button"
-              >Close</span
+            <span
+              data-l10n-id="pdfjs-editor-alt-text-settings-close-button"
+            ></span>
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <dialog
+      aria-labelledby="addSignatureDialogLabel"
+      data-dom-id="addSignatureDialog"
+      class="dialog signatureDialog addSignatureDialog"
+    >
+      <span
+        data-l10n-id="pdfjs-editor-add-signature-dialog-label"
+        data-dom-id="addSignatureDialogLabel"
+        class="addSignatureDialogLabel"
+      ></span>
+      <div
+        data-dom-id="addSignatureContainer"
+        class="mainContainer addSignatureContainer"
+      >
+        <div class="title">
+          <span
+            role="sectionhead"
+            data-l10n-id="pdfjs-editor-add-signature-dialog-title"
+            tabindex="0"
+          ></span>
+        </div>
+        <div
+          role="tablist"
+          data-dom-id="addSignatureOptions"
+          class="addSignatureOptions"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected="true"
+            aria-controls="addSignatureTypeContainer"
+            data-l10n-id="pdfjs-editor-add-signature-type-button"
+            tabindex="0"
+            data-dom-id="addSignatureTypeButton"
+            class="addSignatureTypeButton"
+          ></button
+          ><button
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="addSignatureDrawContainer"
+            data-l10n-id="pdfjs-editor-add-signature-draw-button"
+            tabindex="0"
+            data-dom-id="addSignatureDrawButton"
+            class="addSignatureDrawButton"
+          ></button
+          ><button
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="addSignatureImageContainer"
+            data-l10n-id="pdfjs-editor-add-signature-image-button"
+            tabindex="-1"
+            data-dom-id="addSignatureImageButton"
+            class="addSignatureImageButton"
+          ></button>
+        </div>
+        <div
+          data-selected="type"
+          data-dom-id="addSignatureActionContainer"
+          class="addSignatureActionContainer"
+        >
+          <div
+            role="tabpanel"
+            aria-labelledby="addSignatureTypeButton"
+            data-dom-id="addSignatureTypeContainer"
+            class="addSignatureTypeContainer"
+          >
+            <input
+              type="text"
+              data-l10n-id="pdfjs-editor-add-signature-type-input"
+              tabindex="0"
+              data-dom-id="addSignatureTypeInput"
+              class="addSignatureTypeInput"
+            />
+          </div>
+          <div
+            role="tabpanel"
+            aria-labelledby="addSignatureDrawButton"
+            tabindex="-1"
+            data-dom-id="addSignatureDrawContainer"
+            class="addSignatureDrawContainer"
+          >
+            <svg
+              id="addSignatureDraw"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-labelledby="addSignatureDrawPlaceholder"
+            ></svg
+            ><span
+              data-l10n-id="pdfjs-editor-add-signature-draw-placeholder"
+              data-dom-id="addSignatureDrawPlaceholder"
+              class="addSignatureDrawPlaceholder"
+            ></span>
+            <div data-dom-id="thickness" class="thickness">
+              <div>
+                <!--Removed!--><label
+                  ><input
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value="1"
+                    data-l10n-id="pdfjs-editor-add-signature-draw-thickness-range"
+                    data-l10n-args='{ "thickness": 1 }'
+                    tabindex="0"
+                    data-dom-id="addSignatureDrawThickness"
+                    class="addSignatureDrawThickness" /><span
+                    class="toolbarLabel"
+                    data-l10n-id="pdfjs-editor-add-signature-draw-thickness-range-label"
+                  ></span
+                ></label>
+              </div>
+            </div>
+          </div>
+          <div
+            role="tabpanel"
+            aria-labelledby="addSignatureImageButton"
+            tabindex="-1"
+            data-dom-id="addSignatureImageContainer"
+            class="addSignatureImageContainer"
+          >
+            <svg
+              id="addSignatureImage"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-labelledby="addSignatureImagePlaceholder"
+            ></svg>
+            <div
+              data-dom-id="addSignatureImagePlaceholder"
+              class="addSignatureImagePlaceholder"
             >
+              <span
+                data-l10n-id="pdfjs-editor-add-signature-image-placeholder"
+              ></span
+              ><!--Removed!--><label id="addSignatureImageBrowse" tabindex="0"
+                ><input
+                  type="file"
+                  data-dom-id="addSignatureFilePicker"
+                  class="addSignatureFilePicker" /><span class="toolbarLabel">
+                  <a
+                    data-l10n-id="pdfjs-editor-add-signature-image-browse-link"
+                  ></a> </span
+              ></label>
+            </div>
+          </div>
+          <div data-dom-id="addSignatureControls" class="addSignatureControls">
+            <div data-dom-id="horizontalContainer" class="horizontalContainer">
+              <div
+                data-dom-id="addSignatureDescriptionContainer"
+                class="addSignatureDescriptionContainer"
+              >
+                <!--Removed!--><span
+                  data-dom-id="addSignatureDescription"
+                  class="inputWithClearButton addSignatureDescription"
+                  ><input
+                    type="text"
+                    data-l10n-id="pdfjs-editor-add-signature-description-input"
+                    tabindex="0"
+                    data-dom-id="addSignatureDescInput"
+                    class="addSignatureDescInput" /><button
+                    class="clearInputButton"
+                    type="button"
+                    tabindex="0"
+                    aria-hidden="true"
+                  ></button
+                ></span>
+              </div>
+              <button
+                type="button"
+                data-l10n-id="pdfjs-editor-add-signature-clear-button"
+                tabindex="0"
+                data-dom-id="clearSignatureButton"
+                class="clearSignatureButton"
+              >
+                <span
+                  data-l10n-id="pdfjs-editor-add-signature-clear-button-label"
+                ></span>
+              </button>
+            </div>
+            <div
+              data-dom-id="addSignatureSaveContainer"
+              class="addSignatureSaveContainer"
+            >
+              <label
+                ><input
+                  type="checkbox"
+                  data-dom-id="addSignatureSaveCheckbox"
+                  class="addSignatureSaveCheckbox" /><span
+                  class="toolbarLabel"
+                  data-l10n-id="pdfjs-editor-add-signature-save-checkbox"
+                ></span></label
+              ><!--Removed!--><span
+              ></span
+              ><span
+                data-l10n-id="pdfjs-editor-add-signature-save-warning-message"
+                data-dom-id="addSignatureSaveWarning"
+                class="addSignatureSaveWarning"
+              ></span>
+            </div>
+          </div>
+          <div
+            hidden="true"
+            data-dom-id="addSignatureError"
+            class="messageBar addSignatureError"
+          >
+            <div>
+              <div>
+                <span
+                  data-l10n-id="pdfjs-editor-add-signature-image-upload-error-title"
+                  data-dom-id="addSignatureErrorTitle"
+                  class="title addSignatureErrorTitle"
+                ></span
+                ><span
+                  data-l10n-id="pdfjs-editor-add-signature-image-upload-error-description"
+                  data-dom-id="addSignatureErrorDescription"
+                  class="description addSignatureErrorDescription"
+                ></span>
+              </div>
+              <button
+                type="button"
+                tabindex="0"
+                data-dom-id="addSignatureErrorCloseButton"
+                class="closeButton addSignatureErrorCloseButton"
+              >
+                <span
+                  data-l10n-id="pdfjs-editor-add-signature-error-close-button"
+                ></span>
+              </button>
+            </div>
+          </div>
+          <div class="dialogButtonsGroup">
+            <button
+              type="button"
+              tabindex="0"
+              data-dom-id="addSignatureCancelButton"
+              class="secondaryButton addSignatureCancelButton"
+            >
+              <span
+                data-l10n-id="pdfjs-editor-add-signature-cancel-button"
+              ></span></button
+            ><button
+              type="button"
+              disabled=""
+              tabindex="0"
+              data-dom-id="addSignatureAddButton"
+              class="primaryButton addSignatureAddButton"
+            >
+              <span data-l10n-id="pdfjs-editor-add-signature-add-button"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+    <dialog
+      aria-labelledby="editSignatureDescriptionTitle"
+      data-dom-id="editSignatureDescriptionDialog"
+      class="dialog signatureDialog editSignatureDescriptionDialog"
+    >
+      <div class="mainContainer">
+        <div class="title">
+          <span
+            role="sectionhead"
+            data-l10n-id="pdfjs-editor-edit-signature-dialog-title"
+            tabindex="0"
+            data-dom-id="editSignatureDescriptionTitle"
+            class="editSignatureDescriptionTitle"
+          ></span>
+        </div>
+        <div
+          data-dom-id="editSignatureDescriptionAndView"
+          class="editSignatureDescriptionAndView"
+        >
+          <div
+            data-dom-id="editSignatureDescriptionContainer"
+            class="editSignatureDescriptionContainer"
+          >
+            <!--Removed!--><span
+              data-dom-id="editSignatureDescription"
+              class="inputWithClearButton editSignatureDescription"
+              ><input
+                type="text"
+                data-l10n-id="pdfjs-editor-add-signature-description-input"
+                tabindex="0"
+                data-dom-id="editSignatureDescInput"
+                class="editSignatureDescInput" /><button
+                class="clearInputButton"
+                type="button"
+                tabindex="0"
+                aria-hidden="true"
+              ></button
+            ></span>
+          </div>
+          <svg id="editSignatureView" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="dialogButtonsGroup">
+          <button
+            type="button"
+            tabindex="0"
+            data-dom-id="editSignatureCancelButton"
+            class="secondaryButton editSignatureCancelButton"
+          >
+            <span
+              data-l10n-id="pdfjs-editor-add-signature-cancel-button"
+            ></span></button
+          ><button
+            type="button"
+            disabled=""
+            tabindex="0"
+            data-dom-id="editSignatureUpdateButton"
+            class="primaryButton editSignatureUpdateButton"
+          >
+            <span
+              data-l10n-id="pdfjs-editor-edit-signature-update-button"
+            ></span>
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <dialog
+      aria-labelledby="commentManagerTitle"
+      data-dom-id="commentManagerDialog"
+      class="dialog commentManager commentManagerDialog"
+    >
+      <div class="mainContainer">
+        <div
+          data-dom-id="commentManagerToolbar"
+          class="title commentManagerToolbar"
+        >
+          <span
+            role="sectionhead"
+            data-l10n-id="pdfjs-editor-edit-comment-dialog-title-when-adding"
+            data-dom-id="commentManagerTitle"
+            class="commentManagerTitle"
+          ></span>
+        </div>
+        <textarea
+          data-l10n-id="pdfjs-editor-edit-comment-dialog-text-input"
+          tabindex="0"
+          data-dom-id="commentManagerTextInput"
+          class="commentManagerTextInput"
+        ></textarea>
+        <div class="dialogButtonsGroup">
+          <button
+            type="button"
+            tabindex="0"
+            data-dom-id="commentManagerCancelButton"
+            class="secondaryButton commentManagerCancelButton"
+          >
+            <span
+              data-l10n-id="pdfjs-editor-edit-comment-dialog-cancel-button"
+            ></span></button
+          ><button
+            type="button"
+            disabled=""
+            tabindex="0"
+            data-dom-id="commentManagerSaveButton"
+            class="primaryButton commentManagerSaveButton"
+          >
+            <span
+              data-l10n-id="pdfjs-editor-edit-comment-dialog-save-button-when-adding"
+            ></span>
           </button>
         </div>
       </div>
@@ -1767,9 +2260,7 @@ const template = `
       class="printServiceDialog"
     >
       <div class="row">
-        <span data-l10n-id="pdfjs-print-progress-message"
-          >Preparing document for printing…</span
-        >
+        <span data-l10n-id="pdfjs-print-progress-message"></span>
       </div>
       <div class="row">
         <progress value="0" max="100"></progress
@@ -1786,7 +2277,7 @@ const template = `
           data-dom-id="printCancel"
           class="dialogButton printCancel"
         >
-          <span data-l10n-id="pdfjs-print-progress-close-button">Cancel</span>
+          <span data-l10n-id="pdfjs-print-progress-close-button"></span>
         </button>
       </div>
     </dialog>
@@ -1811,25 +2302,21 @@ const template = `
       <button
         type="button"
         tabindex="0"
-        title="Undo"
         data-l10n-id="pdfjs-editor-undo-bar-undo-button"
         data-dom-id="editorUndoBarUndoButton"
         class="undoButton editorUndoBarUndoButton"
       >
-        <span data-l10n-id="pdfjs-editor-undo-bar-undo-button-label"
-          >Undo</span
-        ></button
+        <span
+          data-l10n-id="pdfjs-editor-undo-bar-undo-button-label"
+        ></span></button
       ><button
         type="button"
         tabindex="0"
-        title="Close"
         data-l10n-id="pdfjs-editor-undo-bar-close-button"
         data-dom-id="editorUndoBarCloseButton"
         class="closeButton editorUndoBarCloseButton"
       >
-        <span data-l10n-id="pdfjs-editor-undo-bar-close-button-label"
-          >Close</span
-        >
+        <span data-l10n-id="pdfjs-editor-undo-bar-close-button-label"></span>
       </button>
     </div>
   </div>

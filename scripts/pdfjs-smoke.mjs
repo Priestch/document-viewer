@@ -156,20 +156,20 @@ const TEMPLATE_UPSTREAM_IDENTIFIERS = [
   "webpack2Stream",
   "ordered",
   "createBuildNumber",
-  "buildDefaultPreferences",
-  "parseDefaultPreferences",
   "createTemporaryScriptingBundle",
   "createWorkerBundle",
   "createSandboxBundle",
   "createWebBundle",
   "createCMapBundle",
+  "createICCBundle",
   "createStandardFontBundle",
+  "createWasmBundle",
   "preprocessHTML",
   "preprocessCSS",
   "postcssDirPseudoClass",
   "discardCommentsCSS",
   "postcssNesting",
-  "postcssDarkThemeClass",
+  "postcssLightDarkFunction",
   "autoprefixer",
 ];
 
@@ -213,9 +213,21 @@ function runContractChecks() {
     "packages/document-viewer/pdf.js/build/generic/web/viewer.css"
   );
   if (exists(compiledCssPath)) {
+    const templatePath = path.join(ROOT_DIR, "packages/document-viewer/src/viewer_template.js");
+    const templateIds = exists(templatePath)
+      ? [...fs.readFileSync(templatePath, "utf-8").matchAll(/data-dom-id="([^"]+)"/g)].map(
+          (m) => m[1]
+        )
+      : [];
+    // Only icon rules whose id still exists in the template are required:
+    // upstream keeps dead legacy rules around (e.g. #viewThumbnail::before
+    // at v5.7.284, where the sidebar buttons were replaced by the views
+    // manager menus) — those never match our DOM either way.
     const iconSelectors = [
       ...fs.readFileSync(compiledCssPath, "utf-8").matchAll(/#([A-Za-z][\w-]*)::before\s*\{/g),
-    ].map((m) => m[1]);
+    ]
+      .map((m) => m[1])
+      .filter((id) => templateIds.includes(id));
     const overrideCss = fs.readFileSync(overrideCssPath, "utf-8");
     const missingIcons = iconSelectors.filter(
       (id) => !overrideCss.includes(`[data-dom-id="${id}"]`)
@@ -231,11 +243,7 @@ function runContractChecks() {
     });
     // Guard the transform itself: any template id still targeted via a bare
     // #id selector in the override CSS matches nothing in the embedded DOM.
-    const templatePath = path.join(ROOT_DIR, "packages/document-viewer/src/viewer_template.js");
-    if (exists(templatePath)) {
-      const templateIds = [
-        ...fs.readFileSync(templatePath, "utf-8").matchAll(/data-dom-id="([^"]+)"/g),
-      ].map((m) => m[1]);
+    if (templateIds.length) {
       // The :is(#foo, [data-dom-id="foo"]) form is the expected rewrite
       // (it preserves id-level specificity); anything else still targeting
       // a template id via bare #foo never matches the embedded DOM.

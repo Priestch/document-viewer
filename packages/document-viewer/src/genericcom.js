@@ -18,6 +18,7 @@ import { BasePreferences } from "../pdf.js/web/preferences.js";
 import { DownloadManager } from "../pdf.js/web/download_manager.js";
 import { GenericL10n } from "../pdf.js/web/genericl10n.js";
 import { GenericScripting } from "../pdf.js/web/generic_scripting.js";
+import { getActiveApp } from "./app_manager.js";
 
 if (typeof PDFJSDev !== "undefined" && !PDFJSDev.test("GENERIC")) {
   throw new Error('Module "pdfjs-web/genericcom" shall not be used outside GENERIC build.');
@@ -48,8 +49,8 @@ class GenericExternalServices extends DefaultExternalServices {
     return new GenericL10n(navigator.language);
   }
 
-  static createScripting({ sandboxBundleSrc }) {
-    return new GenericScripting(sandboxBundleSrc);
+  static createScripting() {
+    return new GenericScripting(getActiveApp().appOptions.get("sandboxBundleSrc"));
   }
 }
 

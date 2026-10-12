@@ -530,6 +530,11 @@ function main() {
         steps,
       });
       addSkippedStep({
+        step: "sync-override-viewer-css",
+        reason: "dry-run: override CSS sync skipped",
+        steps,
+      });
+      addSkippedStep({
         step: "build-demos",
         reason: "dry-run: demos build skipped",
         steps,
@@ -539,6 +544,28 @@ function main() {
         step: "build-viewer",
         command: "pnpm",
         args: ["viewer:build"],
+        steps,
+      });
+      // src/assets/viewer.css must be REGENERATED on every upgrade: the gulp
+      // task overrideStyle replaces dist's viewer.css with it, and upstream
+      // CSS is id-selector based while our template DOM carries data-dom-id
+      // (transform:html strips ids for multi-viewer support). transform:css
+      // rewrites #id selectors to [data-dom-id="id"] against the current
+      // template — a plain copy leaves every id rule unmatched (blank
+      // toolbar icons, unpositioned viewer container; 2026-10-11).
+      runCommand({
+        step: "sync-override-viewer-css",
+        command: "pnpm",
+        args: ["--filter", "@document-kits/viewer", "run", "transform:css"],
+        steps,
+      });
+      runCommand({
+        step: "apply-override-viewer-css-to-dist",
+        command: "cp",
+        args: [
+          "packages/document-viewer/src/assets/viewer.css",
+          "packages/document-viewer/dist/generic/web/viewer.css",
+        ],
         steps,
       });
       runCommand({

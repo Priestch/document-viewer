@@ -429,8 +429,8 @@ class ChromeExternalServices extends DefaultExternalServices {
     return new GenericL10n(navigator.language);
   }
 
-  static createScripting({ sandboxBundleSrc }) {
-    return new GenericScripting(sandboxBundleSrc);
+  static createScripting() {
+    return new GenericScripting(getActiveApp().appOptions.get("sandboxBundleSrc"));
   }
 }
 

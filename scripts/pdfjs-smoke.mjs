@@ -138,6 +138,153 @@ function runSmoke(options) {
     );
   }
 
+  checks.push(...runContractChecks());
+
+  return checks;
+}
+
+// Identifiers that bin/gulpfile.template.js relies on from the upstream
+// gulpfile scope (textually concatenated into gulpfile.custom.mjs). If
+// upstream renames any of these, the build breaks with cryptic errors —
+// fail loudly here instead.
+const TEMPLATE_UPSTREAM_IDENTIFIERS = [
+  "GENERIC_DIR",
+  "DEFINES",
+  "COMMON_WEB_FILES",
+  "AUTOPREFIXER_CONFIG",
+  "createWebpackConfig",
+  "webpack2Stream",
+  "ordered",
+  "createBuildNumber",
+  "buildDefaultPreferences",
+  "parseDefaultPreferences",
+  "createTemporaryScriptingBundle",
+  "createWorkerBundle",
+  "createSandboxBundle",
+  "createWebBundle",
+  "createCMapBundle",
+  "createStandardFontBundle",
+  "preprocessHTML",
+  "preprocessCSS",
+  "postcssDirPseudoClass",
+  "discardCommentsCSS",
+  "postcssNesting",
+  "postcssDarkThemeClass",
+  "autoprefixer",
+];
+
+function runContractChecks() {
+  const checks = [];
+  const gulpfilePath = path.join(ROOT_DIR, "packages/document-viewer/pdf.js/gulpfile.mjs");
+  const templatePath = path.join(ROOT_DIR, "packages/document-viewer/bin/gulpfile.template.js");
+
+  if (!exists(gulpfilePath) || !exists(templatePath)) {
+    checks.push({
+      name: "gulpfile template contract (files present)",
+      ok: false,
+      detail: `missing ${gulpfilePath} or ${templatePath}`,
+    });
+    return checks;
+  }
+
+  const gulpfile = fs.readFileSync(gulpfilePath, "utf-8");
+  const missing = TEMPLATE_UPSTREAM_IDENTIFIERS.filter(
+    (id) => !new RegExp(`\\b${id}\\b`).test(gulpfile)
+  );
+  checks.push({
+    name: "gulpfile template upstream identifiers exist",
+    ok: missing.length === 0,
+    detail: missing.length
+      ? `bin/gulpfile.template.js depends on identifiers no longer present in pdf.js/gulpfile.mjs: ${missing.join(
+          ", "
+        )}`
+      : undefined,
+  });
+
+  // src/assets/viewer.css fully REPLACES the upstream compiled CSS in dist
+  // (gulp task overrideStyle). It must be regenerated from
+  // pdf.js/build/generic/web/viewer.css on every upgrade — a stale copy
+  // silently drops icon rules and layout selectors (upstream moved from
+  // class-based to id-based icon selectors; a stale override left every
+  // toolbar icon blank on 2026-10-11).
+  const overrideCssPath = path.join(ROOT_DIR, "packages/document-viewer/src/assets/viewer.css");
+  const compiledCssPath = path.join(
+    ROOT_DIR,
+    "packages/document-viewer/pdf.js/build/generic/web/viewer.css"
+  );
+  if (exists(compiledCssPath)) {
+    const iconSelectors = [
+      ...fs.readFileSync(compiledCssPath, "utf-8").matchAll(/#([A-Za-z][\w-]*)::before\s*\{/g),
+    ].map((m) => m[1]);
+    const overrideCss = fs.readFileSync(overrideCssPath, "utf-8");
+    const missingIcons = iconSelectors.filter(
+      (id) => !overrideCss.includes(`[data-dom-id="${id}"]`)
+    );
+    checks.push({
+      name: "override viewer.css covers upstream icon selectors",
+      ok: missingIcons.length === 0,
+      detail: missingIcons.length
+        ? `src/assets/viewer.css is stale — rerun transform:css (pnpm --filter @document-kits/viewer run transform:css); missing icon rules for: ${missingIcons.join(
+            ", "
+          )}`
+        : undefined,
+    });
+    // Guard the transform itself: any template id still targeted via a bare
+    // #id selector in the override CSS matches nothing in the embedded DOM.
+    const templatePath = path.join(ROOT_DIR, "packages/document-viewer/src/viewer_template.js");
+    if (exists(templatePath)) {
+      const templateIds = [
+        ...fs.readFileSync(templatePath, "utf-8").matchAll(/data-dom-id="([^"]+)"/g),
+      ].map((m) => m[1]);
+      // The :is(#foo, [data-dom-id="foo"]) form is the expected rewrite
+      // (it preserves id-level specificity); anything else still targeting
+      // a template id via bare #foo never matches the embedded DOM.
+      const stripped = overrideCss.replace(/:is\(#[\w-]+, \[data-dom-id="[\w-]+"\]\)/g, "");
+      const bare = templateIds.filter((id) => new RegExp(`#${id}\\b`).test(stripped));
+      checks.push({
+        name: "override viewer.css rewrites template ids to data-dom-id",
+        ok: bare.length === 0,
+        detail: bare.length
+          ? `these template ids are still targeted with bare #id selectors in src/assets/viewer.css (they never match the embedded DOM): ${bare.join(
+              ", "
+            )}`
+          : undefined,
+      });
+    }
+  }
+
+  // The pdfjs-lib facade must expose exactly the same symbols as the
+  // upstream web/pdfjs.js export surface — the webpack alias points web
+  // code at our facade, so any drift breaks at runtime.
+  const facadePath = path.join(ROOT_DIR, "packages/document-viewer/src/pdf_js/index.js");
+  const upstreamPdfjsPath = path.join(ROOT_DIR, "packages/document-viewer/pdf.js/web/pdfjs.js");
+  if (exists(facadePath) && exists(upstreamPdfjsPath)) {
+    const exportsOf = (content) =>
+      new Set(
+        [...content.matchAll(/export\s*\{([^}]*)\}/g)]
+          .flatMap((m) => m[1].split(","))
+          .map((s) =>
+            s
+              .trim()
+              .split(/\s+as\s+/)
+              .pop()
+          )
+          .filter(Boolean)
+      );
+    const facadeExports = exportsOf(fs.readFileSync(facadePath, "utf-8"));
+    const upstreamExports = exportsOf(fs.readFileSync(upstreamPdfjsPath, "utf-8"));
+    const missingFromFacade = [...upstreamExports].filter((name) => !facadeExports.has(name));
+    const extraInFacade = [...facadeExports].filter((name) => !upstreamExports.has(name));
+    checks.push({
+      name: "pdfjs-lib facade matches upstream web/pdfjs.js exports",
+      ok: missingFromFacade.length === 0 && extraInFacade.length === 0,
+      detail:
+        missingFromFacade.length || extraInFacade.length
+          ? `missing: [${missingFromFacade.join(", ")}] extra: [${extraInFacade.join(", ")}]`
+          : undefined,
+    });
+  }
+
   return checks;
 }
 

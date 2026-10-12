@@ -5,7 +5,7 @@ let src = "./document-viewer/web/compressed.tracemonkey-pldi-09.pdf";
 
 const appOptions = {
   src,
-  resourcePath: "document-viewer",
+  resourcePath: "./document-viewer",
   disableCORSCheck: true,
   disableAutoSetTitle: true,
   appOptions: {

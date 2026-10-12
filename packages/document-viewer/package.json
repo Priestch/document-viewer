@@ -9,7 +9,8 @@
     "transform:html": "node ./bin/transform-html.js",
     "syncWithUpstream": "pnpm run transform:html",
     "extract:js": "node ./bin/extract-from-source.js",
-    "api": "node jsdoc/extract-doc.js"
+    "api": "node jsdoc/extract-doc.js",
+    "transform:css": "node ./bin/transform-css.js"
   },
   "exports": {
     ".": "./dist/generic/build/app.js",

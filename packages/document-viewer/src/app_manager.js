@@ -10,36 +10,36 @@ let manager = null;
 function getViewerConfiguration(el) {
   return {
     appContainer: el,
+    principalContainer: el.querySelector("[data-dom-id='mainContainer']"),
     mainContainer: el.querySelector("[data-dom-id='viewerContainer']"),
     viewerContainer: el.querySelector("[data-dom-id='viewer']"),
     toolbar: {
-      container: el.querySelector("[data-dom-id='toolbarViewer']"),
+      container: el.querySelector("[data-dom-id='toolbarContainer']"),
       numPages: el.querySelector("[data-dom-id='numPages']"),
       pageNumber: el.querySelector("[data-dom-id='pageNumber']"),
       scaleSelect: el.querySelector("[data-dom-id='scaleSelect']"),
-      customScaleOption: el.querySelector("[data-dom-id='customScaleOption']"),
+      customScaleOption: el.querySelector("[data-dom-id='customScaleOption'], #customScaleOption"),
       previous: el.querySelector("[data-dom-id='previous']"),
       next: el.querySelector("[data-dom-id='next']"),
-      zoomIn: el.querySelector("[data-dom-id='zoomIn']"),
-      zoomOut: el.querySelector("[data-dom-id='zoomOut']"),
-      viewFind: el.querySelector("[data-dom-id='viewFind']"),
-      print: el.querySelector("[data-dom-id='print']"),
-      editorFreeTextButton: el.querySelector("[data-dom-id='editorFreeText']"),
+      zoomIn: el.querySelector("[data-dom-id='zoomInButton']"),
+      zoomOut: el.querySelector("[data-dom-id='zoomOutButton']"),
+      print: el.querySelector("[data-dom-id='printButton']"),
+      editorFreeTextButton: el.querySelector("[data-dom-id='editorFreeTextButton']"),
       editorFreeTextParamsToolbar: el.querySelector("[data-dom-id='editorFreeTextParamsToolbar']"),
-      editorHighlightButton: el.querySelector("[data-dom-id='editorHighlight']"),
+      editorHighlightButton: el.querySelector("[data-dom-id='editorHighlightButton']"),
       editorHighlightParamsToolbar: el.querySelector(
         "[data-dom-id='editorHighlightParamsToolbar']"
       ),
       editorHighlightColorPicker: el.querySelector("[data-dom-id='editorHighlightColorPicker']"),
-      editorInkButton: el.querySelector("[data-dom-id='editorInk']"),
+      editorInkButton: el.querySelector("[data-dom-id='editorInkButton']"),
       editorInkParamsToolbar: el.querySelector("[data-dom-id='editorInkParamsToolbar']"),
-      editorStampButton: el.querySelector("[data-dom-id='editorStamp']"),
+      editorStampButton: el.querySelector("[data-dom-id='editorStampButton']"),
       editorStampParamsToolbar: el.querySelector("[data-dom-id='editorStampParamsToolbar']"),
-      download: el.querySelector("[data-dom-id='download']"),
+      download: el.querySelector("[data-dom-id='downloadButton']"),
     },
     secondaryToolbar: {
       toolbar: el.querySelector("[data-dom-id='secondaryToolbar']"),
-      toggleButton: el.querySelector("[data-dom-id='secondaryToolbarToggle']"),
+      toggleButton: el.querySelector("[data-dom-id='secondaryToolbarToggleButton']"),
       presentationModeButton: el.querySelector("[data-dom-id='presentationMode']"),
       openFileButton:
         typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")
@@ -61,13 +61,17 @@ function getViewerConfiguration(el) {
       spreadNoneButton: el.querySelector("[data-dom-id='spreadNone']"),
       spreadOddButton: el.querySelector("[data-dom-id='spreadOdd']"),
       spreadEvenButton: el.querySelector("[data-dom-id='spreadEven']"),
+      imageAltTextSettingsButton: el.querySelector("[data-dom-id='imageAltTextSettings']"),
+      imageAltTextSettingsSeparator: el.querySelector(
+        "[data-dom-id='imageAltTextSettingsSeparator']"
+      ),
       documentPropertiesButton: el.querySelector("[data-dom-id='documentProperties']"),
     },
     sidebar: {
       // Divs (and sidebar button)
       outerContainer: el.querySelector("[data-dom-id='outerContainer']"),
       sidebarContainer: el.querySelector("[data-dom-id='sidebarContainer']"),
-      toggleButton: el.querySelector("[data-dom-id='sidebarToggle']"),
+      toggleButton: el.querySelector("[data-dom-id='sidebarToggleButton']"),
       resizer: el.querySelector("[data-dom-id='sidebarResizer']"),
       // Buttons
       thumbnailButton: el.querySelector("[data-dom-id='viewThumbnail']"),
@@ -85,7 +89,7 @@ function getViewerConfiguration(el) {
     },
     findBar: {
       bar: el.querySelector("[data-dom-id='findbar']"),
-      toggleButton: el.querySelector("[data-dom-id='viewFind']"),
+      toggleButton: el.querySelector("[data-dom-id='viewFindButton']"),
       findField: el.querySelector("[data-dom-id='findInput']"),
       highlightAllCheckbox: el.querySelector("[data-dom-id='findHighlightAll']"),
       caseSensitiveCheckbox: el.querySelector("[data-dom-id='findMatchCase']"),
@@ -93,8 +97,8 @@ function getViewerConfiguration(el) {
       entireWordCheckbox: el.querySelector("[data-dom-id='findEntireWord']"),
       findMsg: el.querySelector("[data-dom-id='findMsg']"),
       findResultsCount: el.querySelector("[data-dom-id='findResultsCount']"),
-      findPreviousButton: el.querySelector("[data-dom-id='findPrevious']"),
-      findNextButton: el.querySelector("[data-dom-id='findNext']"),
+      findPreviousButton: el.querySelector("[data-dom-id='findPreviousButton']"),
+      findNextButton: el.querySelector("[data-dom-id='findNextButton']"),
     },
     passwordOverlay: {
       dialog: el.querySelector("[data-dom-id='passwordDialog']"),
@@ -131,6 +135,39 @@ function getViewerConfiguration(el) {
       cancelButton: el.querySelector("[data-dom-id='altTextCancel']"),
       saveButton: el.querySelector("[data-dom-id='altTextSave']"),
     },
+    newAltTextDialog: {
+      dialog: el.querySelector("[data-dom-id='newAltTextDialog']"),
+      title: el.querySelector("[data-dom-id='newAltTextTitle']"),
+      descriptionContainer: el.querySelector("[data-dom-id='newAltTextDescriptionContainer']"),
+      textarea: el.querySelector("[data-dom-id='newAltTextDescriptionTextarea']"),
+      disclaimer: el.querySelector("[data-dom-id='newAltTextDisclaimer']"),
+      learnMore: el.querySelector("[data-dom-id='newAltTextLearnMore']"),
+      imagePreview: el.querySelector("[data-dom-id='newAltTextImagePreview']"),
+      createAutomatically: el.querySelector("[data-dom-id='newAltTextCreateAutomatically']"),
+      createAutomaticallyButton: el.querySelector(
+        "[data-dom-id='newAltTextCreateAutomaticallyButton']"
+      ),
+      downloadModel: el.querySelector("[data-dom-id='newAltTextDownloadModel']"),
+      downloadModelDescription: el.querySelector(
+        "[data-dom-id='newAltTextDownloadModelDescription']"
+      ),
+      error: el.querySelector("[data-dom-id='newAltTextError']"),
+      errorCloseButton: el.querySelector("[data-dom-id='newAltTextCloseButton']"),
+      cancelButton: el.querySelector("[data-dom-id='newAltTextCancel']"),
+      notNowButton: el.querySelector("[data-dom-id='newAltTextNotNow']"),
+      saveButton: el.querySelector("[data-dom-id='newAltTextSave']"),
+    },
+    altTextSettingsDialog: {
+      dialog: el.querySelector("[data-dom-id='altTextSettingsDialog']"),
+      createModelButton: el.querySelector("[data-dom-id='createModelButton']"),
+      aiModelSettings: el.querySelector("[data-dom-id='aiModelSettings']"),
+      learnMore: el.querySelector("[data-dom-id='altTextSettingsLearnMore']"),
+      deleteModelButton: el.querySelector("[data-dom-id='deleteModelButton']"),
+      downloadModelButton: el.querySelector("[data-dom-id='downloadModelButton']"),
+      showAltTextDialogButton: el.querySelector("[data-dom-id='showAltTextDialogButton']"),
+      altTextSettingsCloseButton: el.querySelector("[data-dom-id='altTextSettingsCloseButton']"),
+      closeButton: el.querySelector("[data-dom-id='altTextSettingsCloseButton']"),
+    },
     annotationEditorParams: {
       editorFreeTextFontSize: el.querySelector("[data-dom-id='editorFreeTextFontSize']"),
       editorFreeTextColor: el.querySelector("[data-dom-id='editorFreeTextColor']"),
@@ -144,10 +181,12 @@ function getViewerConfiguration(el) {
       editorHighlightShowAll: el.querySelector("[data-dom-id='editorHighlightShowAll']"),
     },
     printContainer: el.querySelector("[data-dom-id='printContainer']"),
-    openFileInput:
-      typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")
-        ? el.querySelector("[data-dom-id='fileInput']")
-        : null,
+    editorUndoBar: {
+      container: el.querySelector("[data-dom-id='editorUndoBar']"),
+      message: el.querySelector("[data-dom-id='editorUndoBarMessage']"),
+      undoButton: el.querySelector("[data-dom-id='editorUndoBarUndoButton']"),
+      closeButton: el.querySelector("[data-dom-id='editorUndoBarCloseButton']"),
+    },
     debuggerScriptPath: "../pdf.js/web/debugger.mjs",
   };
 }
@@ -200,7 +239,10 @@ function createViewerApp(options) {
     viewerOptions.set(key, appOptions[key]);
   });
   viewerOptions.set("workerSrc", workerSrc);
-  viewerOptions.set("sandboxBundleSrc", `${resourcePath}/build/pdf.sandbox.mjs`);
+  viewerOptions.set(
+    "sandboxBundleSrc",
+    new URL(`${resourcePath}/build/pdf.sandbox.mjs`, document.baseURI).href
+  );
   viewerOptions.set("defaultUrl", src);
   viewerOptions.set("disableCORSCheck", disableCORSCheck);
   viewerOptions.set("disableAutoSetTitle", disableAutoSetTitle);

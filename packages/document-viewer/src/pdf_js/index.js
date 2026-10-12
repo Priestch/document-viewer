@@ -29,7 +29,6 @@ import {
   AnnotationEditorParamsType,
   AnnotationEditorType,
   AnnotationMode,
-  CMapCompressionType,
   createValidAbsoluteUrl,
   FeatureTest,
   ImageKind,
@@ -52,7 +51,6 @@ import {
   version,
 } from "../../pdf.js/src/display/api.js";
 import {
-  DOMSVGFactory,
   fetchData,
   getFilenameFromUrl,
   getPdfFilenameFromUrl,
@@ -60,23 +58,22 @@ import {
   isDataScheme,
   isPdfFile,
   noContextMenu,
+  OutputScale,
   PDFDateString,
   PixelsPerInch,
   RenderingCancelledException,
   setLayerDimensions,
+  stopEvent,
 } from "../../pdf.js/src/display/display_utils.js";
-import {
-  renderTextLayer,
-  TextLayer,
-  updateTextLayer,
-} from "../../pdf.js/src/display/text_layer.js";
+import { DOMSVGFactory } from "../../pdf.js/src/display/svg_factory.js";
+import { TouchManager } from "../../pdf.js/src/display/touch_manager.js";
+import { TextLayer } from "../../pdf.js/src/display/text_layer.js";
 import { AnnotationEditorLayer } from "../../pdf.js/src/display/editor/annotation_editor_layer.js";
 import { AnnotationEditorUIManager } from "../../pdf.js/src/display/editor/tools.js";
 import { AnnotationLayer } from "../../pdf.js/src/display/annotation_layer.js";
 import { ColorPicker } from "../../pdf.js/src/display/editor/color_picker.js";
 import { DrawLayer } from "../../pdf.js/src/display/draw_layer.js";
 import { GlobalWorkerOptions } from "../../pdf.js/src/display/worker_options.js";
-import { Outliner } from "../../pdf.js/src/display/editor/outliner.js";
 import { XfaLayer } from "../../pdf.js/src/display/xfa_layer.js";
 
 /* eslint-disable-next-line no-unused-vars */
@@ -93,7 +90,6 @@ export {
   AnnotationLayer,
   AnnotationMode,
   build,
-  CMapCompressionType,
   ColorPicker,
   createValidAbsoluteUrl,
   DOMSVGFactory,
@@ -113,7 +109,7 @@ export {
   noContextMenu,
   normalizeUnicode,
   OPS,
-  Outliner,
+  OutputScale,
   PasswordResponses,
   PDFDataRangeTransport,
   PDFDateString,
@@ -121,12 +117,12 @@ export {
   PermissionFlag,
   PixelsPerInch,
   RenderingCancelledException,
-  renderTextLayer,
   setLayerDimensions,
   shadow,
+  stopEvent,
   TextLayer,
+  TouchManager,
   UnexpectedResponseException,
-  updateTextLayer,
   Util,
   VerbosityLevel,
   version,

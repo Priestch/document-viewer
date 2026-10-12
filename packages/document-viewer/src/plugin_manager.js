@@ -2,7 +2,7 @@ import {
   AnnotationLayer,
   StampAnnotationElement,
 } from "../pdf.js/src/display/annotation_layer.js";
-import { DOMSVGFactory } from "../pdf.js/src/display/display_utils.js";
+import { DOMSVGFactory } from "../pdf.js/src/display/svg_factory.js";
 import { AnnotationLayerBuilder } from "../pdf.js/web/annotation_layer_builder.js";
 
 const AnnotationElement = Object.getPrototypeOf(StampAnnotationElement);

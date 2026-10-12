@@ -39,7 +39,7 @@ function createLibraryBundle(defines) {
 }
 
 function copyToDist() {
-  const options = { cwd: ROOT_DIR };
+  const options = { cwd: ROOT_DIR, encoding: false };
   return gulp.src("pdf.js/build/**/*", options).pipe(gulp.dest("dist", options));
 }
 
@@ -53,7 +53,7 @@ function buildGenericApp(defines, dir) {
     createWebBundle(defines, {
       defaultPreferencesDir: "generic/",
     }).pipe(gulp.dest(dir + "web")),
-    gulp.src(COMMON_WEB_FILES, { base: "web/" }).pipe(gulp.dest(dir + "web")),
+    gulp.src(COMMON_WEB_FILES, { base: "web/", encoding: false }).pipe(gulp.dest(dir + "web")),
     gulp.src("LICENSE").pipe(gulp.dest(dir)),
     gulp
       .src(["web/locale/*/viewer.ftl", "web/locale/locale.json"], {
@@ -76,7 +76,9 @@ function buildGenericApp(defines, dir) {
       )
       .pipe(gulp.dest(dir + "web")),
 
-    gulp.src("web/compressed.tracemonkey-pldi-09.pdf").pipe(gulp.dest(dir + "web")),
+    gulp
+      .src("web/compressed.tracemonkey-pldi-09.pdf", { encoding: false })
+      .pipe(gulp.dest(dir + "web")),
   ]);
 }
 

@@ -6,7 +6,7 @@ let src2 = "./recognizing_malformed_pdf_f.pdf";
 
 const options1 = {
   src: src1,
-  resourcePath: "document-viewer",
+  resourcePath: "./document-viewer",
   disableCORSCheck: true,
   disableAutoSetTitle: true,
   appOptions: {},
@@ -14,7 +14,7 @@ const options1 = {
 
 const options2 = {
   src: src2,
-  resourcePath: "document-viewer",
+  resourcePath: "./document-viewer",
   disableCORSCheck: true,
   disableAutoSetTitle: true,
 };

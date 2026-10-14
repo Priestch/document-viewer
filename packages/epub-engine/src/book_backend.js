@@ -20,11 +20,12 @@ const NCX_MEDIA_TYPE = "application/x-dtbncx+xml";
 
 /**
  * Normalize any supported source (File/Blob/URL string/URL/ArrayBuffer/
- * typed-array view) to raw zip bytes.
+ * typed-array view) to raw bytes. Exported for the MOBI backend, which uses
+ * the same source surface.
  * @param {any} source
  * @returns {Promise<ArrayBuffer>}
  */
-async function sourceToBytes(source) {
+export async function sourceToBytes(source) {
   if (source instanceof ArrayBuffer) return source;
   if (ArrayBuffer.isView(source)) {
     return source.buffer.slice(source.byteOffset, source.byteOffset + source.byteLength);
@@ -36,7 +37,7 @@ async function sourceToBytes(source) {
     if (!response.ok) throw new Error(`Failed to fetch ${String(source)}: ${response.status}`);
     return response.arrayBuffer();
   }
-  throw new Error(`Unsupported EPUB source: ${source}`);
+  throw new Error(`Unsupported book source: ${source}`);
 }
 
 /**

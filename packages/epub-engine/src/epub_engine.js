@@ -42,14 +42,20 @@ function flattenLanguageMap(value) {
 }
 
 /**
- * Build an EpubEngine.
+ * Build a book engine over the shared pipeline (paginator + book backend).
+ * The format-specific thin wrappers (createEpubEngine, createMobiEngine)
+ * supply the format id, capabilities and backend; everything below is
+ * format-agnostic.
  *
- * @param {object} [options]
- * @param {string} [options.height] CSS height for the mounted view
- *   (default "100%" of the container).
+ * @param {object} params
+ * @param {string} params.format the registered format id
+ * @param {CapabilityFlags} params.capabilities
+ * @param {string} params.label engine name for lifecycle error messages
+ * @param {object} params.backend BookBackend-shaped ({open, destroy})
+ * @param {object} [params.options] engine options (height, textStyle)
  */
-export function createEpubEngine(options = {}) {
-  const { height = "100%", backend = createInProcessBackend(), textStyle = {} } = options;
+export function createBookEngine({ format, capabilities, label, backend, options = {} }) {
+  const { height = "100%", textStyle = {} } = options;
   /** Current typography settings — backs the textStyle capability. */
   let styleState = { ...textStyle };
 
@@ -102,9 +108,9 @@ export function createEpubEngine(options = {}) {
 
   /** @type {DocumentEngine} */
   const engine = {
-    format: () => "epub",
+    format: () => format,
 
-    capabilities: () => EPUB_CAPABILITIES,
+    capabilities: () => capabilities,
 
     async open(source) {
       try {
@@ -144,7 +150,7 @@ export function createEpubEngine(options = {}) {
 
     async mount(container) {
       if (!book) {
-        throw new Error("EpubEngine: open() before mount()");
+        throw new Error(`${label}: open() before mount()`);
       }
       host = document.createElement("div");
       host.style.width = "100%";
@@ -176,7 +182,7 @@ export function createEpubEngine(options = {}) {
      */
     setStyle(patch) {
       if (!paginator) {
-        throw new Error("EpubEngine: mount() before setStyle()");
+        throw new Error(`${label}: mount() before setStyle()`);
       }
       styleState = { ...styleState, ...patch };
       paginator.setStyles(defaultStyleCSS(styleState));
@@ -184,7 +190,7 @@ export function createEpubEngine(options = {}) {
 
     async goTo(loc) {
       if (!paginator) {
-        throw new Error("EpubEngine: mount() before goTo()");
+        throw new Error(`${label}: mount() before goTo()`);
       }
       const address = loc.nativeAddress ?? loc.cfi;
       let target = null;
@@ -196,7 +202,7 @@ export function createEpubEngine(options = {}) {
         target = { fraction: loc.percentage };
       }
       if (target == null) {
-        throw new Error(`EpubEngine.goTo: unusable location ${JSON.stringify(loc)}`);
+        throw new Error(`${label}.goTo: unusable location ${JSON.stringify(loc)}`);
       }
       await navigate(target);
     },
@@ -214,14 +220,14 @@ export function createEpubEngine(options = {}) {
     },
 
     async next() {
-      if (!paginator) throw new Error("EpubEngine: mount() before next()");
+      if (!paginator) throw new Error(`${label}: mount() before next()`);
       lastRelocate = null;
       await paginator.next();
       await waitForRelocate();
     },
 
     async prev() {
-      if (!paginator) throw new Error("EpubEngine: mount() before prev()");
+      if (!paginator) throw new Error(`${label}: mount() before prev()`);
       lastRelocate = null;
       await paginator.prev();
       await waitForRelocate();
@@ -276,4 +282,22 @@ export function createEpubEngine(options = {}) {
   };
 
   return engine;
+}
+
+/**
+ * Build an EpubEngine.
+ *
+ * @param {object} [options]
+ * @param {string} [options.height] CSS height for the mounted view
+ *   (default "100%" of the container).
+ */
+export function createEpubEngine(options = {}) {
+  const { backend = createInProcessBackend(), ...rest } = options;
+  return createBookEngine({
+    format: "epub",
+    capabilities: EPUB_CAPABILITIES,
+    label: "EpubEngine",
+    backend,
+    options: rest,
+  });
 }

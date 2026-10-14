@@ -57,8 +57,21 @@ export function resolveCFI(book, cfi) {
   }
   if (index === -1) index = CFI.fake.toIndex(top);
 
-  // bare section CFI (no '!' content part): nothing to resolve in-document
-  const anchor = indir.length ? (doc) => CFI.toRange(doc, parts) : () => null;
+  // bare section CFI (no '!' content part): nothing to resolve in-document.
+  // The anchor must be DEFENSIVE: a CFI saved from a different book (same
+  // format) resolves against this book's DOM with no matching nodes, and
+  // CFI.toRange would call range.setStart(null) — degrade to the section
+  // start instead of crashing. Hosts should still compare Location.docId
+  // before restoring, but the engine must survive cross-document CFIs.
+  const anchor = indir.length
+    ? (doc) => {
+        try {
+          return CFI.toRange(doc, parts) ?? null;
+        } catch {
+          return null;
+        }
+      }
+    : () => null;
   return { index, anchor };
 }
 
@@ -78,6 +91,12 @@ const getHTMLFragment = (doc, id) =>
  *   matches no spine item
  */
 export function resolveHref(book, href) {
+  // engine-native TOC hrefs that are not container paths: MOBI's
+  // `filepos:…` / `kindle:pos:…` addresses delegate to the book's own
+  // resolver (foliate's splitTOCHref seam)
+  if (/^(filepos:|kindle:)/.test(href)) {
+    return book.resolveTOCHref?.(href) ?? null;
+  }
   const [path, hash] = href.split("#");
   const target = decodeURI(path);
   const index = book.sections.findIndex(

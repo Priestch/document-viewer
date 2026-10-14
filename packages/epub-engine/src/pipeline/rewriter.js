@@ -54,7 +54,9 @@ const replaceSeries = async (str, regex, f) => {
 // CSS intake transform (foliate paginator.js:646-656). Foliate reads the live
 // innerWidth/innerHeight for vw/vh; the pipeline takes one square viewport
 // size (default 1000px) because the rewrite happens before layout exists.
-const cssIntake = (css, viewportPx) =>
+// Exported for the MOBI pipeline, which feeds KF8 `kindle:flow` stylesheets
+// through the same intake.
+export const cssIntake = (css, viewportPx) =>
   css
     // unprefix as most of the props are (only) supported unprefixed
     .replace(/(?<=[{\s;])-epub-/gi, "")

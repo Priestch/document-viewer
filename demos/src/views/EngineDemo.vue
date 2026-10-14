@@ -4,13 +4,14 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 import { registerPdfEngine } from "@document-kits/viewer";
 import "@document-kits/viewer/viewer.css";
 import { coerceLocation, openDocument } from "@document-kits/engine-core";
-import { registerEpubEngine } from "@document-kits/epub-engine";
+import { registerEpubEngine, registerMobiEngine } from "@document-kits/epub-engine";
 
 // Registration is last-wins; calling once per app is enough.
 let registered = false;
 if (!registered) {
   registerPdfEngine({ resourcePath: "./document-viewer" });
   registerEpubEngine();
+  registerMobiEngine();
   registered = true;
 }
 
@@ -51,7 +52,12 @@ const open = async (format, source) => {
   } catch {
     /* corrupt storage falls through to start */
   }
-  if (last?.fmt === format && last.pos) {
+  // docId guard: a saved position from a DIFFERENT book of the same format
+  // must not be restored (its CFI cannot resolve here — Location.docId
+  // exists for exactly this)
+  const fresh = await engine.getPosition();
+  const sameDoc = !last?.pos?.docId || !fresh.docId || last.pos.docId === fresh.docId;
+  if (last?.fmt === format && last.pos && sameDoc) {
     await engine.goTo(coerceLocation(last.pos) ?? { version: 1, percentage: 0 });
   }
   await sync();
@@ -62,7 +68,13 @@ const onFilePicked = (event) => {
   if (!file) return;
   // 扩展名即用户的格式声明（显式分派，非内容嗅探）
   const name = file.name.toLowerCase();
-  const format = name.endsWith(".pdf") ? "pdf" : name.endsWith(".epub") ? "epub" : null;
+  const format = name.endsWith(".pdf")
+    ? "pdf"
+    : name.endsWith(".epub")
+    ? "epub"
+    : name.endsWith(".mobi") || name.endsWith(".azw3")
+    ? "mobi"
+    : null;
   if (!format) {
     status.value = `不支持的文件：${file.name}`;
     return;
@@ -95,11 +107,12 @@ onBeforeUnmount(() => {
         打开 PDF
       </button>
       <button @click="open('epub', './alice.epub')">打开 EPUB</button>
+      <button @click="open('mobi', './alice.mobi')">打开 MOBI</button>
       <button @click="fileInput?.click()">打开本地文件…</button>
       <input
         ref="fileInput"
         type="file"
-        accept=".pdf,.epub,application/pdf,application/epub+zip"
+        accept=".pdf,.epub,.mobi,.azw3,application/pdf,application/epub+zip"
         hidden
         @change="onFilePicked"
       />

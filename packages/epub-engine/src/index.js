@@ -1,8 +1,8 @@
 // @document-kits/epub-engine — public surface.
 //
-// foliate-js is a pinned git dependency consumed through its documented
-// contract (makeBook / <foliate-view> / book interface). Rendering stays on
-// the main thread; the light-worker seam is future work behind this same
+// The engine runs on the package's own pipeline (src/pipeline/, ported from
+// foliate-js — see the port-citation headers there). Rendering stays on the
+// main thread; the light-worker seam is future work behind this same
 // surface (research doc §10).
 
 import { registerEngine } from "@document-kits/engine-core";

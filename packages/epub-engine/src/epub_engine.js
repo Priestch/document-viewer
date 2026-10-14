@@ -1,18 +1,19 @@
-// EpubEngine — the "epub" DocumentEngine, consuming the foliate-js
-// documented contract only: makeBook (view.js), the <foliate-view> custom
-// element, book.sections/resolveHref/toc/metadata. Module-private internals
-// (paginator's getVisibleRange/bisectNode) are never touched; the visible
-// position comes from the `relocate` event instead.
+// EpubEngine — the "epub" DocumentEngine, now consuming our own pipeline
+// (src/pipeline/) end to end: the backend assembles the book (zip-source →
+// package → toc → resources/rewriter → sections), and rendering runs on our
+// paginator port (frame + layout + visible-range) instead of
+// <foliate-view>. The engine keeps the DocumentEngine 12-method surface,
+// capabilities and options identical to the foliate-backed version.
 //
-// Error bridging: foliate has no error event after open (failures are
-// swallowed into console.warn); resource load failures are surfaced by
-// wrapping the transformTarget 'data' event promises (reader.js:114 pattern).
-//
-// Rendering is main-thread browser CSS by design (research doc §8.3/§10);
-// the worker seam is sections[].load() → blob URL.
+// Error bridging: resource load failures are surfaced by wrapping the
+// transformTarget 'data' event promises (the resource cache dispatches them,
+// foliate-transformTarget-shaped; reader.js:114 pattern, ported) — the
+// pipeline's paginator has no error channel of its own after open.
 
 import { createInProcessBackend } from "./book_backend.js";
-import { textWalker } from "foliate-js/text-walker.js";
+import { createPaginator } from "./pipeline/paginator.js";
+import { getCFI, resolveCFI, resolveHref as resolveHrefInBook } from "./pipeline/cfi.js";
+import { extractText } from "./pipeline/text.js";
 
 /**
  * @typedef {import("@document-kits/engine-core").DocumentEngine} DocumentEngine
@@ -32,9 +33,10 @@ const EPUB_CAPABILITIES = /** @type {CapabilityFlags} */ ({
   tts: true,
 });
 
-/** foliate metadata fields can be language maps ({en: "..."}); flatten them. */
+/** Pipeline metadata can hold arrays (author) or language maps; flatten both. */
 function flattenLanguageMap(value) {
   if (value == null || typeof value !== "object") return value ?? null;
+  if (Array.isArray(value)) return value.filter((v) => v != null && v !== "").join(", ") || null;
   return Object.values(value)[0] ?? null;
 }
 
@@ -48,12 +50,13 @@ function flattenLanguageMap(value) {
 export function createEpubEngine(options = {}) {
   const { height = "100%", backend = createInProcessBackend() } = options;
 
-  /** @type {any} foliate-book-compatible object (real book or BookProxy) */
+  /** @type {any} book object from the backend ({sections, metadata, toc, ...}) */
   let book = null;
-  /** @type {any} <foliate-view> element */
-  let view = null;
-  let lastRelocate = null; // relocate detail: {fraction, cfi, range, tocItem, ...}
-  let lastLoad = null; // load detail: {doc, index}
+  /** @type {any} our paginator instance */
+  let paginator = null;
+  /** wrapper element the paginator scrolls (removed on destroy) */
+  let host = null;
+  let lastRelocate = null; // relocate detail: {reason, index, range, fraction?, size?}
   const relocateWaiters = [];
   /** @type {((err: Error) => void)[]} */
   const errorListeners = [];
@@ -81,10 +84,12 @@ export function createEpubEngine(options = {}) {
     });
   };
 
+  // Our paginator emits `relocate` synchronously at the end of every
+  // display/scroll/turn path, so this normally settles without the timer.
   const navigate = async (target) => {
     lastRelocate = null;
     try {
-      await view.goTo(target);
+      await paginator.goTo(target);
       await waitForRelocate();
     } catch (err) {
       emitError(err instanceof Error ? err : new Error(String(err)));
@@ -105,8 +110,8 @@ export function createEpubEngine(options = {}) {
         emitError(err instanceof Error ? err : new Error(String(err)));
         throw err;
       }
-      // Bridge foliate's silent resource failures into the engine error
-      // channel: wrap the loader's data promises.
+      // Bridge silent resource failures into the engine error channel: wrap
+      // the cache's data promises (the transformTarget 'data' events).
       book.transformTarget?.addEventListener?.("data", ({ detail }) => {
         detail.data = Promise.resolve(detail.data).catch((e) => {
           emitError(new Error(`Failed to load ${detail.name}`, { cause: e }));
@@ -138,33 +143,35 @@ export function createEpubEngine(options = {}) {
       if (!book) {
         throw new Error("EpubEngine: open() before mount()");
       }
-      view = document.createElement("foliate-view");
-      view.style.width = "100%";
-      view.style.height = height;
-      view.addEventListener("relocate", (e) => {
-        lastRelocate = e.detail;
+      host = document.createElement("div");
+      host.style.width = "100%";
+      host.style.height = height;
+      container.appendChild(host);
+      paginator = createPaginator({ host });
+      paginator.on("relocate", (detail) => {
+        lastRelocate = detail;
         for (const w of relocateWaiters.splice(0)) w();
       });
-      view.addEventListener("load", (e) => {
-        lastLoad = e.detail;
-      });
-      container.appendChild(view);
-      await view.open(book);
-      // foliate-view emits its first `relocate` only after a goTo; establish
-      // the position eagerly so getPosition() right after mount() resolves
-      // immediately instead of stalling for the wait timeout (spike lesson).
-      await navigate(0);
+      paginator.open(book);
+      // Establish the position eagerly so getPosition() right after mount()
+      // resolves immediately — the paginator emits its first `relocate`
+      // synchronously inside display() (spike lesson, kept).
+      await navigate({ index: 0, anchor: 0 });
     },
 
     async goTo(loc) {
-      if (!view) {
+      if (!paginator) {
         throw new Error("EpubEngine: mount() before goTo()");
       }
-      const target =
-        loc.nativeAddress ??
-        loc.cfi ??
-        (typeof loc.sectionIndex === "number" ? loc.sectionIndex : null) ??
-        (typeof loc.percentage === "number" ? { fraction: loc.percentage } : null);
+      const address = loc.nativeAddress ?? loc.cfi;
+      let target = null;
+      if (typeof address === "string" && address.startsWith("epubcfi(")) {
+        target = resolveCFI(book, address); // {index, anchor}
+      } else if (typeof loc.sectionIndex === "number") {
+        target = { index: loc.sectionIndex };
+      } else if (typeof loc.percentage === "number") {
+        target = { fraction: loc.percentage };
+      }
       if (target == null) {
         throw new Error(`EpubEngine.goTo: unusable location ${JSON.stringify(loc)}`);
       }
@@ -176,35 +183,37 @@ export function createEpubEngine(options = {}) {
       const d = lastRelocate ?? {};
       return /** @type {Location} */ ({
         version: 1,
-        sectionIndex: lastLoad?.index,
-        nativeAddress: d.cfi ?? null,
+        sectionIndex: d.index,
+        nativeAddress: getCFI(book, d.index, d.range),
         percentage: d.fraction ?? 0,
         docId: book?.metadata?.identifier ?? null,
       });
     },
 
     async next() {
-      if (!view) throw new Error("EpubEngine: mount() before next()");
+      if (!paginator) throw new Error("EpubEngine: mount() before next()");
       lastRelocate = null;
-      await view.next();
+      await paginator.next();
       await waitForRelocate();
     },
 
     async prev() {
-      if (!view) throw new Error("EpubEngine: mount() before prev()");
+      if (!paginator) throw new Error("EpubEngine: mount() before prev()");
       lastRelocate = null;
-      await view.prev();
+      await paginator.prev();
       await waitForRelocate();
     },
 
     async resolveHref(href) {
-      const resolved = await book?.resolveHref?.(href);
+      const resolved = book ? resolveHrefInBook(book, href) : null;
       if (!resolved) {
         return null;
       }
       // Anchor union verified at runtime: Range | Element | number | null.
-      const doc = lastLoad?.doc ?? (await book.sections?.[resolved.index]?.createDocument?.());
-      const anchorResult = resolved.anchor?.(doc);
+      // Prefer the live document so ranges land in the rendered tree.
+      const doc =
+        paginator?.view?.document ?? (await book.sections?.[resolved.index]?.createDocument?.());
+      const anchorResult = resolved.anchor(doc);
       return {
         index: resolved.index,
         anchor: () => anchorResult,
@@ -220,18 +229,8 @@ export function createEpubEngine(options = {}) {
         } catch {
           continue; // non-XHTML resources (images etc.) have no text
         }
-        const chunks = [];
-        // textWalker's contract: the callback must RETURN an iterable that
-        // the walker for-yields over — collecting via side effect alone
-        // returns a Number and throws (spike bug, fixed).
-        const walker = textWalker(doc, (strs) => {
-          chunks.push(strs.join(" "));
-          return [];
-        });
-        for await (const _ of walker) {
-          void _; // iterating drives the walker
-        }
-        if (chunks.length) yield { str: chunks.join(" "), index: i };
+        const str = extractText(doc);
+        if (str) yield { str, index: i };
       }
     },
 
@@ -242,11 +241,14 @@ export function createEpubEngine(options = {}) {
     },
 
     destroy() {
-      view?.remove();
-      view = null;
+      paginator?.destroy();
+      paginator = null;
+      host?.remove();
+      host = null;
       book = null;
       lastRelocate = null;
-      lastLoad = null;
+      // revoke every live blob URL in the resource cache
+      backend.destroy?.();
     },
   };
 

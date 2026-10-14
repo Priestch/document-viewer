@@ -17,6 +17,7 @@ export default [
       "website/.vitepress/cache/", // VitePress dep cache
       "website/.vitepress/dist/", // VitePress build output
       "upstream/", // Rust toolchain
+      "packages/epub-engine/src/pipeline/vendor/", // vendored, attributed upstream code (foliate-js)
     ],
   },
   js.configs.recommended,

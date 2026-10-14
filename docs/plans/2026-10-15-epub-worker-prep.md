@@ -102,3 +102,46 @@ bytes needed beyond the clone); URL/string → fetch in worker.
 
 Trigger conditions to start: large-EPUB open latency complaints, or Phase 2
 unified search needing parallel section scanning.
+
+## 6. Exploration findings (2026-10-15, empirical — worker prototype)
+
+A working BookProxy prototype (`src/worker_backend.js` +
+`src/worker/book-worker.js`) was built and driven in a real browser. Three
+obstacles were found and fixed; the fourth is a hard wall on Chromium:
+
+1. ✅ **NodeFilter** — window-only; foliate reads SHOW*\* at module-eval
+   (text-walker.js:17) and FILTER*\* at call time (epubcfi.js:197).
+   Fixed by `src/worker/nodefilter-polyfill.js`, imported BEFORE foliate
+   (sibling imports evaluate in order).
+2. ✅ **HTMLElement/customElements** — view.js:609 registers
+   `<foliate-view>` at module eval. The element is never instantiated in
+   the worker, so an inert base class + no-op registry suffice (same
+   polyfill module).
+3. ✅ **makeBook wants a named File** — isCBZ/isFBZ read `file.name`
+   (view.js:90ff). The worker normalizes URL/ArrayBuffer/Blob sources to
+   `new File([bytes], name)`.
+4. ❌ **DOMParser is NOT defined in Chromium workers** (verified on the
+   local chromium-1228; contrary to the assumption in §2 — DOMParser
+   exposure in workers is not universal). `new EPUB()` parses
+   container.xml/OPF with DOMParser immediately → the foliate parse path
+   cannot run in a Chromium worker as-is. This is the same reason pdf.js's
+   XFA module ships its own XML parser (core/xml_parser.js, copied from
+   Shumway).
+
+Forward options from here:
+
+- **(a) JS DOM in the worker** — parse5/linkedom/xmldom as the worker's
+  DOMParser. Cost: a dependency + a fidelity surface (foliate's CFI and
+  section logic must behave identically on a foreign DOM impl); also Range
+  (`document.createRange`) is worker-absent and epubcfi needs it for
+  fromRange — likely needs the offset-based CFI path from §4 anyway.
+- **(b) Narrow the worker to ZIP-BYTES only** — worker holds the zip and
+  serves raw entry bytes (`loadBytes(i)`), ALL parsing (DOMParser) stays
+  on the main thread. Zero new dependencies; removes inflate from the
+  main thread but keeps parse cost there. Smaller win, no fidelity risk.
+- **(c) Park it** — keep the polyfills and the prototype; decide (a)/(b)
+  when a performance signal arrives (as planned).
+
+Recommendation: (c) now; (b) if measurements show zip inflate is the
+dominant cost; (a) only if full parse-offload is ever proven necessary —
+and then modeled on pdf.js's own "ship the parser" precedent.

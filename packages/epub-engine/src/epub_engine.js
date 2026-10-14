@@ -14,6 +14,7 @@ import { createInProcessBackend } from "./book_backend.js";
 import { createPaginator } from "./pipeline/paginator.js";
 import { getCFI, resolveCFI, resolveHref as resolveHrefInBook } from "./pipeline/cfi.js";
 import { extractText } from "./pipeline/text.js";
+import { defaultStyleCSS } from "./pipeline/styles.js";
 
 /**
  * @typedef {import("@document-kits/engine-core").DocumentEngine} DocumentEngine
@@ -48,7 +49,9 @@ function flattenLanguageMap(value) {
  *   (default "100%" of the container).
  */
 export function createEpubEngine(options = {}) {
-  const { height = "100%", backend = createInProcessBackend() } = options;
+  const { height = "100%", backend = createInProcessBackend(), textStyle = {} } = options;
+  /** Current typography settings — backs the textStyle capability. */
+  let styleState = { ...textStyle };
 
   /** @type {any} book object from the backend ({sections, metadata, toc, ...}) */
   let book = null;
@@ -157,6 +160,25 @@ export function createEpubEngine(options = {}) {
       // resolves immediately — the paginator emits its first `relocate`
       // synchronously inside display() (spike lesson, kept).
       await navigate({ index: 0, anchor: 0 });
+      // Inject the default reader typography AFTER the first display (the
+      // style elements exist once the frame has loaded a document). Without
+      // this layer the book renders with raw author CSS only — no line
+      // height, hyphenation or footnote handling.
+      paginator.setStyles(defaultStyleCSS(styleState));
+    },
+
+    /**
+     * Live typography update (lineHeight/justify/hyphenate/fontFamily/
+     * fontSize) — restyles in place, never reloads the iframe. Backs the
+     * `textStyle: true` capability.
+     * @param {object} patch
+     */
+    setStyle(patch) {
+      if (!paginator) {
+        throw new Error("EpubEngine: mount() before setStyle()");
+      }
+      styleState = { ...styleState, ...patch };
+      paginator.setStyles(defaultStyleCSS(styleState));
     },
 
     async goTo(loc) {

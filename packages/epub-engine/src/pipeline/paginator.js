@@ -241,6 +241,11 @@ export function createPaginator({ host, ...layoutOptions }) {
     open(target) {
       book = target;
     },
+    /** Live restyle of the injected style pair — no iframe reload
+     *  (anti-koodo rule 4: font/theme changes never re-open the book). */
+    setStyles(cssText) {
+      frame?.setStyles(cssText);
+    },
     /** Display a section (index + optional anchor) — goTo({index, anchor}). */
     display(targetIndex, targetAnchor = 0) {
       return goTo({ index: targetIndex, anchor: targetAnchor });

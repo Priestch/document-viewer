@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<!-- SCRATCH: 双引擎手动验证临时页面，engine demo 正式化后删除 -->
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>engine-core: 双引擎手动验证</title>
+    <style>
+      body {
+        margin: 0;
+        font: 14px system-ui;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      #bar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 8px;
+        background: #1c1b22;
+        color: #fff;
+        flex-wrap: wrap;
+      }
+      #bar button {
+        padding: 4px 12px;
+        cursor: pointer;
+      }
+      #host {
+        position: relative;
+        flex: 1;
+        overflow: auto;
+      }
+      #status {
+        opacity: 0.8;
+      }
+      input {
+        width: 48px;
+      }
+      .sep {
+        width: 1px;
+        height: 20px;
+        background: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar">
+      <button id="open-pdf">打开 PDF</button>
+      <button id="open-epub">打开 EPUB</button>
+      <span class="sep"></span>
+      <button id="prev">◀ 上一页</button>
+      <button id="next">下一页 ▶</button>
+      <span
+        >页码/进度 <input id="page" type="number" min="0" value="1" /><button id="go">
+          跳转
+        </button></span
+      >
+      <span id="status">点上面的按钮开始</span>
+    </div>
+    <div id="host"></div>
+    <script type="module">
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href =
+        "/@fs/home/gaopeng/Enter/document-viewer/packages/document-viewer/dist/generic/web/viewer.css";
+      document.head.appendChild(link);
+
+      const viewer = await import(
+        "/@fs/home/gaopeng/Enter/document-viewer/packages/document-viewer/dist/generic/build/app.js"
+      );
+      const core = await import(
+        "/@fs/home/gaopeng/Enter/document-viewer/packages/engine-core/src/index.js"
+      );
+      const epub = await import(
+        "/@fs/home/gaopeng/Enter/document-viewer/packages/epub-engine/src/index.js"
+      );
+
+      viewer.registerPdfEngine({ resourcePath: "/document-viewer" });
+      epub.registerEpubEngine();
+
+      // —— UI 零格式判断：所有分支走 capabilities（红线 2 的活体演示）——
+      const host = document.getElementById("host");
+      const status = document.getElementById("status");
+      const pageInput = document.getElementById("page");
+      let engine = null;
+
+      const sync = async () => {
+        const pos = await engine.getPosition();
+        const caps = engine.capabilities();
+        pageInput.min = caps.pagination === "stable" ? "1" : "0";
+        pageInput.max = caps.pagination === "stable" ? "999" : "100";
+        pageInput.step = caps.pagination === "stable" ? "1" : "1";
+        const unit =
+          caps.pagination === "stable" ? `第 ${pos.page} 页` : `节 ${pos.sectionIndex ?? "?"}`;
+        status.textContent = `${engine.format()} · ${unit} · ${(pos.percentage * 100).toFixed(
+          0
+        )}% · ${
+          pos.nativeAddress ? String(pos.nativeAddress).slice(0, 30) + "…" : "page " + pos.page
+        }`;
+        localStorage.setItem("engine-demo:last", JSON.stringify({ fmt: engine.format(), pos }));
+      };
+
+      const open = async (fmt, src) => {
+        if (engine) engine.destroy();
+        host.innerHTML = "";
+        engine = await core.openDocument(src, { format: fmt });
+        await engine.mount(host);
+        // 恢复上次位置（Location 往返的活体演示）
+        let last = null;
+        try {
+          last = JSON.parse(localStorage.getItem("engine-demo:last") ?? "null");
+        } catch {}
+        if (last?.fmt === fmt && last.pos) {
+          await engine.goTo(core.coerceLocation(last.pos) ?? { version: 1, percentage: 0 });
+        }
+        sync();
+      };
+
+      document.getElementById("open-pdf").onclick = () =>
+        open("pdf", "/document-viewer/web/compressed.tracemonkey-pldi-09.pdf");
+      document.getElementById("open-epub").onclick = () => open("epub", "/alice.epub");
+      document.getElementById("prev").onclick = () => engine && engine.prev().then(sync);
+      document.getElementById("next").onclick = () => engine && engine.next().then(sync);
+      document.getElementById("go").onclick = async () => {
+        if (!engine) return;
+        const caps = engine.capabilities();
+        // capabilities 决定跳转语义：stable=页码，reflowing=百分比
+        const loc =
+          caps.pagination === "stable"
+            ? { version: 1, page: +pageInput.value, percentage: 0 }
+            : { version: 1, percentage: +pageInput.value / 100 };
+        await engine.goTo(core.coerceLocation(loc));
+        sync();
+      };
+    </script>
+  </body>
+</html>

@@ -1,5 +1,6 @@
 import { createViewerApp, getViewerConfiguration } from "./app_manager.js";
 import { AnnotationElement, registerAnnotationType, PluginManager } from "./plugin_manager.js";
+import { createPdfEngine, registerPdfEngine } from "./pdf_engine.js";
 
 // Block the "load" event until all pages are loaded, to ensure that printing
 // works in Firefox; see https://bugzilla.mozilla.org/show_bug.cgi?id=1618553
@@ -11,4 +12,6 @@ export {
   AnnotationElement,
   registerAnnotationType,
   PluginManager,
+  createPdfEngine,
+  registerPdfEngine,
 };

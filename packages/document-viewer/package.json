@@ -51,5 +51,8 @@
     "gulp": "^4.0.2",
     "html-ast-transform": "^2.0.1",
     "parse5": "^7.1.2"
+  },
+  "dependencies": {
+    "@document-kits/engine-core": "workspace:*"
   }
 }

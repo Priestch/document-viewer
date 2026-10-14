@@ -31,5 +31,11 @@ export default defineConfig(({ command }) => {
         },
       ],
     },
+    // 允许 dev server 读取 monorepo 内文件（/@fs 导入，如 engine-demo.html）
+    server: {
+      fs: {
+        allow: [".."],
+      },
+    },
   };
 });

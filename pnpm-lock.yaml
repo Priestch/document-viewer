@@ -105,6 +105,10 @@ importers:
         version: 0.2.9
 
   packages/document-viewer:
+    dependencies:
+      '@document-kits/engine-core':
+        specifier: workspace:*
+        version: link:../engine-core
     devDependencies:
       '@babel/core':
         specifier: ^7.21.5
@@ -124,6 +128,17 @@ importers:
       parse5:
         specifier: ^7.1.2
         version: 7.1.2
+
+  packages/engine-core: {}
+
+  packages/epub-engine:
+    dependencies:
+      '@document-kits/engine-core':
+        specifier: workspace:*
+        version: link:../engine-core
+      foliate-js:
+        specifier: ^1.0.1
+        version: 1.0.1
 
   website:
     devDependencies:
@@ -2179,6 +2194,10 @@ packages:
       walk-back: 2.0.1
     dev: false
 
+  /construct-style-sheets-polyfill@3.1.0:
+    resolution: {integrity: sha512-HBLKP0chz8BAY6rBdzda11c3wAZeCZ+kIG4weVC2NM3AXzxx09nhe8t0SQNdloAvg5GLuHwq/0SPOOSPvtCcKw==}
+    dev: false
+
   /convert-source-map@1.9.0:
     resolution: {integrity: sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==}
     dev: true
@@ -2920,6 +2939,12 @@ packages:
     dependencies:
       tabbable: 6.2.0
     dev: true
+
+  /foliate-js@1.0.1:
+    resolution: {integrity: sha512-Cj4h2ub5aVA+yUgbhvVhCyxwi0GPF4pyNBa6Lw9+6WKY1ReBxipItn2kEBO6u7Vu/xYXjK711R74+t+yW/0u5w==}
+    dependencies:
+      construct-style-sheets-polyfill: 3.1.0
+    dev: false
 
   /for-in@1.0.2:
     resolution: {integrity: sha512-7EwmXrOjyL+ChxMhmG5lnW9MPt1aIeZEwKhQzoBUdTV0N3zuwWDZYVJatDvZ2OyzPUvdIAZDsCetk3coyMfcnQ==}

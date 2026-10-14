@@ -30,6 +30,9 @@ console.log("route", route);
         to="/plugin-annotations"
         >Plugin Annotations</RouterLink
       >
+      <RouterLink class="nav-link" :class="{ active: route.path === '/engine' }" to="/engine"
+        >Dual Engine</RouterLink
+      >
     </nav>
   </aside>
 

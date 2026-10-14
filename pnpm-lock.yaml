@@ -60,6 +60,12 @@ importers:
 
   demos:
     dependencies:
+      '@document-kits/engine-core':
+        specifier: workspace:*
+        version: link:../packages/engine-core
+      '@document-kits/epub-engine':
+        specifier: workspace:*
+        version: link:../packages/epub-engine
       '@document-kits/viewer':
         specifier: workspace:*
         version: link:../packages/document-viewer

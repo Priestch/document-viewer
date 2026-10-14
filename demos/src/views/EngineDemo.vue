@@ -1,0 +1,156 @@
+<script setup>
+import { onBeforeUnmount, onMounted, ref } from "vue";
+
+import { registerPdfEngine } from "@document-kits/viewer";
+import "@document-kits/viewer/viewer.css";
+import { coerceLocation, openDocument } from "@document-kits/engine-core";
+import { registerEpubEngine } from "@document-kits/epub-engine";
+
+// Registration is last-wins; calling once per app is enough.
+let registered = false;
+if (!registered) {
+  registerPdfEngine({ resourcePath: "./document-viewer" });
+  registerEpubEngine();
+  registered = true;
+}
+
+const host = ref(null);
+const status = ref("点击按钮打开文档");
+const pageValue = ref("1");
+const pageMin = ref("1");
+const pageMax = ref("999");
+const fileInput = ref(null);
+
+/** @type {import("vue").ShallowRef<any>} */
+let engine = null;
+
+const sync = async () => {
+  if (!engine) return;
+  const pos = await engine.getPosition();
+  const caps = engine.capabilities();
+  // capabilities 驱动控件语义（红线 2：UI 零格式判断）
+  const stable = caps.pagination === "stable";
+  pageMin.value = stable ? "1" : "0";
+  pageMax.value = stable ? "999" : "100";
+  const unit = stable ? `第 ${pos.page} 页` : `节 ${pos.sectionIndex ?? "?"}`;
+  status.value =
+    `${engine.format()} · ${unit} · ${(pos.percentage * 100).toFixed(0)}% · ` +
+    (pos.nativeAddress ? String(pos.nativeAddress).slice(0, 28) + "…" : `page ${pos.page}`);
+  localStorage.setItem("engine-demo:last", JSON.stringify({ fmt: engine.format(), pos }));
+};
+
+const open = async (format, source) => {
+  if (engine) engine.destroy();
+  if (host.value) host.value.innerHTML = "";
+  engine = await openDocument(source, { format });
+  await engine.mount(host.value);
+  // Location 往返：恢复上次位置
+  let last = null;
+  try {
+    last = JSON.parse(localStorage.getItem("engine-demo:last") ?? "null");
+  } catch {
+    /* corrupt storage falls through to start */
+  }
+  if (last?.fmt === format && last.pos) {
+    await engine.goTo(coerceLocation(last.pos) ?? { version: 1, percentage: 0 });
+  }
+  await sync();
+};
+
+const onFilePicked = (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  // 扩展名即用户的格式声明（显式分派，非内容嗅探）
+  const name = file.name.toLowerCase();
+  const format = name.endsWith(".pdf") ? "pdf" : name.endsWith(".epub") ? "epub" : null;
+  if (!format) {
+    status.value = `不支持的文件：${file.name}`;
+    return;
+  }
+  open(format, file);
+  event.target.value = "";
+};
+
+const jump = async () => {
+  if (!engine) return;
+  const stable = engine.capabilities().pagination === "stable";
+  const loc = stable
+    ? { version: 1, page: Number(pageValue.value), percentage: 0 }
+    : { version: 1, percentage: Number(pageValue.value) / 100 };
+  await engine.goTo(coerceLocation(loc));
+  await sync();
+};
+
+onMounted(() => sync());
+onBeforeUnmount(() => {
+  engine?.destroy();
+  engine = null;
+});
+</script>
+
+<template>
+  <div class="engine-demo">
+    <div class="bar">
+      <button @click="open('pdf', './document-viewer/web/compressed.tracemonkey-pldi-09.pdf')">
+        打开 PDF
+      </button>
+      <button @click="open('epub', './alice.epub')">打开 EPUB</button>
+      <button @click="fileInput?.click()">打开本地文件…</button>
+      <input
+        ref="fileInput"
+        type="file"
+        accept=".pdf,.epub,application/pdf,application/epub+zip"
+        hidden
+        @change="onFilePicked"
+      />
+      <span class="sep" />
+      <button @click="engine?.prev().then(sync)">◀ 上一页</button>
+      <button @click="engine?.next().then(sync)">下一页 ▶</button>
+      <span>
+        页码/进度
+        <input v-model="pageValue" type="number" :min="pageMin" :max="pageMax" />
+        <button @click="jump">跳转</button>
+      </span>
+      <span class="status">{{ status }}</span>
+    </div>
+    <div ref="host" class="host"></div>
+  </div>
+</template>
+
+<style scoped>
+.engine-demo {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  background: #1c1b22;
+  color: #fff;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+.bar button {
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.bar input[type="number"] {
+  width: 56px;
+}
+.sep {
+  width: 1px;
+  height: 20px;
+  background: #555;
+}
+.status {
+  opacity: 0.8;
+}
+.host {
+  position: relative;
+  flex: 1;
+  overflow: auto;
+}
+</style>

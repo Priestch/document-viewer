@@ -79,10 +79,16 @@ export function createPdfEngine(options = {}) {
       }
       GlobalWorkerOptions.workerSrc ||= resourceUrl("build/pdf.worker.mjs");
 
-      const params =
-        source instanceof ArrayBuffer || source instanceof Uint8Array
-          ? { data: source }
-          : { url: String(source) };
+      let params;
+      if (source instanceof Blob) {
+        // File/Blob (user file picker): read bytes; getDocument's data param
+        // takes ArrayBuffer/TypedArray, not File.
+        params = { data: await source.arrayBuffer() };
+      } else if (source instanceof ArrayBuffer || source instanceof Uint8Array) {
+        params = { data: source };
+      } else {
+        params = { url: String(source) };
+      }
       loadingTask = getDocument({
         ...params,
         cMapUrl: resourceUrl("web/cmaps/"),

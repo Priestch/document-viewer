@@ -11,7 +11,7 @@
 // Rendering is main-thread browser CSS by design (research doc §8.3/§10);
 // the worker seam is sections[].load() → blob URL.
 
-import { makeBook } from "foliate-js/view.js";
+import { createInProcessBackend } from "./book_backend.js";
 import { textWalker } from "foliate-js/text-walker.js";
 
 /**
@@ -46,9 +46,9 @@ function flattenLanguageMap(value) {
  *   (default "100%" of the container).
  */
 export function createEpubEngine(options = {}) {
-  const { height = "100%" } = options;
+  const { height = "100%", backend = createInProcessBackend() } = options;
 
-  /** @type {any} foliate book object */
+  /** @type {any} foliate-book-compatible object (real book or BookProxy) */
   let book = null;
   /** @type {any} <foliate-view> element */
   let view = null;
@@ -100,7 +100,7 @@ export function createEpubEngine(options = {}) {
 
     async open(source) {
       try {
-        book = await makeBook(source);
+        book = await backend.open(source);
       } catch (err) {
         emitError(err instanceof Error ? err : new Error(String(err)));
         throw err;

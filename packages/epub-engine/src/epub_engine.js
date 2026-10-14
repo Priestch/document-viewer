@@ -155,16 +155,17 @@ export function createEpubEngine(options = {}) {
         lastRelocate = detail;
         for (const w of relocateWaiters.splice(0)) w();
       });
+      // The frame is recreated per section — re-apply typography on every
+      // load (covers the mount-time display too) or the recipe only
+      // survives the section shown at mount.
+      paginator.on("load", () => paginator.setStyles(defaultStyleCSS(styleState)));
       paginator.open(book);
       // Establish the position eagerly so getPosition() right after mount()
       // resolves immediately — the paginator emits its first `relocate`
       // synchronously inside display() (spike lesson, kept).
       await navigate({ index: 0, anchor: 0 });
-      // Inject the default reader typography AFTER the first display (the
-      // style elements exist once the frame has loaded a document). Without
-      // this layer the book renders with raw author CSS only — no line
-      // height, hyphenation or footnote handling.
-      paginator.setStyles(defaultStyleCSS(styleState));
+      // Typography injection is handled by the paginator "load" listener
+      // above (fires for this display and every section change).
     },
 
     /**

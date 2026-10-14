@@ -164,6 +164,10 @@ export function createPaginator({ host, ...layoutOptions }) {
         beforeRender: ({ vertical: v, rtl: r }) =>
           computeParams(host.getBoundingClientRect(), { ...layoutOptions, vertical: v, rtl: r }),
       });
+      // The frame (and its injected style pair) is REPLACED between
+      // sections — hosts re-apply their typography on this event (the
+      // engine does; mirrors foliate's view "load" event).
+      emit("load", { index });
       // wait for the fonts-driven expansion pass before anchoring — the
       // frame registered its own fonts.ready -> expand callback inside
       // loadDoc, so it runs first and the anchor scroll sees the settled

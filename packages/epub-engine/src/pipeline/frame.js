@@ -28,13 +28,20 @@ const getDirection = (doc) => {
 /**
  * Create the iframe host appended to `host`.
  *
- * @param {Element} host the scroll container (fixed-size element the paginator
- *   scrolls; the frame's wrapper element is expanded to N pages inside it)
- * @param {{onExpand?: Function}} options onExpand() fires after every
- *   expansion pass (ResizeObserver, fonts.ready, render) — the paginator
- *   re-anchors on it
+ * Layout framing mirrors foliate's host grid (paginator.js:455-486): the
+ * visible content box is inset from the host — vertical `margin`, horizontal
+ * `gapPercent / 2` percent of the host width — and the SCROLL CONTAINER is
+ * the content box (foliate #container), not the host. Layout params must be
+ * computed against the content box (frame.contentRect) and scrolling must
+ * target frame.scrollEl.
+ *
+ * @param {Element} host fixed-size element; the frame occupies it fully
+ * @param {{onExpand?: Function, margin?: number, gapPercent?: number}} options
+ *   onExpand() fires after every expansion pass; margin/gapPercent default to
+ *   foliate's host defaults (48px / 7%)
  */
-export function createFrame(host, { onExpand } = {}) {
+export function createFrame(host, { onExpand, margin = 48, gapPercent = 7 } = {}) {
+  const viewBox = document.createElement("div"); // content box (grid, :481-486)
   const element = document.createElement("div"); // View.#element (:202)
   const iframe = document.createElement("iframe"); // View.#iframe (:203)
   const contentRange = document.createRange(); // View.#contentRange (:204)
@@ -47,6 +54,20 @@ export function createFrame(host, { onExpand } = {}) {
   let beforeRender = null; // stored so render() can re-run layout on resize
   let pageCount = 0;
   let expandedSize = 0;
+
+  // Host framing: content box inset like foliate's #top grid — fixed
+  // vertical margin, horizontal gutters of half the column gap (percent of
+  // the host, matching the CSS-% semantics of :467/:481-486).
+  Object.assign(host.style, { position: "relative", overflow: "hidden" });
+  Object.assign(viewBox.style, {
+    boxSizing: "border-box",
+    position: "absolute",
+    top: `${margin}px`,
+    bottom: `${margin}px`,
+    left: `${gapPercent / 2}%`,
+    right: `${gapPercent / 2}%`,
+    overflow: "hidden",
+  });
 
   Object.assign(element.style, {
     boxSizing: "content-box",
@@ -71,7 +92,8 @@ export function createFrame(host, { onExpand } = {}) {
   iframe.setAttribute("sandbox", "allow-same-origin allow-scripts");
   iframe.setAttribute("scrolling", "no"); // :235
   element.append(iframe);
-  host.append(element);
+  viewBox.append(element);
+  host.append(viewBox);
 
   // ported from View.expand() column branch (:354-373). The page count and
   // expanded size come from layout.js (single source of layout math); this
@@ -186,11 +208,19 @@ export function createFrame(host, { onExpand } = {}) {
     observer.disconnect(); // View.destroy (:410-412) unobserves; we also drop
     iframe.remove(); // the iframe and wrapper outright — the paginator
     element.remove(); // replaces the whole view between sections (:659-669)
+    viewBox.remove();
   }
 
   return {
     element,
     iframe,
+    /** The scroll container (content box) — paginated scrolling targets this. */
+    scrollEl: viewBox,
+    /** Layout params must be computed against this rect, not the host's. */
+    get contentRect() {
+      const { width, height } = viewBox.getBoundingClientRect();
+      return { width, height };
+    },
     get document() {
       return iframe.contentDocument;
     },

@@ -43,10 +43,13 @@ const setStylesImportant = (el, styles) => {
 export function computeParams(
   containerRect,
   {
-    maxInlineSize = 1000,
+    // Foliate host-style defaults (paginator.js:467-472): a book-like
+    // 720px-capped column with a 7% column gap and 48px outer margin —
+    // NOT edge-to-edge text.
+    maxInlineSize = 720,
     maxColumnCount = 2,
-    margin = 0,
-    gapPercent = 0,
+    margin = 48,
+    gapPercent = 7,
     vertical = false,
     rtl = false,
   } = {}

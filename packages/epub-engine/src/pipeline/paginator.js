@@ -63,9 +63,9 @@ export function createPaginator({ host, ...layoutOptions }) {
   const rtl = () => frame?.rtl ?? false;
   const sideProp = () => (vertical() ? "height" : "width"); // :788-791
   const scrollProp = () => (vertical() ? "scrollTop" : "scrollLeft"); // :784-786
-  const size = () => host.getBoundingClientRect()[sideProp()]; // :793-795
+  const size = () => (frame?.scrollEl ?? host).getBoundingClientRect()[sideProp()]; // :793-795
   const viewSize = () => frame.element.getBoundingClientRect()[sideProp()]; // :796-798
-  const start = () => Math.abs(host[scrollProp()]); // :799-801
+  const start = () => Math.abs((frame?.scrollEl ?? host)[scrollProp()]); // :799-801
   const end = () => start() + size(); // :802-804
   const page = () => Math.floor((start() + end()) / 2 / size()); // :805-807
   const pages = () => Math.round(viewSize() / size()); // :808-810
@@ -106,7 +106,7 @@ export function createPaginator({ host, ...layoutOptions }) {
   // ---- scrolling (paginator.js:919-952, instant only — no animation) ----
   function scrollTo(offset, reason) {
     // :927-947 minus smooth/snap handling
-    host[scrollProp()] = offset;
+    (frame?.scrollEl ?? host)[scrollProp()] = offset;
     afterScroll(reason);
   }
   function scrollToPage(p, reason) {
@@ -159,10 +159,15 @@ export function createPaginator({ host, ...layoutOptions }) {
       frame = createFrame(host, {
         // re-anchor after every expansion pass (fonts, resize observer)
         onExpand: () => scrollToAnchor(anchor),
+        // framing options flow to the frame's content box
+        margin: layoutOptions.margin,
+        gapPercent: layoutOptions.gapPercent,
       });
       await frame.loadDoc(src, {
         beforeRender: ({ vertical: v, rtl: r }) =>
-          computeParams(host.getBoundingClientRect(), { ...layoutOptions, vertical: v, rtl: r }),
+          // params are computed against the FRAMED content box, not the host
+          // (mirrors foliate computing from #container inside the grid)
+          computeParams(frame.contentRect, { ...layoutOptions, vertical: v, rtl: r }),
       });
       // The frame (and its injected style pair) is REPLACED between
       // sections — hosts re-apply their typography on this event (the

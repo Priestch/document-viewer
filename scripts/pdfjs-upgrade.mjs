@@ -574,6 +574,16 @@ function main() {
         args: ["demos:build"],
         steps,
       });
+      // epub-engine's book-worker RPC reuses pdf.js' MessageHandler via the
+      // freshly built message-handler.mjs subpath — these tests are the only
+      // automated check on its BEHAVIOR after an upstream bump (the viewer
+      // build only catches path-level breaks). Requires viewer:build above.
+      runCommand({
+        step: "test-epub-engine",
+        command: "node",
+        args: ["--test", "packages/epub-engine/test/"],
+        steps,
+      });
     }
 
     if (options.dryRun) {

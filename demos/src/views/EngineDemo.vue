@@ -1,19 +1,25 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
-import { registerPdfEngine } from "@document-kits/viewer";
-import "@document-kits/viewer/viewer.css";
 import { coerceLocation, openDocument } from "@document-kits/engine-core";
-import { registerEpubEngine, registerMobiEngine } from "@document-kits/epub-engine";
 
-// Registration is last-wins; calling once per app is enough.
-let registered = false;
-if (!registered) {
-  registerPdfEngine({ resourcePath: "./document-viewer" });
-  registerEpubEngine();
-  registerMobiEngine();
-  registered = true;
-}
+// Engines load on demand: the first open of a format pulls its package
+// chunk (CSS and book worker included) and registers it with engine-core;
+// the page never pays for formats it never opens. Registration is
+// last-wins and idempotent, so one load per format per app is enough.
+const loaded = new Map();
+const ensureEngine = (format) => {
+  const isPdf = format === "pdf";
+  if (!loaded.has(isPdf ? "pdf" : "reflowable")) {
+    loaded.set(
+      isPdf ? "pdf" : "reflowable",
+      (isPdf ? import("../lazy/pdf-engine.js") : import("../lazy/reflowable-engines.js")).then(
+        (m) => m.register()
+      )
+    );
+  }
+  return loaded.get(isPdf ? "pdf" : "reflowable");
+};
 
 const host = ref(null);
 const status = ref("点击按钮打开文档");
@@ -43,6 +49,8 @@ const sync = async () => {
 const open = async (format, source) => {
   if (engine) engine.destroy();
   if (host.value) host.value.innerHTML = "";
+  status.value = "加载格式引擎…";
+  await ensureEngine(format);
   engine = await openDocument(source, { format });
   await engine.mount(host.value);
   // Location 往返：恢复上次位置

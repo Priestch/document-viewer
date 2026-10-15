@@ -1,10 +1,8 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-import CustomToolbar from "../views/CustomToolbar.vue";
-import MultipleFiles from "../views/MultipleFiles.vue";
 import HomeView from "../views/HomeView.vue";
-import EngineDemo from "../views/EngineDemo.vue";
-import PluginAnnotations from "../views/PluginAnnotations.vue";
 
+// Views are lazy so each example page (and the heavy packages it pulls —
+// the pdf.js viewer shell lives in four of them) only loads when visited.
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
@@ -16,22 +14,22 @@ const router = createRouter({
     {
       path: "/custom-toolbar",
       name: "customToolbar",
-      component: CustomToolbar,
+      component: () => import("../views/CustomToolbar.vue"),
     },
     {
       path: "/multiple-pdf-files",
       name: "multiplePDFFiles",
-      component: MultipleFiles,
+      component: () => import("../views/MultipleFiles.vue"),
     },
     {
       path: "/plugin-annotations",
       name: "pluginAnnotations",
-      component: PluginAnnotations,
+      component: () => import("../views/PluginAnnotations.vue"),
     },
     {
       path: "/engine",
       name: "engineDemo",
-      component: EngineDemo,
+      component: () => import("../views/EngineDemo.vue"),
     },
   ],
 });

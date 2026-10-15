@@ -53,10 +53,10 @@ function flattenLanguageMap(value) {
  * @param {CapabilityFlags} params.capabilities
  * @param {string} params.label engine name for lifecycle error messages
  * @param {object} params.backend BookBackend-shaped ({open, destroy})
- * @param {object} [params.options] engine options (height, textStyle)
+ * @param {object} [params.options] engine options (height, textStyle, layout)
  */
 export function createBookEngine({ format, capabilities, label, backend, options = {} }) {
-  const { height = "100%", textStyle = {} } = options;
+  const { height = "100%", textStyle = {}, layout = {} } = options;
   /** Current typography settings — backs the textStyle capability. */
   let styleState = { ...textStyle };
 
@@ -157,7 +157,10 @@ export function createBookEngine({ format, capabilities, label, backend, options
       host.style.width = "100%";
       host.style.height = height;
       container.appendChild(host);
-      paginator = createPaginator({ host });
+      // `layout` forwards to createPaginator → layout.computeParams (e.g. the
+      // cbz engine's full-bleed single-column pages); EPUB/MOBI pass nothing
+      // and keep the foliate host defaults.
+      paginator = createPaginator({ host, ...layout });
       paginator.on("relocate", (detail) => {
         lastRelocate = detail;
         for (const w of relocateWaiters.splice(0)) w();
@@ -197,6 +200,9 @@ export function createBookEngine({ format, capabilities, label, backend, options
       let target = null;
       if (typeof address === "string" && address.startsWith("epubcfi(")) {
         target = resolveCFI(book, address); // {index, anchor}
+      } else if (capabilities.pagination === "stable" && typeof loc.page === "number") {
+        // stable formats (cbz): Location.page is the 1-based strong field
+        target = { index: loc.page - 1 };
       } else if (typeof loc.sectionIndex === "number") {
         target = { index: loc.sectionIndex };
       } else if (typeof loc.percentage === "number") {
@@ -211,11 +217,21 @@ export function createBookEngine({ format, capabilities, label, backend, options
     async getPosition() {
       if (!lastRelocate) await waitForRelocate();
       const d = lastRelocate ?? {};
+      // Stable pagination (one page per section, e.g. cbz): Location.page is
+      // the 1-based strong field and percentage is the book-wide page ratio.
+      // Reflowing formats keep the section-local fraction. Derived from the
+      // capability (not an option) because Location v1 already defines this
+      // split; promote to an explicit mapping when a multi-page stable
+      // format (FXL) arrives.
+      const stable = capabilities.pagination === "stable";
+      const index = d.index ?? 0;
+      const sectionCount = Math.max(1, book?.sections?.length ?? 1);
       return /** @type {Location} */ ({
         version: 1,
-        sectionIndex: d.index,
+        sectionIndex: index,
+        ...(stable ? { page: index + 1 } : null),
         nativeAddress: getCFI(book, d.index, d.range),
-        percentage: d.fraction ?? 0,
+        percentage: stable ? (index + (d.fraction ?? 0)) / sectionCount : d.fraction ?? 0,
         docId: book?.metadata?.identifier ?? null,
       });
     },

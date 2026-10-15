@@ -87,9 +87,14 @@ export function createFrame(host, { onExpand, margin = 48, gapPercent = 7 } = {}
     width: "100%",
     height: "100%",
   }); // :226-231
-  // `allow-scripts` is needed for events because of WebKit bug
-  // https://bugs.webkit.org/show_bug.cgi?id=218086 (:232-234)
-  iframe.setAttribute("sandbox", "allow-same-origin allow-scripts");
+  // foliate also sets `allow-scripts` (view.js:232-234) to work around a
+  // WebKit event-delivery bug (webkit.org/b/218086); we deliberately do
+  // NOT: with allow-scripts + allow-same-origin the framed document can
+  // remove its own sandbox (Chromium warns about exactly this), and script
+  // execution in untrusted book content is meant to be blocked by this
+  // sandbox (see rewriter.js header). Nothing today consumes in-document
+  // events — revisit when the selection/annotation phases need them.
+  iframe.setAttribute("sandbox", "allow-same-origin");
   iframe.setAttribute("scrolling", "no"); // :235
   element.append(iframe);
   viewBox.append(element);

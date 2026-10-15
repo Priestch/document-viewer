@@ -32,6 +32,21 @@ function createLibraryBundle(defines) {
   return gulp.src(ROOT_DIR + "/src/viewer.js").pipe(webpack2Stream(viewerFileConfig));
 }
 
+// The MessageHandler re-export consumed by other packages (epub-engine's
+// worker RPC) via the `@document-kits/viewer/message-handler.mjs` subpath —
+// a small standalone ESM so worker chunks don't pull in the whole app.
+function createMessageHandlerBundle(defines) {
+  const viewerFileConfig = createWebpackConfig(defines, {
+    filename: "message-handler.mjs",
+    library: {
+      type: "module",
+    },
+  });
+  viewerFileConfig.resolve.alias["pdfjs-lib"] = path.resolve(ROOT_DIR, "src/pdf_js/index.js");
+
+  return gulp.src(ROOT_DIR + "/src/message_handler.js").pipe(webpack2Stream(viewerFileConfig));
+}
+
 function copyToDist() {
   const options = { cwd: ROOT_DIR, encoding: false };
   return gulp.src("pdf.js/build/**/*", options).pipe(gulp.dest("dist", options));
@@ -42,6 +57,7 @@ function buildGenericApp(defines, dir) {
 
   return ordered([
     createLibraryBundle(defines).pipe(gulp.dest(dir + "build")),
+    createMessageHandlerBundle(defines).pipe(gulp.dest(dir + "build")),
     createWorkerBundle(defines).pipe(gulp.dest(dir + "build")),
     createSandboxBundle(defines).pipe(gulp.dest(dir + "build")),
     createWebBundle(defines).pipe(gulp.dest(dir + "web")),

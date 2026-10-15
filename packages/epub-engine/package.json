@@ -1,7 +1,7 @@
 {
   "name": "@document-kits/epub-engine",
   "version": "0.1.0",
-  "description": "The \"epub\" DocumentEngine, built on the package's own pipeline (zip-source → package → toc → resources/rewriter → sections → paginator). Rendering stays on the main thread (browser CSS layout); the worker seam is sections[].load() — see docs/plans/2026-10-14-universal-engine-research.md §10.",
+  "description": "The \"epub\"/\"mobi\" DocumentEngines, built on the package's own pipeline (zip-source/mobi parse → package/toc → resources/rewriter → sections → paginator). Byte/parse work runs in a per-book worker (pdf.js MessageHandler, fake-worker fallback); rendering, DOMParser and the blob-URL cache stay on the main thread — see docs/plans/2026-10-15-epub-worker-prep.md §7.",
   "type": "module",
   "exports": {
     ".": "./src/index.js",
@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@document-kits/engine-core": "workspace:*",
+    "@document-kits/viewer": "workspace:*",
     "fflate": "^0.8.0"
   },
   "author": "Priestch",

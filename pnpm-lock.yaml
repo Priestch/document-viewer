@@ -142,6 +142,9 @@ importers:
       '@document-kits/engine-core':
         specifier: workspace:*
         version: link:../engine-core
+      '@document-kits/viewer':
+        specifier: workspace:*
+        version: link:../document-viewer
       fflate:
         specifier: ^0.8.0
         version: 0.8.3

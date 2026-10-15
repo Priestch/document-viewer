@@ -917,17 +917,14 @@ const replaceSeries = async (str, regex, f) => {
   return str.replace(regex, () => results.shift());
 };
 
-// foliate mobi.js:670-895 — the MOBI6 (old-format) book, adapted to our shape
-const createMOBI6Book = (mobi) => {
-  const cache = createResourceCache();
-  // DOMParser/XMLSerializer are lazy: parse-level consumers (Node unit
-  // tests) never load sections, so the book can be built without a DOM
-  let parserRef = null;
-  let serializerRef = null;
-  const parser = () => (parserRef ??= new DOMParser());
-  const serializer = () => (serializerRef ??= new XMLSerializer());
-  const type = MIME.HTML;
-
+// foliate mobi.js:670-895 — the MOBI6 (old-format) book, split along the
+// worker seam: `prepareMOBI6` is the pure byte/regex half (runs in the
+// worker — record decompression, the byte-per-char string, pagebreak
+// splitting, filepos anchor insertion), `assembleMOBI6Book` is the
+// DOM-flavored half (main thread — blob cache, DOMParser/XMLSerializer,
+// guide TOC). `parseMobi` runs both locally; the worker backend feeds the
+// same assembler through RPC-backed prepared objects.
+const prepareMOBI6 = (mobi) => {
   const loadAllText = () => {
     const recordBuffers = [];
     for (let i = 0; i < mobi.headers.palmdoc.numTextRecords; i++) {
@@ -965,8 +962,8 @@ const createMOBI6Book = (mobi) => {
   // get list of all `filepos` references in the book,
   // which will be used to insert anchor elements
   // because only then can they be referenced in the DOM
-  // NOTE: must be built BEFORE getGuide()/createDocument() so that sections
-  // cached during init() already have anchor elements inserted.
+  // NOTE: must be built BEFORE any section text is served so that anchors
+  // are inserted from the first document on.
   const fileposList = [...new Set(Array.from(str.matchAll(fileposRegex), (m) => m[1]))]
     .map((filepos) => ({ filepos, number: Number(filepos) }))
     .sort((a, b) => a.number - b.number);
@@ -989,36 +986,78 @@ const createMOBI6Book = (mobi) => {
     return mobi.decode(arr).replaceAll(mbpPagebreakRegex, "");
   };
 
-  const createDocument = (section) => parser().parseFromString(loadText(section), type);
+  return {
+    kind: "mobi6",
+    snapshot: {
+      kind: "mobi6",
+      metadata: mobi.getMetadata(),
+      // start/end filepos bounds — everything the sync resolveTOCHref and
+      // section sizes need on the main thread
+      sections: rawSections.map(({ start, end }) => ({ start, end })),
+    },
+    sectionText: (index) => loadText(rawSections[index]),
+    // binary records by recindex-1 (img/mediarecindex) — pure record reads
+    resource: (index) => mobi.loadResource(index),
+  };
+};
+
+const assembleMOBI6Book = async ({ snapshot, sectionText, resource }) => {
+  const cache = createResourceCache();
+  // DOMParser/XMLSerializer are lazy: parse-level consumers (Node unit
+  // tests) never load sections, so the book can be built without a DOM
+  let parserRef = null;
+  let serializerRef = null;
+  const parser = () => (parserRef ??= new DOMParser());
+  const serializer = () => (serializerRef ??= new XMLSerializer());
+  const type = MIME.HTML;
+
+  const createDocument = async (index) => parser().parseFromString(await sectionText(index), type);
 
   // resources: <img recindex="N"> → blob URLs from the binary records
   // (foliate loadResource/loadRecindex/replaceResources :790-823)
   const loadResourceURL = async (recindex, parent) =>
     cache.createURL(
-      await Promise.resolve(mobi.loadResource(Number(recindex) - 1)),
+      await Promise.resolve(resource(Number(recindex) - 1)),
       "",
       `mobi:rec:${recindex}`,
       parent
     );
 
+  // filepos → section lookup over the snapshot bounds (was a TDZ hazard in
+  // the pre-split factory, where the guide-TOC block ran before the const
+  // resolver existed — defining it first fixes the guide TOC for real books)
+  const resolveTOCHref = (href) => {
+    const match = href.match(/filepos:(.*)/);
+    if (!match) return null;
+    const number = Number(match[1]);
+    const index = snapshot.sections.findIndex((section) => section.end > number);
+    if (index < 0) return null;
+    return {
+      index,
+      anchor: (doc) => doc.getElementById(`filepos${match[1]}`) ?? 0,
+    };
+  };
+
   // foliate getGuide :782-789
-  const getGuide = () =>
-    Array.from(createDocument(rawSections[0]).getElementsByTagName("reference"), (ref) => ({
+  const getGuide = async () => {
+    const doc = await createDocument(0);
+    return Array.from(doc.getElementsByTagName("reference"), (ref) => ({
       label: ref.getAttribute("title"),
       type: ref.getAttribute("type")?.split(/\s/),
       href: `filepos:${ref.getAttribute("filepos")}`,
     }));
+  };
 
   // foliate init :732-776 — TOC from the guide's toc reference; falls back to
   // per-section placeholder labels
   let toc = null;
   try {
     if (typeof DOMParser === "undefined") throw new Error("No DOMParser (parse-only context)");
-    const landmarks = getGuide();
+    const landmarks = await getGuide();
     const tocHref = landmarks.find(({ type: t }) => t?.includes("toc"))?.href;
     if (tocHref) {
       const { index } = resolveTOCHref(tocHref);
-      const doc = createDocument(rawSections[index]);
+      const doc = await createDocument(index);
       let lastItem;
       let lastLevel = 0;
       let lastIndent = 0;
@@ -1058,7 +1097,7 @@ const createMOBI6Book = (mobi) => {
     console.warn(e);
   }
 
-  const sections = rawSections.map((section, index) => {
+  const sections = snapshot.sections.map(({ start, end }, index) => {
     const name = `mobi:section:${index}`;
     let url = null;
     return {
@@ -1070,7 +1109,7 @@ const createMOBI6Book = (mobi) => {
       // (blockquotes in MOBI have only a small left margin by default and
       // many books rely on it), rewrite recindex/filepos, wrap as a blob
       load: async () => {
-        const doc = createDocument(section);
+        const doc = await createDocument(index);
         const style = doc.createElement("style");
         doc.head?.append(style);
         style.append(
@@ -1108,27 +1147,15 @@ const createMOBI6Book = (mobi) => {
         if (url != null) cache.unref(url);
       },
       // raw document for text extraction — no resource rewriting
-      createDocument: async () => createDocument(section),
-      size: section.end - section.start,
+      createDocument: () => createDocument(index),
+      size: end - start,
       linear: "yes",
     };
   });
 
-  const resolveTOCHref = (href) => {
-    const match = href.match(/filepos:(.*)/);
-    if (!match) return null;
-    const number = Number(match[1]);
-    const index = rawSections.findIndex((section) => section.end > number);
-    if (index < 0) return null;
-    return {
-      index,
-      anchor: (doc) => doc.getElementById(`filepos${match[1]}`) ?? 0,
-    };
-  };
-
   return {
     sections,
-    metadata: mobi.getMetadata(),
+    metadata: snapshot.metadata,
     toc: toc ?? sections.map((s, i) => ({ label: `Section ${i + 1}`, href: String(i) })),
     dir: "ltr",
     rendition: { layout: "reflowable" },
@@ -1140,23 +1167,23 @@ const createMOBI6Book = (mobi) => {
   };
 };
 
-// foliate mobi.js:941-1238 — the KF8 (AZW3) book, adapted to our shape
-const createKF8Book = (mobi) => {
+// foliate mobi.js:941-1238 — the KF8 (AZW3) book, split along the same
+// worker seam as MOBI6: `prepareKF8` holds the FDST/skeleton/fragment
+// tables, the loadRaw front/back buffering and the INDX TOC (all pure —
+// this is the expensive open-time parse that motivated worker-ization);
+// `assembleKF8Book` is the DOM-flavored main-thread half. The one piece of
+// state that flows worker → main: fragment selectors discovered while
+// splicing a section ride along with every sectionText reply, keeping the
+// main thread's resolveTOCHref synchronous (closures cannot cross RPC).
+const prepareKF8 = (mobi) => {
   const { exth } = mobi.headers;
   if (exth?.fixedLayout === "true") {
     throw new Error("Fixed-layout MOBI (KF8) is not yet supported — reflowable only");
   }
 
-  const cache = createResourceCache();
-  // DOMParser/XMLSerializer are lazy — see the MOBI6 note above
-  let parserRef = null;
-  let serializerRef = null;
-  const parser = () => (parserRef ??= new DOMParser());
-  const serializer = () => (serializerRef ??= new XMLSerializer());
   const fragmentOffsets = new Map();
   const fragmentSelectors = new Map();
   const tables = {};
-  let docType = MIME.XHTML;
   let fullRawLength = null;
   let rawHead = new Uint8Array();
   let rawTail = new Uint8Array();
@@ -1210,37 +1237,22 @@ const createKF8Book = (mobi) => {
     return arr.concat({ skel, frags, fragEnd, length, totalLength });
   }, []);
 
-  // page-spread hints from the RESC record — foliate :1004-1019, best-effort
-  // (RESC parsing needs DOMParser; degrade silently when unavailable)
-  const pageSpreads = new Map();
-  if (typeof DOMParser !== "undefined") {
-    try {
-      const resources = getResourcesByMagic(["RESC"]);
-      if (resources.RESC != null) {
-        const buf = loadRecord(resources.RESC);
-        const str = mobi.decode(buf.slice(16)).replace(/\0/g, "");
-        // the RESC record lacks the root `<package>` element
-        // but seem to be otherwise valid XML
-        const index = str.search(/\?>/);
-        const xmlStr = `<package>${str.slice(index)}</package>`;
-        const opf = parser().parseFromString(xmlStr, MIME.XML);
-        for (const $itemref of opf.querySelectorAll("spine > itemref")) {
-          const i = parseInt($itemref.getAttribute("skelid"));
-          const properties = $itemref.getAttribute("properties")?.split(" ") ?? [];
-          for (const p of properties) {
-            if (p === "page-spread-left" || p === "rendition:page-spread-left")
-              pageSpreads.set(i, "left");
-            else if (p === "page-spread-right" || p === "rendition:page-spread-right")
-              pageSpreads.set(i, "right");
-            else if (p === "rendition:page-spread-center") pageSpreads.set(i, "center");
-          }
-        }
-      }
-    } catch (e) {
-      console.warn(e);
+  // RESC extraction up to the string (pure); the DOMParser pass stays on
+  // the main thread (see assembleKF8Book) — foliate :1004-1019, best-effort
+  let rescXml = null;
+  try {
+    const resources = getResourcesByMagic(["RESC"]);
+    if (resources.RESC != null) {
+      const buf = loadRecord(resources.RESC);
+      const str = mobi.decode(buf.slice(16)).replace(/\0/g, "");
+      // the RESC record lacks the root `<package>` element
+      // but seem to be otherwise valid XML
+      const index = str.search(/\?>/);
+      rescXml = `<package>${str.slice(index)}</package>`;
     }
+  } catch (e) {
+    console.warn(e);
   }
-  void pageSpreads; // spread hints are accepted but unused by our paginator
 
   // foliate getResourcesByMagic :1060-1072
   function getResourcesByMagic(keys) {
@@ -1286,8 +1298,27 @@ const createKF8Book = (mobi) => {
     return rawTail.slice(start - rawTailStart, end - rawTailStart);
   };
 
-  const getIndexByFID = (fid) =>
-    kf8Sections.findIndex((section) => section.frags.some((frag) => frag.index === fid));
+  // TOC from the NCX INDX records — foliate :1030-1044; runs on the prepare
+  // side because its fragment-offset bookkeeping feeds loadText below
+  let toc = null;
+  try {
+    const ncx = mobi.getNCX();
+    const map = ({ label, pos, children }) => {
+      const [fid, off] = pos;
+      const href = makePosURI(fid, off);
+      const arr = fragmentOffsets.get(fid);
+      if (arr) arr.push(off);
+      else fragmentOffsets.set(fid, [off]);
+      return {
+        label: unescapeHTML(label),
+        href,
+        subitems: children?.map(map),
+      };
+    };
+    toc = ncx?.map(map) ?? null;
+  } catch (e) {
+    console.warn(e);
+  }
 
   const setFragmentSelector = (id, offset, selector) => {
     const map = fragmentSelectors.get(id);
@@ -1327,22 +1358,96 @@ const createKF8Book = (mobi) => {
     if (index < 0xffffffff && tables.fdstTable) return loadRaw(...tables.fdstTable[index]);
   };
 
-  // foliate loadResourceBlob/loadResource :1085-1110 — `kindle:` resources
-  // issued through the shared cache (CSS flows get the pipeline's CSS intake)
-  const loadResource = async (str, parent) => {
-    const { resourceType, id, type } = parseResourceURI(str);
-    const name = `kindle:${resourceType}:${id}`;
-    let data;
-    let mime = type;
-    if (resourceType === "flow") {
-      const raw = loadFlow(id);
-      if (type === MIME.CSS) {
-        data = cssIntake(mobi.decode(raw));
-        mime = MIME.CSS;
-      } else data = raw ?? new Uint8Array();
-    } else {
-      data = await Promise.resolve(mobi.loadResource(id - 1));
+  return {
+    kind: "kf8",
+    snapshot: {
+      kind: "kf8",
+      metadata: mobi.getMetadata(),
+      toc,
+      dir: exth?.pageProgressionDirection ?? "ltr",
+      rescXml,
+      // per-section skeleton metadata: sizes, linearity, and the fragment
+      // ids the sync resolveTOCHref/index lookup runs over
+      sections: kf8Sections.map((section) => ({
+        size: section.length,
+        linear: section.frags.length > 0 ? "yes" : "no",
+        fids: section.frags.map((frag) => frag.index),
+      })),
+    },
+    sectionText: (index) => {
+      const section = kf8Sections[index];
+      if (!section) throw new RangeError(`KF8 section index out of bounds: ${index}`);
+      const str = loadText(section);
+      // ship the selectors discovered so far so the main thread's mirror
+      // stays in lockstep (idempotent — recomputed identically per call)
+      const selectors = [];
+      for (const [fid, map] of fragmentSelectors) {
+        for (const [off, selector] of map) selectors.push([fid, off, selector]);
+      }
+      return { str, selectors };
+    },
+    // `kindle:` resource URIs — flow resources (CSS intake applied) and
+    // embedded records; returns {data, mime} for the main-thread blob cache
+    resource: (str) => {
+      const { resourceType, id, type } = parseResourceURI(str);
+      if (resourceType === "flow") {
+        if (type === MIME.CSS)
+          return { data: cssIntake(mobi.decode(loadFlow(id))), mime: MIME.CSS };
+        return { data: loadFlow(id) ?? new Uint8Array(), mime: type };
+      }
+      return { data: mobi.loadResource(id - 1), mime: type };
+    },
+  };
+};
+
+const assembleKF8Book = async ({ snapshot, sectionText, resource }) => {
+  const cache = createResourceCache();
+  // DOMParser/XMLSerializer are lazy — see the MOBI6 note above
+  let parserRef = null;
+  let serializerRef = null;
+  const parser = () => (parserRef ??= new DOMParser());
+  const serializer = () => (serializerRef ??= new XMLSerializer());
+  const fragmentSelectors = new Map();
+  let docType = MIME.XHTML;
+
+  const setFragmentSelector = (id, offset, selector) => {
+    const map = fragmentSelectors.get(id);
+    if (map) map.set(offset, selector);
+    else fragmentSelectors.set(id, new Map([[offset, selector]]));
+  };
+  const mergeSelectors = (entries) => {
+    for (const [fid, off, selector] of entries) setFragmentSelector(fid, off, selector);
+  };
+
+  // page-spread hints from the RESC record — foliate :1004-1019, best-effort
+  // (RESC parsing needs DOMParser; degrade silently when unavailable)
+  const pageSpreads = new Map();
+  if (typeof DOMParser !== "undefined" && snapshot.rescXml != null) {
+    try {
+      const opf = parser().parseFromString(snapshot.rescXml, MIME.XML);
+      for (const $itemref of opf.querySelectorAll("spine > itemref")) {
+        const i = parseInt($itemref.getAttribute("skelid"));
+        const properties = $itemref.getAttribute("properties")?.split(" ") ?? [];
+        for (const p of properties) {
+          if (p === "page-spread-left" || p === "rendition:page-spread-left")
+            pageSpreads.set(i, "left");
+          else if (p === "page-spread-right" || p === "rendition:page-spread-right")
+            pageSpreads.set(i, "right");
+          else if (p === "rendition:page-spread-center") pageSpreads.set(i, "center");
+        }
+      }
+    } catch (e) {
+      console.warn(e);
     }
+  }
+  void pageSpreads; // spread hints are accepted but unused by our paginator
+
+  // foliate loadResourceBlob/loadResource :1085-1110 — `kindle:` resources
+  // issued through the shared cache (CSS intake already applied worker-side)
+  const loadResource = async (str, parent) => {
+    const { resourceType, id } = parseResourceURI(str);
+    const name = `kindle:${resourceType}:${id}`;
+    const { data, mime } = await Promise.resolve(resource(str));
     return cache.createURL(data, mime ?? "", name, parent);
   };
 
@@ -1353,10 +1458,10 @@ const createKF8Book = (mobi) => {
       loadResource(match, parent)
     );
 
-  const sections = kf8Sections.map((section, index) => {
+  const sections = snapshot.sections.map((meta, index) => {
     const name = `mobi:section:${index}`;
     let url = null;
-    const hasContent = section.frags.length > 0;
+    const hasContent = meta.linear === "yes";
     return {
       id: String(index),
       get url() {
@@ -1364,12 +1469,14 @@ const createKF8Book = (mobi) => {
       },
       // foliate loadSection :1172-1191
       load: async () => {
-        const str = await replaceResources(loadText(section), name);
+        const { str, selectors } = await sectionText(index);
+        mergeSelectors(selectors);
+        const replaced = await replaceResources(str, name);
         // by default, type is XHTML; change to HTML if it's not valid XHTML
-        let doc = parser().parseFromString(str, docType);
+        let doc = parser().parseFromString(replaced, docType);
         if (doc.querySelector("parsererror") || !doc.documentElement?.namespaceURI) {
           docType = MIME.HTML;
-          doc = parser().parseFromString(str, docType);
+          doc = parser().parseFromString(replaced, docType);
         }
         url = await cache.createURL(serializer().serializeToString(doc), docType, name);
         return url;
@@ -1380,33 +1487,16 @@ const createKF8Book = (mobi) => {
       // raw document for text extraction — no resource rewriting
       createDocument: async () => {
         if (!hasContent) return null;
-        return parser().parseFromString(loadText(section), MIME.XHTML);
+        const { str, selectors } = await sectionText(index);
+        mergeSelectors(selectors);
+        return parser().parseFromString(str, MIME.XHTML);
       },
-      size: section.length,
-      linear: hasContent ? "yes" : "no",
+      size: meta.size,
+      linear: meta.linear,
     };
   });
 
-  // TOC from the NCX INDX records — foliate :1030-1044; per-section fallback
-  let toc = null;
-  try {
-    const ncx = mobi.getNCX();
-    const map = ({ label, pos, children }) => {
-      const [fid, off] = pos;
-      const href = makePosURI(fid, off);
-      const arr = fragmentOffsets.get(fid);
-      if (arr) arr.push(off);
-      else fragmentOffsets.set(fid, [off]);
-      return {
-        label: unescapeHTML(label),
-        href,
-        subitems: children?.map(map),
-      };
-    };
-    toc = ncx?.map(map) ?? null;
-  } catch (e) {
-    console.warn(e);
-  }
+  const getIndexByFID = (fid) => snapshot.sections.findIndex((meta) => meta.fids.includes(fid));
 
   const resolveTOCHref = (href) => {
     if (!kindlePosRegex.test(href)) return null;
@@ -1417,16 +1507,16 @@ const createKF8Book = (mobi) => {
     return {
       index,
       // best-effort: the selector is known once the section's fragments have
-      // been walked (foliate can recover it by loading raw records)
+      // been walked (the worker ships them with every sectionText reply)
       anchor: selector ? (doc) => doc.querySelector(selector) : () => 0,
     };
   };
 
   return {
     sections,
-    metadata: mobi.getMetadata(),
-    toc: toc ?? sections.map((s, i) => ({ label: `Section ${i + 1}`, href: String(i) })),
-    dir: exth?.pageProgressionDirection ?? "ltr",
+    metadata: snapshot.metadata,
+    toc: snapshot.toc ?? sections.map((s, i) => ({ label: `Section ${i + 1}`, href: String(i) })),
+    dir: snapshot.dir,
     rendition: { layout: "reflowable" },
     transformTarget: cache.events,
     resolveTOCHref,
@@ -1435,6 +1525,14 @@ const createKF8Book = (mobi) => {
     },
   };
 };
+
+/**
+ * Pick the assembler for a prepared object (local `parseMobi` preparation
+ * or the worker backend's RPC-backed one).
+ * @param {{kind: string}} prepared
+ */
+export const assembleMobiBook = (prepared) =>
+  prepared.kind === "kf8" ? assembleKF8Book(prepared) : assembleMOBI6Book(prepared);
 
 /**
  * Parse-level introspection without building the book (Node-test seam):
@@ -1479,11 +1577,29 @@ export function inspectMobi(bytes) {
  *   fixed-layout KF8)
  */
 export async function parseMobi(bytes, { unzlib } = {}) {
+  // in-process: prepare (pure parse) + assemble (DOM) run back to back on
+  // this thread; the worker backend runs prepare in the worker and feeds
+  // the same assembler across the RPC seam
+  return assembleMobiBook(prepareMobi(bytes, { unzlib }));
+}
+
+/**
+ * Parse MOBI/KF8 bytes up to the pure-data seam (worker-safe: no DOM, no
+ * blob URLs). The book worker calls this on its side and serves
+ * sectionText/resource over RPC; `parseMobi` calls it and assembles
+ * locally.
+ *
+ * @param {Uint8Array|ArrayBuffer} bytes
+ * @param {{unzlib?: Function}} [options]
+ * @returns {{kind: "kf8"|"mobi6", snapshot: object, sectionText: Function,
+ *   resource: Function}}
+ */
+export const prepareMobi = (bytes, { unzlib } = {}) => {
   const array = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   if (!isMobi(array)) {
     throw new Error("Not a MOBI book: PDB type is not BOOKMOBI (TEXtREAd is unsupported)");
   }
   const mobi = new MOBI({ unzlib });
   const isKF8 = mobi.open(array);
-  return isKF8 ? createKF8Book(mobi) : createMOBI6Book(mobi);
-}
+  return isKF8 ? prepareKF8(mobi) : prepareMOBI6(mobi);
+};

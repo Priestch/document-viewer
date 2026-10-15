@@ -29,6 +29,7 @@
 //   the dangling resource (same shape as resources.js' cache events).
 
 import { isExternal, resolveURL } from "./url.js";
+import { prebuiltURL } from "./resources.js";
 
 const MIME = {
   XHTML: "application/xhtml+xml",
@@ -129,13 +130,16 @@ export function createRewriter({
       parents.every((p) => p !== href);
     if (shouldReplace) return loadReplaced(item, parents);
     // dedupe of already-live resources happens inside cache.createURL (its
-    // name key), standing in for foliate's early `#cache.has` check
-    return cache.createURL(
-      Promise.resolve().then(() => zip.loadBytes(href)),
-      mediaType,
-      href,
-      parent
-    );
+    // name key), standing in for foliate's early `#cache.has` check.
+    // Pass-through resources (images, fonts, media) go through the worker's
+    // blob minter when the seam offers one, so their bytes never cross;
+    // the in-process zip falls back to main-thread blobs.
+    const data = zip.createBlobURL
+      ? zip
+          .createBlobURL(href, mediaType)
+          .then((url) => (url ? prebuiltURL(url, zip.revokeBlobURL) : null))
+      : Promise.resolve().then(() => zip.loadBytes(href));
+    return cache.createURL(data, mediaType, href, parent);
   };
 
   // foliate loadReplaced (epub.js:792-865)

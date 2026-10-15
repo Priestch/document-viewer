@@ -11,6 +11,7 @@
 // pipeline's paginator has no error channel of its own after open.
 
 import { createInProcessBackend } from "./book_backend.js";
+import { createWorkerBackend } from "./worker_backend.js";
 import { createPaginator } from "./pipeline/paginator.js";
 import { getCFI, resolveCFI, resolveHref as resolveHrefInBook } from "./pipeline/cfi.js";
 import { extractText } from "./pipeline/text.js";
@@ -290,14 +291,18 @@ export function createBookEngine({ format, capabilities, label, backend, options
  * @param {object} [options]
  * @param {string} [options.height] CSS height for the mounted view
  *   (default "100%" of the container).
+ * @param {import("./book_backend.js").BookBackend|"in-process"} [options]
+ *   backend; defaults to the worker backend (bytes/inflation in a worker,
+ *   fake-worker fallback). Pass `"in-process"` for the all-main-thread
+ *   pipeline (debug escape hatch), or any BookBackend of your own.
  */
 export function createEpubEngine(options = {}) {
-  const { backend = createInProcessBackend(), ...rest } = options;
+  const { backend = createWorkerBackend({ format: "epub" }), ...rest } = options;
   return createBookEngine({
     format: "epub",
     capabilities: EPUB_CAPABILITIES,
     label: "EpubEngine",
-    backend,
+    backend: backend === "in-process" ? createInProcessBackend() : backend,
     options: rest,
   });
 }

@@ -11,6 +11,7 @@ import { unzlibSync } from "fflate";
 import { sourceToBytes } from "./book_backend.js";
 import { parseMobi } from "./pipeline/mobi.js";
 import { createBookEngine } from "./epub_engine.js";
+import { createWorkerBackend } from "./worker_backend.js";
 
 /**
  * @typedef {import("@document-kits/engine-core").DocumentEngine} DocumentEngine
@@ -58,15 +59,19 @@ export function createMobiBackend() {
  * @param {object} [options]
  * @param {string} [options.height] CSS height for the mounted view
  *   (default "100%" of the container).
+ * @param {import("./book_backend.js").BookBackend|"in-process"} [options]
+ *   backend; defaults to the worker backend (record decompression and the
+ *   KF8 skeleton/INDX parse in a worker, fake-worker fallback). Pass
+ *   `"in-process"` for the all-main-thread pipeline (debug escape hatch).
  * @returns {DocumentEngine}
  */
 export function createMobiEngine(options = {}) {
-  const { backend = createMobiBackend(), ...rest } = options;
+  const { backend = createWorkerBackend({ format: "mobi" }), ...rest } = options;
   return createBookEngine({
     format: "mobi",
     capabilities: MOBI_CAPABILITIES,
     label: "MobiEngine",
-    backend,
+    backend: backend === "in-process" ? createMobiBackend() : backend,
     options: rest,
   });
 }

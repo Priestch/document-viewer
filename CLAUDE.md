@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 背景、架构方案、Phase 0 开工清单见 @docs/plans/2026-10-11-universal-viewer-onboarding.md（完整源码级调研在同目录 feasibility 报告）。
 
-核心原则：**统一发生在文档模型/接口层，不发生在渲染层**——PDF 走 pdf.js 原生管线（worker → op-list → canvas），EPUB 走 iframe + CSS columns（foliate-js）。EPUB worker 化是渐进的：DOMParser、`URL.createObjectURL`、几何计算永远留在主线程。
+核心原则：**统一发生在文档模型/接口层，不发生在渲染层**——PDF 走 pdf.js 原生管线（worker → op-list → canvas），EPUB/MOBI 走 iframe + CSS columns（自有管线）。EPUB/MOBI worker 化已落地（prep 文档 §7）：字节/纯解析在 worker（pdf.js MessageHandler + fake-worker 双模式）；**DOMParser、几何计算永远留在主线程**；资源 blob URL（图片/字体）自 2026-10-15 起在 worker 侧铸造——字节不过河，refcount 级联经 revoke RPC 回流。
 
 Phase 0 顺序（先于一切 engine 代码）：升级 vendored pdf.js → vendor foliate-js（submodule 锁 commit）→ `engine-core` 包骨架（DocumentEngine 接口 + openDocument 工厂 + 内容嗅探）→ EPUB 最小通路 demo。
 

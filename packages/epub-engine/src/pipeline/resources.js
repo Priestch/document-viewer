@@ -21,6 +21,25 @@
 // the same order foliate's Loader produces.
 
 /**
+ * A blob URL minted on the OTHER side of the worker seam. The resource
+ * bytes never crossed (the worker inflated the zip entry / MOBI record and
+ * blobbed it itself — URL.createObjectURL works in workers and the URLs
+ * are valid cross-context); `revoke` routes revocation back there.
+ * @typedef {Object} PrebuiltURL
+ * @property {true} __prebuilt
+ * @property {string} url
+ * @property {(url: string) => void} [revoke]
+ */
+const isPrebuilt = (data) => data != null && typeof data === "object" && data.__prebuilt === true;
+
+/**
+ * Wrap a worker-minted blob URL for `createResourceCache.createURL`.
+ * @param {string} url
+ * @param {(url: string) => void} [revoke]
+ */
+export const prebuiltURL = (url, revoke) => ({ __prebuilt: true, url, revoke });
+
+/**
  * Create a refcounted blob-URL cache over a zip source.
  *
  * @param {{loadBytes?: Function, getSize?: Function}} [source] the zip
@@ -44,6 +63,7 @@ export function createResourceCache({ loadBytes, getSize } = {}) {
   const urlToId = new Map(); // blob URL → identity
   const refCount = new Map(); // identity → live reference count
   const children = new Map(); // parent identity → [child identity]
+  const revokers = new Map(); // identity → prebuilt-URL revoke hook
 
   // blob URLs and hrefs both work as handles (parents are hrefs at rewrite
   // time, URLs at unload time)
@@ -65,8 +85,14 @@ export function createResourceCache({ loadBytes, getSize } = {}) {
     const data = await detail.data; // a rejection propagates (event already fired)
     const newType = await detail.type; // listeners may have swapped either field
     if (data == null) return "";
-    const url = URL.createObjectURL(new Blob([data], { type: newType }));
+    // A prebuilt URL (worker-side blob): the bytes never crossed the seam,
+    // so the blob was made in the worker and revocation routes back there
+    // (URL.createObjectURL works in workers and blob URLs are valid
+    // cross-context — prep doc §4.3). Everything else blobs locally.
+    const prebuilt = isPrebuilt(data);
+    const url = prebuilt ? data.url : URL.createObjectURL(new Blob([data], { type: newType }));
     const id = name ?? url;
+    if (prebuilt && data.revoke) revokers.set(id, data.revoke);
     urls.set(id, url);
     urlToId.set(url, id);
     refCount.set(id, 1);
@@ -99,10 +125,12 @@ export function createResourceCache({ loadBytes, getSize } = {}) {
     const count = refCount.get(id) - 1;
     if (count < 1) {
       const blobUrl = urls.get(id);
-      if (blobUrl != null) URL.revokeObjectURL(blobUrl);
+      const revoke = revokers.get(id) ?? ((u) => URL.revokeObjectURL(u));
+      if (blobUrl != null) revoke(blobUrl);
       urls.delete(id);
       urlToId.delete(blobUrl);
       refCount.delete(id);
+      revokers.delete(id);
       // a parent's death cascades: child blobs die with the section blob
       const childList = children.get(id);
       if (childList) while (childList.length) unref(urls.get(childList.pop()));
@@ -111,11 +139,12 @@ export function createResourceCache({ loadBytes, getSize } = {}) {
   }
 
   function destroy() {
-    for (const url of urls.values()) URL.revokeObjectURL(url);
+    for (const [id, url] of urls) (revokers.get(id) ?? ((u) => URL.revokeObjectURL(u)))(url);
     urls.clear();
     urlToId.clear();
     refCount.clear();
     children.clear();
+    revokers.clear();
   }
 
   return {

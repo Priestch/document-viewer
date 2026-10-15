@@ -92,8 +92,9 @@ const getHTMLFragment = (doc, id) =>
  */
 export function resolveHref(book, href) {
   // engine-native TOC hrefs that are not container paths: MOBI's
-  // `filepos:…` / `kindle:pos:…` addresses delegate to the book's own
-  // resolver (foliate's splitTOCHref seam)
+  // `filepos:…` / `kindle:pos:…` addresses (fast path below) and FB2's
+  // "sectionIndex#titleIndex" addresses (never path-match) delegate to the
+  // book's own resolver (foliate's splitTOCHref seam)
   if (/^(filepos:|kindle:)/.test(href)) {
     return book.resolveTOCHref?.(href) ?? null;
   }
@@ -102,7 +103,9 @@ export function resolveHref(book, href) {
   const index = book.sections.findIndex(
     (section) => section.id === target || section.id === decodeURI(target)
   );
-  if (index === -1) return null;
+  // non-container-path hrefs (FB2's "sectionIndex#titleIndex" TOC addresses)
+  // delegate too, like the engine-native ones above
+  if (index === -1) return book.resolveTOCHref?.(href) ?? null;
   const anchor = hash ? (doc) => getHTMLFragment(doc, hash) : () => 0;
   return { index, anchor };
 }

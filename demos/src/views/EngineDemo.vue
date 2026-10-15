@@ -82,6 +82,8 @@ const onFilePicked = (event) => {
     ? "epub"
     : name.endsWith(".cbz")
     ? "cbz"
+    : name.endsWith(".fb2") || name.endsWith(".fb2.zip") || name.endsWith(".fbz")
+    ? "fb2"
     : name.endsWith(".mobi") || name.endsWith(".azw3")
     ? "mobi"
     : null;
@@ -118,12 +120,13 @@ onBeforeUnmount(() => {
       </button>
       <button @click="open('epub', './alice.epub')">打开 EPUB</button>
       <button @click="open('cbz', './comic.cbz')">打开 CBZ</button>
+      <button @click="open('fb2', './alice.fb2')">打开 FB2</button>
       <button @click="open('mobi', './alice.mobi')">打开 MOBI</button>
       <button @click="fileInput?.click()">打开本地文件…</button>
       <input
         ref="fileInput"
         type="file"
-        accept=".pdf,.epub,.cbz,.mobi,.azw3,application/pdf,application/epub+zip,application/vnd.comicbook+zip"
+        accept=".pdf,.epub,.cbz,.fb2,.fbz,.mobi,.azw3,application/pdf,application/epub+zip,application/vnd.comicbook+zip,application/x-fictionbook+xml"
         hidden
         @change="onFilePicked"
       />

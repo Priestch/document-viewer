@@ -10,6 +10,7 @@
 import { registerEngine } from "@document-kits/engine-core";
 import { createEpubEngine } from "./epub_engine.js";
 import { createCbzEngine, createCbzBackend } from "./cbz_engine.js";
+import { createFb2Engine, createFb2Backend } from "./fb2_engine.js";
 import { createMobiEngine, createMobiBackend } from "./mobi_engine.js";
 import { createWorkerBackend } from "./worker_backend.js";
 
@@ -17,12 +18,15 @@ export {
   createEpubEngine,
   createCbzEngine,
   createCbzBackend,
+  createFb2Engine,
+  createFb2Backend,
   createMobiEngine,
   createMobiBackend,
   createWorkerBackend,
 };
 export { parseMobi, isMobi } from "./pipeline/mobi.js";
 export { pickComicPageFiles, imageMime } from "./pipeline/cbz.js";
+export { hasZipMagic, decodeFB2Text } from "./pipeline/fb2.js";
 
 /**
  * Register the "epub" engine with engine-core's factory.
@@ -40,6 +44,16 @@ export function registerEpubEngine(options = {}) {
  */
 export function registerCbzEngine(options = {}) {
   registerEngine("cbz", () => createCbzEngine(options));
+}
+
+/**
+ * Register the "fb2" engine (FictionBook, incl. zipped .fb2.zip/.fbz) with
+ * engine-core's factory.
+ *
+ * @param {{height?: string}} [options] Passed to every created engine.
+ */
+export function registerFb2Engine(options = {}) {
+  registerEngine("fb2", () => createFb2Engine(options));
 }
 
 /**

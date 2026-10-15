@@ -21,6 +21,7 @@ import { unzlibSync } from "fflate";
 import { sourceToBytes } from "../source.js";
 import { createZipSource } from "../pipeline/zip-source.js";
 import { prepareMobi } from "../pipeline/mobi.js";
+import { decodeFB2Text, hasZipMagic, selectFB2Entry } from "../pipeline/fb2.js";
 
 /** A display name for the snapshot: File.name crosses the seam via
  * structured clone; URL sources get their basename. */
@@ -61,13 +62,15 @@ export function connect(port) {
   const handler = new MessageHandler("worker", "main", port);
   const blobs = createBlobMinter();
 
-  /** @type {ReturnType<typeof createZipSource>|null} EPUB zip state */
+  /** @type {ReturnType<typeof createZipSource>|null} EPUB/CBZ zip state */
   let zip = null;
   /** @type {ReturnType<typeof prepareMobi>|null} MOBI prepared state */
   let mobi = null;
+  /** @type {{text: string}|null} FB2 decoded text (eager: one snapshot) */
+  let fb2 = null;
 
   handler.on("open", async ({ format, source }) => {
-    if (zip != null || mobi != null) throw new Error("book-worker: already open");
+    if (zip != null || mobi != null || fb2 != null) throw new Error("book-worker: already open");
     const bytes = await sourceToBytes(source);
     if (format === "epub") {
       zip = createZipSource(bytes);
@@ -90,6 +93,22 @@ export function connect(port) {
     if (format === "mobi") {
       mobi = prepareMobi(bytes, { unzlib: unzlibSync });
       return { snapshot: mobi.snapshot };
+    }
+    if (format === "fb2") {
+      // the whole book crosses as ONE text snapshot (foliate's eager model —
+      // the main thread converts it in one DOMParser pass). Zip magic, not
+      // the extension, decides the container: .fb2.zip/.fbz/plain all ride
+      // this id. The zip is NOT kept in the `zip` state (no per-entry RPCs).
+      const view = new Uint8Array(bytes);
+      const text = hasZipMagic(view)
+        ? (() => {
+            const zip = createZipSource(bytes);
+            const entry = selectFB2Entry(zip.entries());
+            return decodeFB2Text(zip.loadBytes(entry.filename));
+          })()
+        : decodeFB2Text(view);
+      fb2 = { text };
+      return { snapshot: { kind: "fb2", text, name: sourceName(source) } };
     }
     throw new Error(`book-worker: unsupported format ${format}`);
   });

@@ -24,6 +24,7 @@ import "./worker/compat.js";
 import { MessageHandler } from "@document-kits/viewer/message-handler.mjs";
 
 import { assembleEpubBook } from "./book_backend.js";
+import { assembleCbzBook } from "./pipeline/cbz.js";
 import { assembleMobiBook } from "./pipeline/mobi.js";
 import { prebuiltURL } from "./pipeline/resources.js";
 
@@ -83,7 +84,7 @@ function createWorkerZip(handler, revoke) {
  * Create the worker-backed BookBackend.
  *
  * @param {object} [options]
- * @param {"epub"|"mobi"} options.format which parse pipeline the worker runs
+ * @param {"epub"|"cbz"|"mobi"} options.format which parse pipeline the worker runs
  * @param {"auto"|"worker"|"fake"} [options.mode] "auto" prefers a real
  *   worker and falls back to the fake worker when `Worker` is unavailable
  *   or construction throws; "fake"/"worker" force a mode.
@@ -187,6 +188,14 @@ export function createWorkerBackend({ format, mode = "auto" } = {}) {
         const zip = createWorkerZip(h, revokeRPC);
         zip.initSnapshot(snapshot);
         const assembled = await assembleEpubBook(zip);
+        cache = assembled.cache;
+        this.book = assembled.book;
+        return assembled.book;
+      }
+      if (snapshot.kind === "cbz") {
+        const zip = createWorkerZip(h, revokeRPC);
+        zip.initSnapshot(snapshot);
+        const assembled = await assembleCbzBook({ zip, name: snapshot.name });
         cache = assembled.cache;
         this.book = assembled.book;
         return assembled.book;

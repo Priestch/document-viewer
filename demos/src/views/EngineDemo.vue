@@ -10,15 +10,15 @@ import { coerceLocation, openDocument } from "@document-kits/engine-core";
 const loaded = new Map();
 const ensureEngine = (format) => {
   const isPdf = format === "pdf";
-  if (!loaded.has(isPdf ? "pdf" : "reflowable")) {
+  if (!loaded.has(isPdf ? "pdf" : "books")) {
     loaded.set(
-      isPdf ? "pdf" : "reflowable",
-      (isPdf ? import("../lazy/pdf-engine.js") : import("../lazy/reflowable-engines.js")).then(
-        (m) => m.register()
+      isPdf ? "pdf" : "books",
+      (isPdf ? import("../lazy/pdf-engine.js") : import("../lazy/book-engines.js")).then((m) =>
+        m.register()
       )
     );
   }
-  return loaded.get(isPdf ? "pdf" : "reflowable");
+  return loaded.get(isPdf ? "pdf" : "books");
 };
 
 const host = ref(null);
@@ -80,6 +80,8 @@ const onFilePicked = (event) => {
     ? "pdf"
     : name.endsWith(".epub")
     ? "epub"
+    : name.endsWith(".cbz")
+    ? "cbz"
     : name.endsWith(".mobi") || name.endsWith(".azw3")
     ? "mobi"
     : null;
@@ -115,12 +117,13 @@ onBeforeUnmount(() => {
         打开 PDF
       </button>
       <button @click="open('epub', './alice.epub')">打开 EPUB</button>
+      <button @click="open('cbz', './comic.cbz')">打开 CBZ</button>
       <button @click="open('mobi', './alice.mobi')">打开 MOBI</button>
       <button @click="fileInput?.click()">打开本地文件…</button>
       <input
         ref="fileInput"
         type="file"
-        accept=".pdf,.epub,.mobi,.azw3,application/pdf,application/epub+zip"
+        accept=".pdf,.epub,.cbz,.mobi,.azw3,application/pdf,application/epub+zip,application/vnd.comicbook+zip"
         hidden
         @change="onFilePicked"
       />

@@ -22,6 +22,16 @@ import { sourceToBytes } from "../source.js";
 import { createZipSource } from "../pipeline/zip-source.js";
 import { prepareMobi } from "../pipeline/mobi.js";
 
+/** A display name for the snapshot: File.name crosses the seam via
+ * structured clone; URL sources get their basename. */
+const sourceName = (source) => {
+  if (typeof source?.name === "string" && source.name) return source.name;
+  if (typeof source === "string" || source instanceof URL) {
+    return String(source).split("/").pop()?.split("?")[0] || null;
+  }
+  return null;
+};
+
 /**
  * Mint worker-side blob URLs and track them for revocation. The main
  * thread's refcount cascade routes `revokeObjectURL` back here.
@@ -69,6 +79,13 @@ export function connect(port) {
           entries: zip.entries(),
         },
       };
+    }
+    if (format === "cbz") {
+      // same zip state as epub: the loadBytes/makeObjectURL/revokeObjectURL
+      // RPCs below are gated on `zip` and serve cbz unchanged — the images
+      // mint worker-side, bytes never cross
+      zip = createZipSource(bytes);
+      return { snapshot: { kind: "cbz", entries: zip.entries(), name: sourceName(source) } };
     }
     if (format === "mobi") {
       mobi = prepareMobi(bytes, { unzlib: unzlibSync });

@@ -3,6 +3,7 @@ import { ViewerApplication, PDFPrintServiceFactory } from "./default_app.js";
 import { bindExternalService, bindPrintServiceFactory } from "./external_service.js";
 import { TouchManager } from "../pdf.js/src/display/touch_manager.js";
 import { shadow } from "pdfjs-lib";
+import { bindReaderShell } from "./reader_shell.js";
 
 class PDFViewerApplication extends ViewerApplication {
   constructor(appOptions) {
@@ -41,6 +42,27 @@ class PDFViewerApplication extends ViewerApplication {
       signal: ac.signal,
     };
     const { eventBus, externalServices, pdfDocumentProperties, pdfViewer, preferences } = this;
+    const updateShell = bindReaderShell(this.appConfig.appContainer, opts);
+    const refreshShell = () =>
+      updateShell({
+        title: this.pdfDocument
+          ? (this.documentInfo && this._docTitle) || this._docFilename
+          : undefined,
+        page: this.page,
+        total: this.pagesCount,
+        scale: pdfViewer.currentScale,
+      });
+    for (const name of [
+      "documentinit",
+      "metadataloaded",
+      "pagesloaded",
+      "pagechanging",
+      "scalechanging",
+    ]) {
+      eventBus._on(name, refreshShell, opts);
+    }
+    eventBus._on("pagesdestroy", () => updateShell(), opts);
+    eventBus._on("documenterror", () => updateShell({ message: "Unable to open document" }), opts);
     const {
       onResize,
       onHashchange,

@@ -10,7 +10,7 @@ console.log("route", route);
   <aside>
     <nav>
       <RouterLink class="nav-link" :class="{ active: route.path === '/' }" to="/"
-        >PDF.js Viewer</RouterLink
+        >PDF Reader</RouterLink
       >
       <RouterLink
         class="nav-link"
@@ -71,7 +71,36 @@ a:visited {
 
 main {
   height: 100%;
-  width: 100%;
+  width: calc(100% - var(--sidebar-width));
+  min-width: 0;
   margin-inline-start: var(--sidebar-width);
+}
+
+@media (max-width: 760px) {
+  aside {
+    width: 100%;
+    height: 48px;
+    border-right: 0;
+    border-bottom: 1px solid #c7c7c7;
+  }
+
+  nav {
+    display: flex;
+    overflow-x: auto;
+    height: 100%;
+  }
+
+  .nav-link {
+    flex: none;
+    padding-inline: 12px;
+    line-height: 48px;
+  }
+
+  main {
+    width: 100%;
+    margin-inline-start: 0;
+    padding-top: 48px;
+    box-sizing: border-box;
+  }
 }
 </style>

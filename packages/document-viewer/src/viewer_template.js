@@ -1,3 +1,5 @@
+import { decorateReaderShell } from "./reader_shell.js";
+
 const template = `
 <div data-dom-id="outerContainer" class="outerContainer">
   <span
@@ -2331,13 +2333,14 @@ let templateFragment;
 /**
  * @returns {HTMLFrameElement}
  */
-function getViewerTemplate() {
+function getViewerTemplate({ readerShell = true } = {}) {
   if (!templateFragment) {
     const el = document.createElement("template");
     el.innerHTML = template;
     templateFragment = el.content;
   }
-  return document.importNode(templateFragment, true);
+  const fragment = document.importNode(templateFragment, true);
+  return readerShell ? decorateReaderShell(fragment) : fragment;
 }
 
 export default getViewerTemplate;

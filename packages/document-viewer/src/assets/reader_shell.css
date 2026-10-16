@@ -1,0 +1,317 @@
+/* Document Kits chrome. Content colors and rendering remain engine-owned. */
+.reader-shell {
+  --reader-surface: #ffffff;
+  --reader-canvas: #edf0f5;
+  --reader-text: #263449;
+  --reader-muted: #58677b;
+  --reader-line: #dbe2ec;
+  --reader-accent: #345dcc;
+  --reader-hover: #e8eefc;
+  --reader-header-height: 48px;
+  --reader-status-height: 30px;
+  --toolbar-height: 48px;
+  --toolbar-horizontal-padding: 12px;
+  --toolbar-vertical-padding: 7px;
+  color-scheme: light;
+  color: var(--reader-text);
+  font: 13px/1.4 system-ui, sans-serif;
+  container: reader / inline-size;
+}
+
+@media (prefers-color-scheme: dark) {
+  .reader-shell:not([data-reader-theme="light"]) {
+    --reader-surface: #202938;
+    --reader-canvas: #141b26;
+    --reader-text: #e2e9f5;
+    --reader-muted: #a9b8ce;
+    --reader-line: #3c495d;
+    --reader-accent: #9ab7ff;
+    --reader-hover: #334461;
+    color-scheme: dark;
+  }
+}
+
+.reader-shell[data-reader-theme="dark"] {
+  --reader-surface: #202938;
+  --reader-canvas: #141b26;
+  --reader-text: #e2e9f5;
+  --reader-muted: #a9b8ce;
+  --reader-line: #3c495d;
+  --reader-accent: #9ab7ff;
+  --reader-hover: #334461;
+  color-scheme: dark;
+}
+
+:is(#outerContainer, [data-dom-id="outerContainer"]).reader-shell > .mainContainer {
+  min-width: 0;
+}
+
+.reader-shell-header,
+.reader-shell-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: 18px;
+  background: var(--reader-surface);
+  box-sizing: border-box;
+}
+
+.reader-shell-header {
+  height: var(--reader-header-height);
+  flex: none;
+  border-bottom: 1px solid var(--reader-line);
+}
+
+.reader-shell-mark {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--reader-accent);
+  color: var(--reader-surface);
+  font-weight: 750;
+}
+
+.reader-shell-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.reader-shell-theme {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--reader-muted);
+}
+
+.reader-shell-theme select,
+.reader-shell-tools-toggle {
+  border: 1px solid var(--reader-line);
+  border-radius: 7px;
+  padding: 5px 8px;
+  background: var(--reader-surface);
+  color: var(--reader-text);
+  font: inherit;
+}
+
+.reader-shell .toolbarContainer {
+  --toolbar-bg-color: var(--reader-surface);
+  --toolbar-box-shadow: none;
+  border-bottom: 1px solid var(--reader-line);
+}
+
+.reader-shell .toolbarViewer {
+  gap: 12px;
+}
+
+.reader-shell .toolbarViewerLeft,
+.reader-shell .toolbarViewerMiddle,
+.reader-shell .toolbarViewerRight,
+.reader-shell-group {
+  gap: 4px;
+  align-items: center;
+}
+
+.reader-shell .toolbarViewerLeft {
+  margin-inline-start: 0;
+}
+
+.reader-shell-group {
+  display: flex;
+}
+
+.reader-shell-navigation,
+.reader-shell .toolbarViewerMiddle {
+  border-inline-start: 1px solid var(--reader-line);
+  padding-inline-start: 12px;
+}
+
+.reader-shell .toolbarButton {
+  border-radius: 7px;
+}
+
+:is(#outerContainer, [data-dom-id="outerContainer"]).reader-shell
+  .toolbarViewer
+  .toolbarButton:not(.labeled, .viewsManagerButton) {
+  width: 32px;
+  height: 32px;
+}
+
+:is(#outerContainer, [data-dom-id="outerContainer"]).reader-shell
+  :is(.scaleSelectContainer, .toolbarField) {
+  border: 1px solid var(--reader-line);
+  border-radius: 7px;
+  background: var(--reader-surface);
+  color: var(--reader-text);
+}
+
+:is(#outerContainer, [data-dom-id="outerContainer"]).reader-shell .scaleSelect {
+  color: var(--reader-text);
+  background: transparent;
+}
+
+.reader-shell :is(.toolbarButton, .dropdownToolbarButton, .toolbarField, .toolbarLabel) {
+  --main-color: var(--reader-text);
+  --toolbar-icon-bg-color: var(--reader-text);
+  --toolbar-icon-hover-bg-color: var(--reader-accent);
+  --button-hover-color: var(--reader-hover);
+  --toggled-btn-bg-color: var(--reader-hover);
+}
+
+.reader-shell .sidebar {
+  --sidebar-bg-color: var(--reader-surface);
+  --sidebar-border-color: var(--reader-line);
+  --sidebar-border-radius: 12px;
+  --sidebar-padding: 10px;
+  --sidebar-width: 280px;
+  --sidebar-min-width: 180px;
+  color: var(--reader-text);
+}
+
+:is(#outerContainer, [data-dom-id="outerContainer"]).reader-shell
+  .viewerContainer:not(.pdfPresentationMode) {
+  inset-block-start: calc(var(--reader-header-height) + var(--toolbar-height));
+  inset-block-end: var(--reader-status-height);
+  background: var(--reader-canvas);
+}
+
+.reader-shell .viewerContainer:not(.pdfPresentationMode) > .pdfViewer {
+  padding-block: 20px;
+}
+
+.reader-shell-status {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: var(--reader-status-height);
+  border-top: 1px solid var(--reader-line);
+  color: var(--reader-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.reader-shell-progress {
+  flex: 1;
+  min-width: 20px;
+  max-width: 160px;
+  height: 4px;
+  accent-color: var(--reader-accent);
+}
+
+.reader-shell-scale {
+  margin-inline-start: auto;
+}
+
+.reader-shell-tools-toggle {
+  display: none;
+}
+
+.reader-shell :is(button, select, input):focus-visible {
+  outline: 2px solid var(--reader-accent);
+  outline-offset: 2px;
+}
+
+@container reader (max-width: 1000px) {
+  .reader-shell .toolbarViewer {
+    gap: 4px;
+  }
+  .reader-shell .reader-shell-tools-toggle {
+    display: block;
+  }
+  .reader-shell .editorModeButtons {
+    display: none;
+  }
+  .reader-shell-tools-open .editorModeButtons {
+    display: flex;
+    flex-wrap: wrap;
+    position: absolute;
+    height: auto;
+    min-height: 48px;
+    max-width: calc(100cqw - 16px);
+    inset-inline-end: 8px;
+    top: calc(100% + 8px);
+    padding: 8px;
+    border: 1px solid var(--reader-line);
+    border-radius: 10px;
+    background: var(--reader-surface);
+    box-shadow: 0 6px 24px #0003;
+    z-index: 4;
+  }
+}
+
+@container reader (max-width: 640px) {
+  .reader-shell .mainContainer {
+    --toolbar-height: 96px;
+  }
+  .reader-shell-header,
+  .reader-shell-status {
+    padding-inline: 12px;
+  }
+  .reader-shell-theme {
+    font-size: 0;
+  }
+  .reader-shell-theme select {
+    font-size: 13px;
+  }
+  .reader-shell .toolbarViewer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 36px 36px;
+    row-gap: 8px;
+  }
+  .reader-shell .toolbarViewerLeft {
+    grid-column: 1 / -1;
+    justify-content: space-between;
+  }
+  .reader-shell .toolbarViewerMiddle {
+    border: 0;
+    padding: 0;
+  }
+  .reader-shell .toolbarViewerRight {
+    justify-self: end;
+  }
+  .reader-shell .toolbarViewer .hiddenSmallView,
+  .reader-shell .toolbarViewer .hiddenSmallView > .toolbarButton {
+    display: flex !important;
+  }
+  :is(#outerContainer, [data-dom-id="outerContainer"]).reader-shell
+    .toolbarViewer
+    .scaleSelectContainer {
+    display: inline-block;
+    min-width: 0;
+    width: min(140px, calc(100cqw - 230px));
+  }
+  .reader-shell .sidebar {
+    --sidebar-max-width: calc(100cqw - 24px);
+  }
+  .reader-shell .toolbarViewerRight .hiddenMediumView {
+    display: none !important;
+  }
+  .reader-shell .secondaryToolbar .visibleMediumView:not(.hidden, [hidden]) {
+    display: inline-block !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .reader-shell,
+  .reader-shell[data-reader-theme] {
+    --reader-surface: Canvas;
+    --reader-canvas: Canvas;
+    --reader-text: CanvasText;
+    --reader-muted: CanvasText;
+    --reader-line: ButtonBorder;
+    --reader-accent: Highlight;
+    --reader-hover: Canvas;
+  }
+}
+
+@media print {
+  .reader-shell-header,
+  .reader-shell-status {
+    display: none;
+  }
+}

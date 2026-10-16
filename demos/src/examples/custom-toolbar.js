@@ -7,6 +7,7 @@ const appOptions = {
   resourcePath: "./document-viewer",
   disableCORSCheck: true,
   disableAutoSetTitle: true,
+  readerShell: false,
 };
 
 function injectApp(el) {

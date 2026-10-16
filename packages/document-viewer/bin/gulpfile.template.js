@@ -93,9 +93,12 @@ function buildGenericApp(defines, dir) {
   ]);
 }
 
-function overrideStyle() {
-  const options = { cwd: ROOT_DIR };
-  return gulp.src("src/assets/viewer.css", options).pipe(gulp.dest("dist/generic/web", options));
+function overrideStyle(done) {
+  const styles = ["viewer.css", "reader_shell.css"].map((file) =>
+    fs.readFileSync(path.join(ROOT_DIR, "src/assets", file), "utf8")
+  );
+  fs.writeFileSync(path.join(ROOT_DIR, "dist/generic/web/viewer.css"), styles.join("\n"));
+  done();
 }
 
 gulp.task(

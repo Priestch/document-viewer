@@ -87,6 +87,16 @@ function runSmoke(options) {
 
   const appBundlePath = path.join(buildDir, "app.js");
   const viewerHtmlPath = path.join(webDir, "viewer.html");
+  const viewerCssPath = path.join(webDir, "viewer.css");
+
+  checks.push({
+    name: "viewer.css includes the scoped reader shell and responsive layout",
+    ok:
+      exists(viewerCssPath) &&
+      checkFileContains(viewerCssPath, ".reader-shell") &&
+      checkFileContains(viewerCssPath, "@container reader"),
+    detail: "expected reader_shell.css appended to the native stylesheet",
+  });
 
   if (exists(appBundlePath)) {
     checks.push(
@@ -94,6 +104,13 @@ function runSmoke(options) {
         name: "app.js exports createViewerApp",
         ok: checkFileContains(appBundlePath, "createViewerApp"),
         detail: "expected createViewerApp symbol in app bundle",
+      },
+      {
+        name: "app.js includes reader shell presentation and theme controls",
+        ok:
+          checkFileContains(appBundlePath, "reader-shell-title") &&
+          checkFileContains(appBundlePath, "readerTheme"),
+        detail: "expected the decorated template in the viewer bundle",
       },
       {
         name: "app.js contains dynamic _openFileInput usage",

@@ -277,6 +277,7 @@ function getViewerConfiguration(el) {
  * @property {boolean} [disableAutoSetTitle=false] - Disable auto-set title of document caused by pdf.js.
  * @property {AppOptions} [appOptions={}] - Default app options of pdf.js.
  * @property {Array} [plugins=[]] - Plugins to extend viewer behavior.
+ * @property {boolean} [readerShell=true] - Use Document Kits chrome; false keeps the native layout for custom toolbars.
  */
 
 /**
@@ -295,6 +296,7 @@ function createViewerApp(options) {
     disableAutoSetTitle = false,
     appOptions = {},
     plugins = [],
+    readerShell = true,
   } = options;
 
   const pluginManager = new PluginManager(plugins);
@@ -335,7 +337,7 @@ function createViewerApp(options) {
   activeApp = app;
 
   if (parent) {
-    const template = getViewerTemplate();
+    const template = getViewerTemplate({ readerShell });
     parent.appendChild(template);
 
     const config = getViewerConfiguration(parent);
